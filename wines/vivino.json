@@ -216,13 +216,24 @@
     },
     {
       "command": "store_text",
-      "locator": "#vintageListSection a div div:nth-child(1) span",
+      "locator": "div[class*='wineHeadline-module__vintage']",
+      "output": {
+        "name": "VINTAGE_TEXT",
+        "type": "string",
+        "show": false
+      },
+      "description": "Gets vintage text from main headline"
+    },
+    {
+      "command": "regex",
+      "input": "$VINTAGE_TEXT",
+      "expression": "(\\d{4})",
       "output": {
         "name": "VINTAGE",
         "type": "string",
         "show": true
       },
-      "description": "Saves the vintage of the wine"
+      "description": "Extracts only the year (e.g. 2020)"
     },
     {
       "command": "store_text",
@@ -262,13 +273,56 @@
     },
     {
       "command": "store_text",
-      "locator": "[class^=purchaseAvailabilityPPC__amount]",
+      "locator": "span[class*='purchaseAvailability__currentPrice']",
+      "output": {
+        "name": "PRICE_TEXT",
+        "type": "string",
+        "show": false
+      },
+      "description": "Gets the price text (e.g. 6,50 €)"
+    },
+    {
+      "command": "regex",
+      "input": "$PRICE_TEXT",
+      "expression": "([\\d,]+)",
+      "output": {
+        "name": "PRICE_NUM",
+        "type": "string",
+        "show": false
+      },
+      "description": "Extracts only the numeric part (e.g. 6,50)"
+    },
+    {
+      "command": "regex",
+      "input": "$PRICE_NUM",
+      "expression": "^([^,]*)",
+      "output": {
+        "name": "PRICE_LEFT",
+        "type": "string",
+        "show": false
+      },
+      "description": "Gets left part before comma"
+    },
+    {
+      "command": "regex",
+      "input": "$PRICE_NUM",
+      "expression": "(?<=,)(.*)",
+      "output": {
+        "name": "PRICE_RIGHT",
+        "type": "string",
+        "show": false
+      },
+      "description": "Gets right part after comma"
+    },
+    {
+      "command": "store",
+      "input": "$PRICE_LEFT.$PRICE_RIGHT",
       "output": {
         "name": "PRICE",
         "type": "float",
         "show": true
       },
-      "description": "Get the price"
+      "description": "Combines with dot for decimal (6.50)"
     },
     {
       "command": "store_text",
@@ -282,13 +336,13 @@
     },
     {
       "command": "store_text",
-      "locator": "a[data-cy='breadcrumb-winetype']",
+      "locator": "table[class*='wineFacts__wineFacts'] tr[data-testid='wineFactRow']:nth-child(4) td[class*='wineFacts__fact'] a",
       "output": {
         "name": "STYLE",
         "type": "string",
         "show": true
       },
-      "description": "Field: Saves the wine style from breadcrumb"
+      "description": "Field: Saves the wine style from wineFacts table row 4"
     },
     {
       "command": "store_text",
