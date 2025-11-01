@@ -20,7 +20,7 @@
       "description": "Load the url of the wine",
       "config": {
         "js": true,
-        "timeout": 300
+        "timeout": 3
       }
     },
     {
