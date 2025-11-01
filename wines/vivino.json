@@ -17,11 +17,15 @@
     {
       "command": "load",
       "url": "https://www.vivino.com/search/wines?q=$INPUT",
-      "description": "Load the url of the wine"
+      "description": "Load the url of the wine",
+      "config": {
+        "js": true,
+        "timeout": 3000
+      }
     },
     {
       "command": "store_attribute",
-      "locator": "div.search-results-list > div:nth-child($i) figure",
+      "locator": "div[data-testid='wineCard']:nth-child($i) div[role='img']",
       "attribute_name": "style",
       "output": {
         "name": "COVER$i"
@@ -38,7 +42,7 @@
     {
       "command": "regex",
       "input": "$COVER$i",
-      "expression": "(?<=\\/\\/).+?(?=\\)|$)",
+      "expression": "(?<=url\\(\"//).+?(?=\"\\)|$)",
       "output": {
         "name": "COVER$i"
       },
@@ -68,7 +72,39 @@
     },
     {
       "command": "store_text",
-      "locator": "div.search-results-list > div:nth-child($i) span.wine-card__name",
+      "locator": "div[data-testid='wineCard']:nth-child($i) div[class*='wineInfoVintage__wineInfoVintage'] > div[class*='wineInfoVintage__truncate']:first-child",
+      "output": {
+        "name": "WINERY$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 1,
+          "to": 6,
+          "step": 1
+        }
+      },
+      "description": "Saves the winery name"
+    },
+    {
+      "command": "store_text",
+      "locator": "div[data-testid='wineCard']:nth-child($i) div[class*='wineInfoVintage__vintage']",
+      "output": {
+        "name": "VINTAGE$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 1,
+          "to": 6,
+          "step": 1
+        }
+      },
+      "description": "Saves the vintage/name"
+    },
+    {
+      "command": "store",
+      "input": "$WINERY$i $VINTAGE$i",
       "output": {
         "name": "TITLE$i"
       },
@@ -80,11 +116,11 @@
           "step": 1
         }
       },
-      "description": "Saves the title of the wine"
+      "description": "Combines winery and vintage for full title"
     },
     {
       "command": "store_text",
-      "locator": "div.search-results-list > div:nth-child($i) span.wine-card__region",
+      "locator": "div[data-testid='wineCard']:nth-child($i) div[class*='wineInfoLocation__regionAndCountry']",
       "output": {
         "name": "SUBTITLE$i"
       },
@@ -100,7 +136,7 @@
     },
     {
       "command": "store_attribute",
-      "locator": "body > div.wrap > section.search-page.section-alt > div > div > div > div.search-page__content > div > div:nth-child($i) > div > div.wine-card__content > div.wine-card__header-wrapper > span.header-smaller.text-block.wine-card__name > a",
+      "locator": "div[data-testid='wineCard']:nth-child($i) a[data-testid='vintagePageLink']",
       "attribute_name": "href",
       "output": {
         "name": "URL$i"
