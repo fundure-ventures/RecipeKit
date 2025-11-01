@@ -218,22 +218,22 @@
       "command": "store_text",
       "locator": "div[class*='wineHeadline-module__vintage']",
       "output": {
-        "name": "VINTAGE_TEXT",
+        "name": "STYLE_TEXT",
         "type": "string",
         "show": false
       },
-      "description": "Gets vintage text from main headline"
+      "description": "Gets text from main headline"
     },
     {
       "command": "regex",
-      "input": "$VINTAGE_TEXT",
+      "input": "$STYLE_TEXT",
       "expression": "(\\d{4})",
       "output": {
-        "name": "VINTAGE",
+        "name": "STYLE",
         "type": "string",
         "show": true
       },
-      "description": "Extracts only the year (e.g. 2020)"
+      "description": "Extracts only the year (e.g. 2020) and stores as STYLE"
     },
     {
       "command": "store_text",
@@ -338,11 +338,11 @@
       "command": "store_text",
       "locator": "table[class*='wineFacts__wineFacts'] tr[data-testid='wineFactRow']:nth-child(4) td[class*='wineFacts__fact'] a",
       "output": {
-        "name": "STYLE",
+        "name": "VINTAGE",
         "type": "string",
         "show": true
       },
-      "description": "Field: Saves the wine style from wineFacts table row 4"
+      "description": "Field: Saves the wine style as VINTAGE from wineFacts table row 4"
     },
     {
       "command": "store_text",
