@@ -20,7 +20,7 @@
       "description": "Load the url of the wine",
       "config": {
         "js": true,
-        "timeout": 4
+        "timeout": 100
       }
     },
     {
@@ -216,34 +216,23 @@
     },
     {
       "command": "store_text",
-      "locator": "div[class*='wineHeadline-module__vintage']",
-      "output": {
-        "name": "VINTAGE_TEXT",
-        "type": "string",
-        "show": false
-      },
-      "description": "Gets vintage text with name and year"
-    },
-    {
-      "command": "regex",
-      "input": "$VINTAGE_TEXT",
-      "expression": "(\\d{4})",
+      "locator": "#vintageListSection a div div:nth-child(1) span",
       "output": {
         "name": "VINTAGE",
         "type": "string",
         "show": true
       },
-      "description": "Extracts only the year from vintage text"
+      "description": "Saves the vintage of the wine"
     },
     {
       "command": "store_text",
-      "locator": "div[class*='vivinoRating_averageValue']",
+      "locator": "[class^=vivinoRating_averageValue]",
       "output": {
         "name": "RATING_TEXT",
         "type": "string",
         "show": false
       },
-      "description": "Gets the rating with comma decimal"
+      "description": "Gets the rating text"
     },
     {
       "command": "replace",
@@ -259,36 +248,13 @@
     },
     {
       "command": "store_text",
-      "locator": "span[class*='purchaseAvailability__currentPrice']",
-      "output": {
-        "name": "PRICE_TEXT",
-        "type": "string",
-        "show": false
-      },
-      "description": "Gets the price text"
-    },
-    {
-      "command": "regex",
-      "input": "$PRICE_TEXT",
-      "expression": "([\\d,]+)",
-      "output": {
-        "name": "PRICE_NUM",
-        "type": "string",
-        "show": false
-      },
-      "description": "Extracts numeric value from price"
-    },
-    {
-      "command": "replace",
-      "input": "$PRICE_NUM",
-      "find": ",",
-      "replace": ".",
+      "locator": "[class^=purchaseAvailabilityPPC__amount]",
       "output": {
         "name": "PRICE",
         "type": "float",
         "show": true
       },
-      "description": "Converts comma to dot for decimal separator"
+      "description": "Get the price"
     },
     {
       "command": "store_text",
@@ -302,13 +268,13 @@
     },
     {
       "command": "store_text",
-      "locator": "a[href*='/wine-styles/']",
+      "locator": "a[data-cy='breadcrumb-winetype']",
       "output": {
         "name": "STYLE",
         "type": "string",
         "show": true
       },
-      "description": "Field: Saves the style"
+      "description": "Field: Saves the style from breadcrumb"
     },
     {
       "command": "store_text",
@@ -342,12 +308,12 @@
     },
     {
       "command": "store_attribute",
-      "locator": "picture[class*='wineLabel-module__picture'] img",
+      "locator": "picture img",
       "attribute_name": "src",
       "output": {
         "name": "COVER"
       },
-      "description": "Saves the wine label image"
+      "description": "Saves the image"
     },
     {
       "command": "store",
@@ -361,13 +327,13 @@
     },
     {
       "command": "store_text",
-      "locator": "table[class*='wineFacts__wineFacts'] tr[data-testid='wineFactRow']:last-child td[class*='wineFacts__fact'] span span",
+      "locator": "[class^=wineFacts__wineFacts] tr:last-child [class^=wineFacts__fact] span",
       "output": {
         "name": "DESCRIPTION",
         "type": "string",
         "show": true
       },
-      "description": "Saves the wine description from last row of wine facts table"
+      "description": "Saves the description"
     },
     {
       "command": "store",
