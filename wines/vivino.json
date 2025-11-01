@@ -20,7 +20,7 @@
       "description": "Load the url of the wine",
       "config": {
         "js": true,
-        "timeout": 3
+        "timeout": 2
       }
     },
     {
@@ -228,11 +228,37 @@
       "command": "store_text",
       "locator": "[class^=vivinoRating_averageValue]",
       "output": {
+        "name": "RATING_RAW"
+      },
+      "description": "Gets the rating text with comma (e.g. 3,7)"
+    },
+    {
+      "command": "regex",
+      "input": "$RATING_RAW",
+      "expression": "^([^,]*)",
+      "output": {
+        "name": "RATING_LEFT"
+      },
+      "description": "Extracts left part before comma"
+    },
+    {
+      "command": "regex",
+      "input": "$RATING_RAW",
+      "expression": "(?<=,)(.*)",
+      "output": {
+        "name": "RATING_RIGHT"
+      },
+      "description": "Extracts right part after comma"
+    },
+    {
+      "command": "store",
+      "input": "$RATING_LEFT.$RATING_RIGHT",
+      "output": {
         "name": "RATING",
         "type": "float",
         "show": true
       },
-      "description": "Field: Get the rating"
+      "description": "Combines both parts with dot (3.7)"
     },
     {
       "command": "store_text",
