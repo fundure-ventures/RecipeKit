@@ -172,7 +172,7 @@
       "url": "$INPUT",
       "config": {
         "js": true,
-        "timeout": 4
+        "timeout": 2
       },
       "description": "Load the url of the wine"
     },
@@ -226,25 +226,13 @@
     },
     {
       "command": "store_text",
-      "locator": "div[class^=vivinoRating_averageValue]",
-      "output": {
-        "name": "RATING_TEXT",
-        "type": "string",
-        "show": false
-      },
-      "description": "Gets the rating text"
-    },
-    {
-      "command": "replace",
-      "input": "$RATING_TEXT",
-      "find": ",",
-      "replace": ".",
+      "locator": "[class^=vivinoRating_averageValue]",
       "output": {
         "name": "RATING",
         "type": "float",
         "show": true
       },
-      "description": "Converts comma to dot for decimal separator"
+      "description": "Field: Get the rating"
     },
     {
       "command": "store_text",
@@ -268,13 +256,13 @@
     },
     {
       "command": "store_text",
-      "locator": "a[data-cy='breadcrumb-winetype']",
+      "locator": "a[href*='/wine-styles/']",
       "output": {
         "name": "STYLE",
         "type": "string",
         "show": true
       },
-      "description": "Field: Saves the style from breadcrumb"
+      "description": "Field: Saves the style"
     },
     {
       "command": "store_text",
