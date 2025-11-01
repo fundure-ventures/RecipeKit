@@ -282,13 +282,13 @@
     },
     {
       "command": "store_text",
-      "locator": "a[href*='/wine-styles/']",
+      "locator": "a[data-cy='breadcrumb-winetype']",
       "output": {
         "name": "STYLE",
         "type": "string",
         "show": true
       },
-      "description": "Field: Saves the style"
+      "description": "Field: Saves the wine style from breadcrumb"
     },
     {
       "command": "store_text",
