@@ -17,15 +17,11 @@
     {
       "command": "load",
       "url": "https://www.vivino.com/search/wines?q=$INPUT",
-      "description": "Load the url of the wine",
-      "config": {
-        "js": true,
-        "timeout": 2
-      }
+      "description": "Load the url of the wine"
     },
     {
       "command": "store_attribute",
-      "locator": "div[data-testid='wineCard']:nth-child($i) div[role='img']",
+      "locator": "div.search-results-list > div:nth-child($i) figure",
       "attribute_name": "style",
       "output": {
         "name": "COVER$i"
@@ -42,7 +38,7 @@
     {
       "command": "regex",
       "input": "$COVER$i",
-      "expression": "(?<=url\\(\"//).+?(?=\"\\)|$)",
+      "expression": "(?<=\\/\\/).+?(?=\\)|$)",
       "output": {
         "name": "COVER$i"
       },
@@ -72,39 +68,7 @@
     },
     {
       "command": "store_text",
-      "locator": "div[data-testid='wineCard']:nth-child($i) div[class*='wineInfoVintage__wineInfoVintage'] > div[class*='wineInfoVintage__truncate']:first-child",
-      "output": {
-        "name": "WINERY$i"
-      },
-      "config": {
-        "loop": {
-          "index": "i",
-          "from": 1,
-          "to": 6,
-          "step": 1
-        }
-      },
-      "description": "Saves the winery name"
-    },
-    {
-      "command": "store_text",
-      "locator": "div[data-testid='wineCard']:nth-child($i) div[class*='wineInfoVintage__vintage']",
-      "output": {
-        "name": "VINTAGE$i"
-      },
-      "config": {
-        "loop": {
-          "index": "i",
-          "from": 1,
-          "to": 6,
-          "step": 1
-        }
-      },
-      "description": "Saves the vintage/name"
-    },
-    {
-      "command": "store",
-      "input": "$WINERY$i $VINTAGE$i",
+      "locator": "div.search-results-list > div:nth-child($i) span.wine-card__name",
       "output": {
         "name": "TITLE$i"
       },
@@ -116,11 +80,11 @@
           "step": 1
         }
       },
-      "description": "Combines winery and vintage for full title"
+      "description": "Saves the title of the wine"
     },
     {
       "command": "store_text",
-      "locator": "div[data-testid='wineCard']:nth-child($i) div[class*='wineInfoLocation__regionAndCountry']",
+      "locator": "div.search-results-list > div:nth-child($i) span.wine-card__region",
       "output": {
         "name": "SUBTITLE$i"
       },
@@ -136,7 +100,7 @@
     },
     {
       "command": "store_attribute",
-      "locator": "div[data-testid='wineCard']:nth-child($i) a[data-testid='vintagePageLink']",
+      "locator": "body > div.wrap > section.search-page.section-alt > div > div > div > div.search-page__content > div > div:nth-child($i) > div > div.wine-card__content > div.wine-card__header-wrapper > span.header-smaller.text-block.wine-card__name > a",
       "attribute_name": "href",
       "output": {
         "name": "URL$i"
@@ -216,119 +180,73 @@
     },
     {
       "command": "store_text",
-      "locator": "div[class*='wineHeadline-module__vintage']",
-      "output": {
-        "name": "VINTAGE_RAW",
-        "type": "string",
-        "show": false
-      },
-      "description": "Gets the vintage text with year"
-    },
-    {
-      "command": "regex",
-      "input": "$VINTAGE_RAW",
-      "expression": "(\\d{4})",
+      "locator": "#vintageListSection a div div:nth-child(1) span",
       "output": {
         "name": "VINTAGE",
         "type": "string",
         "show": true
       },
-      "description": "Extracts the year from vintage text"
+      "description": "Saves the vintage of the wine"
     },
     {
       "command": "store_text",
-      "locator": "div[class*='vivinoRating_averageValue']",
+      "locator": "[class^=vivinoRating_averageValue]",
       "output": {
         "name": "RATING",
-        "type": "string",
+        "type": "float",
         "show": true
       },
       "description": "Field: Get the rating"
     },
     {
-      "command": "replace",
-      "input": "$RATING",
-      "find": ",",
-      "replace": ".",
-      "output": {
-        "name": "RATING",
-        "type": "float",
-        "show": true
-      },
-      "description": "Convert comma to dot for decimal separator"
-    },
-    {
       "command": "store_text",
-      "locator": "span[class*='purchaseAvailability__currentPrice']",
+      "locator": "[class^=purchaseAvailabilityPPC__amount]",
       "output": {
         "name": "PRICE",
-        "type": "string",
+        "type": "float",
         "show": true
       },
       "description": "Get the price"
     },
     {
-      "command": "regex",
-      "input": "$PRICE",
-      "expression": "([\\d,]+)",
-      "output": {
-        "name": "PRICE",
-        "type": "string",
-        "show": true
-      },
-      "description": "Extract numeric value from price"
-    },
-    {
-      "command": "replace",
-      "input": "$PRICE",
-      "find": ",",
-      "replace": ".",
-      "output": {
-        "name": "PRICE",
-        "type": "float",
-        "show": true
-      },
-      "description": "Convert comma to dot for decimal separator"
-    },
-    {
       "command": "store_text",
-      "locator": "table[class*='wineFacts__wineFacts'] tbody tr[data-testid='wineFactRow']:nth-child(2) td[class*='wineFacts__fact'] a",
+      "locator": "a[href*='/grapes/']",
       "output": {
         "name": "GRAPES",
         "type": "string",
         "show": true
       },
-      "description": "Field: Type of grape (from wineFacts table row 2)"
+      "description": "Field: Type of grape"
     },
     {
       "command": "store_text",
-      "locator": "table[class*='wineFacts__wineFacts'] tbody tr[data-testid='wineFactRow']:nth-child(4) td[class*='wineFacts__fact'] a",
+      "locator": "a[href*='/wine-styles/']",
       "output": {
         "name": "STYLE",
         "type": "string",
         "show": true
       },
-      "description": "Field: Saves the style (from wineFacts table row 4)"
+      "description": "Field: Saves the style"
     },
     {
       "command": "store_text",
-      "locator": "table[class*='wineFacts__wineFacts'] tbody tr[data-testid='wineFactRow']:nth-child(3) td[class*='wineFacts__fact'] a:first-child",
+      "locator": "a[href*='/wine-countries/']",
       "output": {
         "name": "COUNTRY",
         "type": "string",
         "show": true
       },
-      "description": "Saves the country (from wineFacts table row 3, first link)"
+      "description": "Saves the description"
     },
     {
       "command": "store_text",
-      "locator": "table[class*='wineFacts__wineFacts'] tbody tr[data-testid='wineFactRow']:nth-child(3) td[class*='wineFacts__fact'] a:last-child",
+      "locator": "a[href*='/wine-regions/']",
       "output": {
         "name": "PLACE",
         "type": "string",
         "show": true
       },
-      "description": "Saves the region (from wineFacts table row 3, last link)"
+      "description": "Saves the description"
     },
     {
       "command": "store",
@@ -342,7 +260,7 @@
     },
     {
       "command": "store_attribute",
-      "locator": "picture img[class*='wineLabel-module__image']",
+      "locator": "picture img",
       "attribute_name": "src",
       "output": {
         "name": "COVER"
@@ -361,13 +279,13 @@
     },
     {
       "command": "store_text",
-      "locator": "table[class*='wineFacts__wineFacts'] tbody tr[data-testid='wineFactRow']:last-child td[class*='wineFacts__fact'] span span",
+      "locator": "[class^=wineFacts__wineFacts] tr:last-child [class^=wineFacts__fact] span",
       "output": {
         "name": "DESCRIPTION",
         "type": "string",
         "show": true
       },
-      "description": "Saves the description (from last wineFacts row)"
+      "description": "Saves the description"
     },
     {
       "command": "store",
