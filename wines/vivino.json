@@ -226,7 +226,7 @@
     },
     {
       "command": "store_text",
-      "locator": "[class^=vivinoRating_averageValue]",
+      "locator": "div[class^=vivinoRating_averageValue]",
       "output": {
         "name": "RATING_TEXT",
         "type": "string",
