@@ -172,7 +172,7 @@
       "url": "$INPUT",
       "config": {
         "js": true,
-        "timeout": 2
+        "timeout": 4
       },
       "description": "Load the url of the wine"
     },
@@ -216,33 +216,79 @@
     },
     {
       "command": "store_text",
-      "locator": "#vintageListSection a div div:nth-child(1) span",
+      "locator": "div[class*='wineHeadline-module__vintage']",
+      "output": {
+        "name": "VINTAGE_TEXT",
+        "type": "string",
+        "show": false
+      },
+      "description": "Gets vintage text with name and year"
+    },
+    {
+      "command": "regex",
+      "input": "$VINTAGE_TEXT",
+      "expression": "(\\d{4})",
       "output": {
         "name": "VINTAGE",
         "type": "string",
         "show": true
       },
-      "description": "Saves the vintage of the wine"
+      "description": "Extracts only the year from vintage text"
     },
     {
       "command": "store_text",
-      "locator": "[class^=vivinoRating_averageValue]",
+      "locator": "div[class*='vivinoRating_averageValue']",
+      "output": {
+        "name": "RATING_TEXT",
+        "type": "string",
+        "show": false
+      },
+      "description": "Gets the rating with comma decimal"
+    },
+    {
+      "command": "replace",
+      "input": "$RATING_TEXT",
+      "find": ",",
+      "replace": ".",
       "output": {
         "name": "RATING",
         "type": "float",
         "show": true
       },
-      "description": "Field: Get the rating"
+      "description": "Converts comma to dot for decimal separator"
     },
     {
       "command": "store_text",
-      "locator": "[class^=purchaseAvailabilityPPC__amount]",
+      "locator": "span[class*='purchaseAvailability__currentPrice']",
+      "output": {
+        "name": "PRICE_TEXT",
+        "type": "string",
+        "show": false
+      },
+      "description": "Gets the price text"
+    },
+    {
+      "command": "regex",
+      "input": "$PRICE_TEXT",
+      "expression": "([\\d,]+)",
+      "output": {
+        "name": "PRICE_NUM",
+        "type": "string",
+        "show": false
+      },
+      "description": "Extracts numeric value from price"
+    },
+    {
+      "command": "replace",
+      "input": "$PRICE_NUM",
+      "find": ",",
+      "replace": ".",
       "output": {
         "name": "PRICE",
         "type": "float",
         "show": true
       },
-      "description": "Get the price"
+      "description": "Converts comma to dot for decimal separator"
     },
     {
       "command": "store_text",
@@ -296,12 +342,12 @@
     },
     {
       "command": "store_attribute",
-      "locator": "picture img",
+      "locator": "picture[class*='wineLabel-module__picture'] img",
       "attribute_name": "src",
       "output": {
         "name": "COVER"
       },
-      "description": "Saves the image"
+      "description": "Saves the wine label image"
     },
     {
       "command": "store",
@@ -315,13 +361,13 @@
     },
     {
       "command": "store_text",
-      "locator": "[class^=wineFacts__wineFacts] tr:last-child [class^=wineFacts__fact] span",
+      "locator": "table[class*='wineFacts__wineFacts'] tr[data-testid='wineFactRow']:last-child td[class*='wineFacts__fact'] span span",
       "output": {
         "name": "DESCRIPTION",
         "type": "string",
         "show": true
       },
-      "description": "Saves the description"
+      "description": "Saves the wine description from last row of wine facts table"
     },
     {
       "command": "store",
