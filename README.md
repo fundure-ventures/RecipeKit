@@ -40,7 +40,7 @@ Don't be afraid to reach out to us if you have any questions or suggestions. We'
 
 # Implementation details
 
-Each recipe contains a set of instructions that have single responsibility for extracting information from specific websites or internet sources. his allows for automated data gathering and addition to lists.
+Each recipe contains a set of instructions that have single responsibility for extracting information from specific websites or internet sources. This allows for automated data gathering and addition to lists.
 
 ## Recipe Properties
 
@@ -50,10 +50,10 @@ Each recipe contains a set of instructions that have single responsibility for e
 - `engine_version`: Ensures compatibility with different iterations, not all the engines support all the commands and all the content types.
 - `url_available`: An array of URLs where the recipe is able to extract data.
 - `autocomplete_steps`: a.k.a search commands. The array of `commands` used to list related content. It should enumerate content that match the user input.
-- `url_steps`: The array of `commands` used to retrieve all the specific information and hydrate an speciffic item, starting from a URL.
+- `url_steps`: The array of `commands` used to retrieve all the specific information and hydrate an specific item, starting from a URL.
 
 ### autocomplete_steps
-The commands in this array returns to the app a list of resiuls (usually from 5 to 10) that represent content related with the `INPUT` query which is a `string`. This steps are used by the app in the add item screen of each list. And the list of properties needed are:
+The commands in this array returns to the app a list of results (usually from 5 to 10) that represent content related with the `INPUT` query which is a `string`. These steps are used by the app in the add item screen of each list. And the list of properties needed are:
 
 - `URLn`: **mandatory** The URL that will trigger the `url_steps` to fetch the content.
 - `TITLEn`: **mandatory** The distinct name/title of the content.
@@ -61,7 +61,7 @@ The commands in this array returns to the app a list of resiuls (usually from 5 
 - `COVERn`: **optional** An URL to a image representing the content.
 
 *Being index the enumerator of the result: URL1, URL2, URL3 will be related to TITLE1, TITLE2 and TITLE3.**
-It is very usefull to avoid repetition and copy paseing command to include loop instruction in the `config` of each command. 
+It is very useful to avoid repetition and copy-pasting commands to include loop instruction in the `config` of each command. 
 
 ```json
     {
@@ -86,7 +86,7 @@ It is very usefull to avoid repetition and copy paseing command to include loop 
 This JSON structure is for a `store_attribute` command that retrieves the href attribute from a book element (itemtype='http://schema.org/Book') in a list and stores it as a variable. The command is executed in a loop, from 0 to 4, using the index i to replace the $i placeholder in the locator and output.name fields. The result is five variables named URL0, URL1, URL2, URL3, and URL4 that store the URLs of five books in the list.
 
 ### url_steps
-The commands in this array fetch all the information realted to a speciffic piece of content, the `INPUT` of the recipe is an `URL` containing the info related to the content. This URL must match the pattern specified on the attribute `url_available` of the recipe. The list of attributes that this stpes should gather may include:
+The commands in this array fetch all the information related to a specific piece of content, the `INPUT` of the recipe is an `URL` containing the info related to the content. This URL must match the pattern specified on the attribute `url_available` of the recipe. The list of attributes that these steps should gather may include:
 
 - `TITLE`: The title of a content item.
 - `DESCRIPTION`: A description of a content item.
@@ -101,7 +101,7 @@ The commands in this array fetch all the information realted to a speciffic piec
 - `LATITUDE`: The latitude coordinate of a content item's location.
 - `LONGITUDE`: The longitude coordinate of a content item's location.
 
-If you want to inclode more attributes you can, those special attributes will be mapped to a speciffic detail view on the app.
+If you want to include more attributes you can, those special attributes will be mapped to a specific detail view on the app.
 
 ## Commands
 
