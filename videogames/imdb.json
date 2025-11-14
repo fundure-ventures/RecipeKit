@@ -119,6 +119,10 @@
     {
       "command": "load",
       "url": "$INPUT",
+      "config": {
+        "js": true,
+        "timeout": 1
+      },
       "description": "Load the url of the movie"
     },
     {
@@ -173,7 +177,7 @@
     },
     {
       "command": "store_text",
-      "locator": "div[data-testid*=hero-rating-bar__aggregate-rating__score]",
+      "locator": "div[data-testid='hero-rating-bar__aggregate-rating__score'] > span:first-child",
       "output": {
         "name": "RATING",
         "type": "string"
