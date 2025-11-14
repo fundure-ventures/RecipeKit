@@ -39,7 +39,7 @@
     },
     {
       "command": "store_text",
-      "locator": "ul.ipc-metadata-list > li:nth-child($i) a",
+      "locator": "ul.ipc-metadata-list > li:nth-child($i) .ipc-title-link-wrapper h3",
       "output": {
         "name": "TITLE$i"
       },
@@ -85,7 +85,7 @@
     },
     {
       "command": "store_attribute",
-      "locator": "ul.ipc-metadata-list > li:nth-child($i) a",
+      "locator": "ul.ipc-metadata-list > li:nth-child($i) .ipc-title-link-wrapper",
       "attribute_name": "href",
       "output": {
         "name": "URL$i"
