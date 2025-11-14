@@ -54,7 +54,7 @@
     },
     {
       "command": "store_text",
-      "locator": "ul.ipc-metadata-list > li:nth-child($i) span.ipc-metadata-list-summary-item__li",
+      "locator": "ul.ipc-metadata-list > li:nth-child($i) .cli-title-metadata",
       "output": {
         "name": "SUBTITLE$i"
       },
