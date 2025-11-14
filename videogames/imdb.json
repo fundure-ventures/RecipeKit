@@ -14,7 +14,11 @@
   "autocomplete_steps": [
     {
       "command": "load",
-      "url": "https://www.imdb.com/es-es/find/?q=$INPUT&s=tt&ttype=vg",
+      "url": "https://www.imdb.com/find/?q=$INPUT&s=tt&ttype=vg",
+      "config": {
+        "js": true,
+        "timeout": 1
+      },
       "description": "Searches videogames by title"
     },
     {
