@@ -3,7 +3,7 @@
   "list_type": "artists",
   "engine_version": 17,
   "title": "Apple Artists",
-  "description": "Load artists from Appl",
+  "description": "Load artists from Apple",
   "urls": [
     "https://itunes.apple.com/search?media=music&entity=musicArtist",
     "itunes.apple.com",
