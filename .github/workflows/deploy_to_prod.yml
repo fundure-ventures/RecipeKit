@@ -1,0 +1,30 @@
+name: Desplegar Submódulo a Producción
+
+on:
+  push:
+    branches:
+      - main  
+  workflow_dispatch:
+
+jobs:
+  update-server:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Conectar por SSH y actualizar el padre
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: 22
+          script: |
+            set -e
+            echo "🚀 Se ha detectado un cambio en el submódulo. Iniciando despliegue..."
+            
+            # Vamos a la carpeta del PROYECTO PADRE (Listy)
+            cd /var/www/listy
+            
+            # Le decimos al padre que actualice sus submódulos a la última versión
+            /usr/bin/git submodule update --recursive --remote
+            
+            echo "✅ Submódulo actualizado en producción al instante."
