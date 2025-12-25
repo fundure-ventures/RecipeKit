@@ -58,9 +58,7 @@ export class RecipeEngine {
   }
 
   replaceVariablesinString(str) {     
-    Log.debug(`replaceVariablesinString: Checking and replacing variables in: ${str}`);
     return Object.keys(this.variables).reduce((result, variable) => {
-      if (result.includes(`$${variable}`)) Log.debug(`Attempting to replace variable: ${variable} with value: ${this.get(variable)}`);
       return result.replace(`$${variable}`, this.get(variable));
     }, str);
   } 
@@ -105,8 +103,10 @@ export class RecipeEngine {
   }
 
   async executeRecipe(recipe, stepType, input = '') {
-    Log.debug(`Executing recipe for step type: ${stepType}`);
+    Log.debug(`\n🚀 Ejecutando recipe para step type: ${stepType}`);
+    Log.debug(`📝 Input recibido: "${input}"`);
     const steps = recipe[stepType] || [];
+    Log.debug(`📊 Total de pasos a ejecutar: ${steps.length}\n`);
 
     if (steps.length === 0) {
       Log.warn(`No steps found for step type: ${stepType}`);
@@ -133,8 +133,20 @@ export class RecipeEngine {
   }
 
   async executeSteps(steps) {
-    for (const step of steps) {
-      await this.stepExecutor.execute(step);
+    const totalSteps = steps.length;
+    for (let i = 0; i < steps.length; i++) {
+      const step = steps[i];
+      const stepNumber = i + 1;
+      Log.debug(`\n${'='.repeat(60)}`);
+      Log.debug(`PASO ${stepNumber}/${totalSteps}: ${step.command || 'unknown'}`);
+      if (step.description) {
+        Log.debug(`Descripción: ${step.description}`);
+      }
+      Log.debug(`${'='.repeat(60)}`);
+      await this.stepExecutor.execute(step, stepNumber, totalSteps);
     }
+    Log.debug(`\n${'='.repeat(60)}`);
+    Log.debug(`Todos los pasos completados (${totalSteps} pasos)`);
+    Log.debug(`${'='.repeat(60)}\n`);
   }
 }

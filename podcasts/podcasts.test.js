@@ -8,7 +8,8 @@ const TIMEOUT = parseInt(process.env.TEST_TIMEOUT);
 const RECIPE = "apple.json";
 const INPUT = {
     AUTOCOMPLETE: "Estirando el chicle",
-    URL: ["https://podcasts.apple.com/es/podcast/estirando-el-chicle/id1511396938/",
+    URL: ["https://podcasts.apple.com/us/podcast/estirando-el-chicle/id1511396938?uo=4",
+    "https://podcasts.apple.com/es/podcast/estirando-el-chicle/id1511396938/",
     "https://itunes.apple.com/search?media=podcast&limit=6&explicit=YES&term=Estirando%20el%20chicle" 
     ]
 }

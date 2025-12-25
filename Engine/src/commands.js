@@ -20,9 +20,7 @@ export class StepExecutor {
       };
     }
   
-    async execute(step) {
-      Log.debug(`Executing step: ${step.command}`);
-
+    async execute(step, stepNumber = null, totalSteps = null) {
       const handler = this.stepHandlers[step.command];
       const isLoop = (step?.config?.loop);
       const storeAsArray = (step?.command === 'store_array');
@@ -35,22 +33,50 @@ export class StepExecutor {
         return;
       }
       
+      // Log step configuration
+      if (step.input) {
+        const inputValue = this.RecipeEngine.replaceVariablesinString(step.input);
+        Log.debug(`Input: ${step.input} → "${inputValue}"`);
+      }
+      if (step.url) {
+        const urlValue = this.RecipeEngine.replaceVariablesinString(step.url);
+        Log.debug(`URL: ${step.url} → "${urlValue}"`);
+      }
+      if (step.locator) {
+        const locatorValue = this.RecipeEngine.replaceVariablesinString(step.locator);
+        Log.debug(`Locator: ${step.locator} → "${locatorValue}"`);
+      }
+      if (step.expression) {
+        Log.debug(`Expression: ${step.expression}`);
+      }
+      if (step.config) {
+        Log.debug(`Config: ${JSON.stringify(step.config, null, 2)}`);
+      }
+      
       if (!step.output?.name) {
-        Log.debug('execute: Step has no step.output defined');
+        Log.debug('⚠️  Step has no output defined');
+      } else {
+        Log.debug(`Output variable: ${step.output.name}`);
       }
 
       if (isLoop) {
+        Log.debug(`Loop: from ${step.config.loop.from} to ${step.config.loop.to} (step: ${step.config.loop.step})`);
         for (let i = step.config.loop.from; i <= step.config.loop.to; i += step.config.loop.step) {
           // Store loop index
           this.RecipeEngine.set(step.config.loop.index, i)
           outputKey = this.RecipeEngine.replaceVariablesinString(step?.output?.name);
+          Log.debug(`  Loop iteration ${i}: output key = ${outputKey}`);
 
           if (storeAsArray) {
             outputValue = await handler.call(this, step);
-            if (outputValue !== '') this.RecipeEngine.push(outputKey, outputValue);
+            if (outputValue !== '') {
+              this.RecipeEngine.push(outputKey, outputValue);
+              Log.debug(`  → Stored in array: ${outputKey} = "${outputValue}"`);
+            }
           } else {
             outputValue = await handler.call(this, step);
-            this.RecipeEngine.set(outputKey, outputValue)
+            this.RecipeEngine.set(outputKey, outputValue);
+            Log.debug(`  → Stored: ${outputKey} = "${outputValue}"`);
           }
         }
       } else {
@@ -58,14 +84,30 @@ export class StepExecutor {
 
         if (storeAsArray) {
           outputValue = await handler.call(this, step);
-          if (outputValue !== '') this.RecipeEngine.push(outputKey, outputValue);
+          if (outputValue !== '') {
+            this.RecipeEngine.push(outputKey, outputValue);
+            Log.debug(`→ Stored in array: ${outputKey} = "${outputValue}"`);
+          }
         } else {
           outputValue = await handler.call(this, step);
-          this.RecipeEngine.set(outputKey, outputValue);
+          if (outputKey) {
+            this.RecipeEngine.set(outputKey, outputValue);
+            const displayValue = typeof outputValue === 'object' ? JSON.stringify(outputValue).substring(0, 200) : String(outputValue).substring(0, 200);
+            Log.debug(`→ Stored: ${outputKey} = "${displayValue}"${outputValue && String(outputValue).length > 200 ? '...' : ''}`);
+          } else {
+            Log.debug(`→ Step executed (no output variable)`);
+          }
         }
       }
 
-      Log.debug(`execute: Step executed: ${step.command}`);
+      // Show current state of variables after step
+      if (step.output?.name) {
+        const finalValue = this.RecipeEngine.get(step.output.name);
+        const displayFinal = typeof finalValue === 'object' ? JSON.stringify(finalValue).substring(0, 200) : String(finalValue).substring(0, 200);
+        Log.debug(`✓ Paso completado. Variable ${step.output.name} = "${displayFinal}"${finalValue && String(finalValue).length > 200 ? '...' : ''}`);
+      } else {
+        Log.debug(`✓ Paso completado`);
+      }
     }
   
     async executeLoadStep(step) {
@@ -168,18 +210,20 @@ export class StepExecutor {
 
       let input = this.RecipeEngine.replaceVariablesinString(step.input);
       input = input.replace(/\\([\\/?!])/g, '$1');
+      Log.debug(`Applying regex "${step.expression}" to input: "${input}"`);
 
       try {
         const regex = new RegExp(step.expression, 'gs');
         const matches = [...input.matchAll(regex)];
 
         if (matches.length === 0) {
-          Log.debug(`executeRegexStep: No regex match found for expression: ${step.expression} on input: "${input}"`);
+          Log.debug(`⚠️  No regex match found for expression: ${step.expression} on input: "${input}"`);
           return input;
         }
 
         const [fullMatch, ...captureGroups] = matches[0];
         const output = captureGroups.find(group => group !== undefined) || fullMatch;
+        Log.debug(`Regex match found: "${output.trim()}"`);
         
         return output.trim();
       } catch (error) {
@@ -205,15 +249,23 @@ export class StepExecutor {
       }
 
       let url = this.RecipeEngine.replaceVariablesinString(step.url);
+      Log.debug(`Making API request: ${step.config.method || 'GET'} ${url}`);
       try {
         const response = await fetch(url, step.config);
+        Log.debug(`Response status: ${response.status} ${response.statusText}`);
         if (!response.ok) {
+          const errorText = await response.text().catch(() => 'Could not read error response');
+          Log.error(`❌ API Request failed: ${response.status} ${response.statusText}`);
+          Log.error(`   URL: ${url}`);
+          Log.error(`   Error response: ${errorText.substring(0, 500)}`);
           throw new Error(`executeApiRequestStep HTTP error! status: ${response.status} ${response.statusText}`);
         }
         const output = await response.json();
+        Log.debug(`✅ API response received (${JSON.stringify(output).length} chars)`);
         return output;
       } catch (error) {
-        Log.error(`executeApiRequestStep: Error fetching data: ${error.message}`);
+        Log.error(`❌ executeApiRequestStep: Error fetching data: ${error.message}`);
+        Log.error(`   URL attempted: ${url}`);
         return {};
       }
     }
@@ -226,7 +278,9 @@ export class StepExecutor {
 
       const input = this.RecipeEngine.get(step.input);
       const locator = this.RecipeEngine.replaceVariablesinString(step.locator);
+      Log.debug(`Extracting from JSON: locator "${locator}" from variable "${step.input}"`);
       const output = _.get(input, locator);
+      Log.debug(`Extracted value: "${output}"`);
       return output
     }
   

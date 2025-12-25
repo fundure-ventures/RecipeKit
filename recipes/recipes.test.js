@@ -7,10 +7,10 @@ const TIMEOUT = parseInt(process.env.TEST_TIMEOUT);
 
 const RECIPE = "cookpad.json";
 const INPUT = {
-    AUTOCOMPLETE: "Paella",
-    URL: "https://www.cookpad.com/us/recipes/3892194-valencian-paella"
+    AUTOCOMPLETE: "California Farm Paella Stuffed Calamari Steaks",
+    URL: "https://www.cookpad.com/eng/recipes/16474611"
 }
-const ENTRY = { TITLE:"Valencian Paella"};
+const ENTRY = { TITLE:"California Farm Paella Stuffed Calamari Steaks"};
 
 describe(RECIPE, () => {
     test("--type autocomplete", async() => {

@@ -68,7 +68,7 @@
     {
       "command": "regex",
       "input": "$INPUT",
-      "expression": "([0-9]+)(?=\\?)",
+      "expression": "id([0-9]+)(?=\\?|/|$)",
       "output": {
         "name": "ID"
       },
