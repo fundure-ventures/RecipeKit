@@ -7,10 +7,10 @@ const TIMEOUT = parseInt(process.env.TEST_TIMEOUT);
 
 const RECIPE = "apple.json";
 const INPUT = {
-    AUTOCOMPLETE: "Placebo",
-    URL: "https://music.apple.com/us/album/meds/961069448?uo=4"
+    AUTOCOMPLETE: "Born to Run",
+    URL: "https://music.apple.com/us/album/born-to-run/310730204?uo=4"
 }
-const ENTRY = { TITLE: "Meds", SUBTITLE: "Placebo" };
+const ENTRY = { TITLE: "Born to Run", SUBTITLE: "Bruce Springsteen" };
 
 describe(RECIPE, () => {
   test("--type autocomplete", async() => {
@@ -28,8 +28,8 @@ describe(RECIPE, () => {
     const result = await runEngine(`albums/${RECIPE}`, "url", INPUT.URL);
 
     expect(result.TITLE).toBe(ENTRY.TITLE);
-    expect(result.DATE).toBe("2006");
-    expect(result.GENRE).toBe("Alternative");
+    expect(result.DATE).toBe("1975");
+    expect(result.GENRE).toBe("Rock");
     expect(result.AUTHOR).toBeDefined(ENTRY.SUBTITLE);
     expect(result.COVER).toMatch(/^https:\/\/.*\.(jpg|jpeg|png|webp)$/i);
 
