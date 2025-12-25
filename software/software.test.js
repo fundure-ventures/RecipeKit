@@ -9,14 +9,14 @@ const INPUT = {
 };
 
 const ENTRY_APPLE = {
-    TITLE: "Listy · Lists of collections",
+    TITLE: "Listy · Watchlist & Tracker",
     SUBTITLE: "Productivity",
     URL: "https://apps.apple.com/us/app/listy-lists-of-collections/id1496035097?uo=4"
 };
 
 const ENTRY_GOOGLE = {
     TITLE: "Listy · Beautiful lists",
-    SUBTITLE: "Listy Team",
+    SUBTITLE: "Fundure Ventures",
     URL: "https://play.google.com/store/apps/details?id=pro.listy"
 };
 

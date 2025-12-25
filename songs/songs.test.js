@@ -7,11 +7,11 @@ const TIMEOUT = parseInt(process.env.TEST_TIMEOUT);
 
 const RECIPE = "apple.json";
 const INPUT = {
-    AUTOCOMPLETE: "Heroes",
-    URL: "https://itunes.apple.com/search?media=music&entity=musicTrack&limit=1&explicit=YES&term=697651436"
+    AUTOCOMPLETE: "Smells Like Teen Spirit",
+    URL: "https://itunes.apple.com/lookup?id=1440783625"
 }
 
-const ENTRY = {TITLE: "Heroes (Single Version)", SUBTITLE: "David Bowie"};
+const ENTRY = {TITLE: "Smells Like Teen Spirit", SUBTITLE: "Nirvana"};
 
 describe(RECIPE, () => {
     test("--type autocomplete", async () => {
