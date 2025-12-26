@@ -302,13 +302,30 @@
     {
       "command": "regex",
       "input": "$PRICE_TEXT",
-      "expression": "\\d+[,\\.]?\\d*",
+      "expression": "(\\d+)[,.]",
+      "output": {
+        "name": "PRICE_INT"
+      },
+      "description": "Extracts integer part of price"
+    },
+    {
+      "command": "regex",
+      "input": "$PRICE_TEXT",
+      "expression": "[,.](\\d+)",
+      "output": {
+        "name": "PRICE_DEC"
+      },
+      "description": "Extracts decimal part of price"
+    },
+    {
+      "command": "store",
+      "input": "$PRICE_INT.$PRICE_DEC",
       "output": {
         "name": "PRICE",
         "type": "float",
         "show": true
       },
-      "description": "Extracts price number with comma or dot, returns empty if not found"
+      "description": "Combines integer and decimal with dot separator"
     },
     {
       "command": "store_text",
