@@ -5,7 +5,8 @@
   "title": "IMDB Movies",
   "description": "A recipe to get a list of movies",
   "urls": [
-    "https://m.imdb.com/title/"
+    "https://m.imdb.com/title/",
+    "https://m.imdb.com/"
   ],
   "headers": {
     "Accept-Language": "en-UK,en",

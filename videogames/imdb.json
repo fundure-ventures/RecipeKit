@@ -5,7 +5,8 @@
   "title": "IMDB Videogames",
   "description": "A recipe to get a list of videogames",
   "urls": [
-    "https://m.imdb.com/title/"
+    "https://m.imdb.com/title/",
+    "https://m.imdb.com/"
   ],
   "headers": {
     "Accept-Language": "en-UK,en",
