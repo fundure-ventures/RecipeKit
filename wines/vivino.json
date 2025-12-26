@@ -311,18 +311,6 @@
       "description": "Extracts price number with comma or dot, returns empty if not found"
     },
     {
-      "command": "replace",
-      "input": "$PRICE",
-      "find": ",",
-      "replace": ".",
-      "output": {
-        "name": "PRICE",
-        "type": "float",
-        "show": true
-      },
-      "description": "Replace comma with dot for decimal format"
-    },
-    {
       "command": "store_text",
       "locator": "a[href*='/grapes/']",
       "output": {
