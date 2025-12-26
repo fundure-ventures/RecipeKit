@@ -17,10 +17,6 @@
     {
       "command": "load",
       "url": "$INPUT",
-      "config": {
-        "js": true,
-        "timeout": 1
-      },
       "description": "Load the url of the movie"
     },
     {
@@ -31,35 +27,36 @@
       "description": "Saves the URL of the detail"
     },
     {
-      "command": "store_text",
-      "locator": "h1",
-      "output": {
-        "name": "TITLE",
-        "type": "string",
-        "show": true
-      },
-      "description": "Takes the title directly from h1 element"
-    },
-    {
       "command": "store_attribute",
       "locator": "meta[property='og:title']",
       "attribute_name": "content",
       "output": {
-        "name": "OG_TITLE"
+        "name": "TITLE"
       },
-      "description": "Takes the og:title to extract the year"
+      "description": "Takes the title of the movie including the year"
     },
     {
       "command": "regex",
-      "input": "$OG_TITLE",
-      "expression": "([0-9]{4})",
+      "input": "$TITLE",
+      "expression": "\\([^\\)]*?(\\d{4})[^\\)]*?\\)",
       "output": {
         "name": "DATE",
         "type": "date",
         "format": "YYYY",
         "show": true
       },
-      "description": "Extracts the year using simple regex without lookahead"
+      "description": "Applies a regular expression to get just the year of the date"
+    },
+    {
+      "command": "regex",
+      "input": "$TITLE",
+      "expression": "[^\\(]*",
+      "output": {
+        "name": "TITLE",
+        "type": "string",
+        "show": true
+      },
+      "description": "Applies a regular expression to get just the title of the movie before the year"
     },
     {
       "command": "store_attribute",
@@ -70,31 +67,31 @@
         "type": "string",
         "show": true
       },
-      "description": "Saves the description from meta tag"
+      "description": "Saves temporary the actors, director and description"
     },
     {
       "command": "store_text",
-      "locator": "a[href*='ratings'] span span",
+      "locator": "div[data-testid*=hero-rating-bar__aggregate-rating__score]",
       "output": {
         "name": "RATING",
         "type": "string"
       },
-      "description": "Saves the rating using href-based selector (works in WebView)"
+      "description": "Saves the rating of the movie"
     },
     {
       "command": "regex",
       "input": "$RATING",
-      "expression": "([0-9]+[,\\.][0-9]+)",
+      "expression": "([0-9,\\.]+)",
       "output": {
         "name": "RATING",
         "type": "float",
         "show": true
       },
-      "description": "Extracts numeric rating value"
+      "description": "Applies a regular expression to get part of the rating"
     },
     {
       "command": "store_text",
-      "locator": "a[href*='fullcredits'] span",
+      "locator": "section > div > div > ul.title-pc-list > li[data-testid*=title-pc-principal-credit]:nth-child(1) > div > ul >li",
       "output": {
         "name": "AUTHOR",
         "type": "string",
@@ -107,11 +104,28 @@
       "locator": "meta[property='og:image']",
       "attribute_name": "content",
       "output": {
+        "name": "COVER"
+      },
+      "description": "Saves the image"
+    },
+    {
+      "command": "regex",
+      "input": "$COVER",
+      "expression": ".+?images.+?[\\.]",
+      "output": {
+        "name": "COVER"
+      },
+      "description": "Applies a regular expression to get part of the cover"
+    },
+    {
+      "command": "store",
+      "input": "$COVER._V1_.jpg",
+      "output": {
         "name": "COVER",
         "type": "string",
         "show": true
       },
-      "description": "Saves the image directly from og:image meta tag"
+      "description": "Add high res param to the cover"
     }
   ]
 }
