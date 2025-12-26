@@ -27,4 +27,7 @@ jobs:
             # Le decimos al padre que actualice sus submódulos a la última versión
             /usr/bin/git submodule update --recursive --remote
             
+            # Ejecutar el comando para leer las recetas
+            docker exec listy_php php /var/www/bin/console recipe:readfolder
+            
             echo "✅ Submódulo actualizado en producción al instante."

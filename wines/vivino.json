@@ -25,7 +25,7 @@
     },
     {
       "command": "store_attribute",
-      "locator": "div[data-testid='wineCard']:nth-child($i) div[role='img']",
+      "locator": "div[data-testid='wineCard']:nth-of-type($i) div[role='img']",
       "attribute_name": "style",
       "output": {
         "name": "COVER$i"
@@ -42,7 +42,7 @@
     {
       "command": "regex",
       "input": "$COVER$i",
-      "expression": "(?<=url\\(\"//).+?(?=\"\\)|$)",
+      "expression": "url\\([\"']((?:https?:)?//[^\"']+)[\"']\\)",
       "output": {
         "name": "COVER$i"
       },
@@ -54,10 +54,27 @@
           "step": 1
         }
       }
+    },
+    {
+      "command": "regex",
+      "input": "$COVER$i",
+      "expression": "(?:https?://)?(//?.+)$",
+      "output": {
+        "name": "COVER$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 1,
+          "to": 6,
+          "step": 1
+        }
+      },
+      "description": "Extract path part (removes protocol if present, keeps //)"
     },
     {
       "command": "store",
-      "input": "https://$COVER$i",
+      "input": "https:$COVER$i",
       "output": {
         "name": "COVER$i"
       },
@@ -68,11 +85,12 @@
           "to": 6,
           "step": 1
         }
-      }
+      },
+      "description": "Add https:// prefix"
     },
     {
       "command": "store_text",
-      "locator": "div[data-testid='wineCard']:nth-child($i) div[class*='wineInfoVintage__wineInfoVintage'] > div[class*='wineInfoVintage__truncate']:first-child",
+      "locator": "div[data-testid='wineCard']:nth-of-type($i) div[class*='wineInfoVintage__wineInfoVintage'] > div[class*='wineInfoVintage__truncate']:first-child",
       "output": {
         "name": "WINERY$i"
       },
@@ -88,7 +106,7 @@
     },
     {
       "command": "store_text",
-      "locator": "div[data-testid='wineCard']:nth-child($i) div[class*='wineInfoVintage__vintage']",
+      "locator": "div[data-testid='wineCard']:nth-of-type($i) div[class*='wineInfoVintage__wineInfoVintage'] div[class*='wineInfoVintage__vintage']",
       "output": {
         "name": "VINTAGE$i"
       },
@@ -120,7 +138,7 @@
     },
     {
       "command": "store_text",
-      "locator": "div[data-testid='wineCard']:nth-child($i) div[class*='wineInfoLocation__regionAndCountry']",
+      "locator": "div[data-testid='wineCard']:nth-of-type($i) div[class*='wineInfoLocation__regionAndCountry']",
       "output": {
         "name": "SUBTITLE$i"
       },
@@ -136,7 +154,7 @@
     },
     {
       "command": "store_attribute",
-      "locator": "div[data-testid='wineCard']:nth-child($i) a[data-testid='vintagePageLink']",
+      "locator": "div[data-testid='wineCard']:nth-of-type($i) a[data-testid='vintagePageLink']",
       "attribute_name": "href",
       "output": {
         "name": "URL$i"
@@ -216,13 +234,13 @@
     },
     {
       "command": "store_text",
-      "locator": "div[class*='wineHeadline-module__vintage']",
+      "locator": "*[class*='vintage']",
       "output": {
         "name": "STYLE_TEXT",
         "type": "string",
         "show": false
       },
-      "description": "Gets text from main headline"
+      "description": "Gets text from vintage element"
     },
     {
       "command": "regex",
@@ -273,7 +291,7 @@
     },
     {
       "command": "store_text",
-      "locator": "span[class*='purchaseAvailability__currentPrice']",
+      "locator": "*[class*='purchaseAvailability__currentPrice']",
       "output": {
         "name": "PRICE_TEXT",
         "type": "string",
@@ -284,45 +302,25 @@
     {
       "command": "regex",
       "input": "$PRICE_TEXT",
-      "expression": "([\\d,]+)",
-      "output": {
-        "name": "PRICE_NUM",
-        "type": "string",
-        "show": false
-      },
-      "description": "Extracts only the numeric part (e.g. 6,50)"
-    },
-    {
-      "command": "regex",
-      "input": "$PRICE_NUM",
-      "expression": "^([^,]*)",
-      "output": {
-        "name": "PRICE_LEFT",
-        "type": "string",
-        "show": false
-      },
-      "description": "Gets left part before comma"
-    },
-    {
-      "command": "regex",
-      "input": "$PRICE_NUM",
-      "expression": "(?<=,)(.*)",
-      "output": {
-        "name": "PRICE_RIGHT",
-        "type": "string",
-        "show": false
-      },
-      "description": "Gets right part after comma"
-    },
-    {
-      "command": "store",
-      "input": "$PRICE_LEFT.$PRICE_RIGHT",
+      "expression": "\\d+[,\\.]?\\d*",
       "output": {
         "name": "PRICE",
         "type": "float",
         "show": true
       },
-      "description": "Combines with dot for decimal (6.50)"
+      "description": "Extracts price number with comma or dot, returns empty if not found"
+    },
+    {
+      "command": "replace",
+      "input": "$PRICE",
+      "find": ",",
+      "replace": ".",
+      "output": {
+        "name": "PRICE",
+        "type": "float",
+        "show": true
+      },
+      "description": "Replace comma with dot for decimal format"
     },
     {
       "command": "store_text",
@@ -346,13 +344,13 @@
     },
     {
       "command": "store_text",
-      "locator": "a[href*='/wine-countries/']",
+      "locator": "a[href*='/wine-countries/'], a[href*='/countries/'], *[class*='country'] a, *[data-testid*='country']",
       "output": {
         "name": "COUNTRY",
         "type": "string",
         "show": true
       },
-      "description": "Saves the description"
+      "description": "Saves the country"
     },
     {
       "command": "store_text",

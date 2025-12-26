@@ -58,8 +58,15 @@ export class RecipeEngine {
   }
 
   replaceVariablesinString(str) {     
+    if (!str || typeof str !== 'string') {
+      return str;
+    }
+    
+    // Replace all occurrences of each variable using global regex
     return Object.keys(this.variables).reduce((result, variable) => {
-      return result.replace(`$${variable}`, this.get(variable));
+      const regex = new RegExp(`\\$${variable.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g');
+      const value = this.get(variable);
+      return result.replace(regex, value);
     }, str);
   } 
 
