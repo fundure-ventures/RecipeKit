@@ -206,22 +206,21 @@
       "description": "Saves the image directly from og:image meta tag"
     },
     {
-      "command": "replace",
+      "command": "regex",
       "input": "$URL",
-      "find": "https://m.",
-      "replace": "https://www.",
+      "expression": "https://m\\.(.*)",
       "output": {
         "name": "KEYWORDS"
       },
-      "description": "Convert mobile URL to desktop URL"
+      "description": "Extract domain and path after m."
     },
     {
       "command": "store",
-      "input": "$KEYWORDSkeywords",
+      "input": "https://www.$KEYWORDSkeywords",
       "output": {
         "name": "KEYWORDS"
       },
-      "description": "Get the platforms url"
+      "description": "Build desktop URL for keywords page"
     },
     {
       "command": "load",
