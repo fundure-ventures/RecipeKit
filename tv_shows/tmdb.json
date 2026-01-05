@@ -1,7 +1,7 @@
 {
   "recipe_shortcut": "tmdb_tv_shows",
   "list_type": "tv_shows",
-  "engine_version": 18,
+  "engine_version": 20,
   "title": "TMDB TV Shows",
   "description": "A recipe to get a list of tv shows",
   "urls": [
@@ -279,6 +279,93 @@
         "show": true
       },
       "description": "Add high res param to the cover"
+    },
+    {
+      "command": "regex",
+      "input": "$URL",
+      "expression": "^[^?]+",
+      "output": {
+        "name": "CLEAN_URL",
+        "type": "string",
+        "show": false
+      },
+      "description": "Normalize URL by removing any query parameters (e.g., ?language=es&)."
+    },
+    {
+      "command": "store",
+      "input": "$CLEAN_URL/seasons?language=$SYSTEM_LANGUAGE&",
+      "output": {
+        "name": "SEASSONS_URL",
+        "type": "string",
+        "show": false
+      },
+      "description": "Generate the URL to retreive the seassons."
+    },
+    {
+      "command": "load",
+      "url": "$SEASSONS_URL",
+      "config": {
+        "js": true,
+        "timeout": 0
+      },
+      "headers": {
+        "User-Agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.113 Mobile Safari/537.36",
+        "Accept-Language": "en-UK,en"
+      },
+      "description": "Load the seasons page (enable js + timeout for dynamic blocks)."
+    },
+    {
+      "command": "store_text",
+      "locator": "div.season_wrapper:nth-of-type($i) h2 a",
+      "output": {
+        "name": "SEASON_TITLE$i",
+        "type": "string",
+        "show": true
+      },
+      "config": {
+        "loop": { "index": "i", "from": 1, "to": 30, "step": 1 }
+      },
+      "description": "Stores each season title (Season 1, Season 2, Specials, etc)."
+    },
+    {
+      "command": "store_text",
+      "locator": "div.season_wrapper:nth-of-type($i) h4",
+      "output": {
+        "name": "SEASON_META_RAW$i"
+      },
+      "config": {
+        "loop": { "index": "i", "from": 1, "to": 30, "step": 1 }
+      },
+      "description": "Stores the first meta line inside each season card (contains episode count)."
+    },
+    {
+      "command": "regex",
+      "input": "$SEASON_META_RAW$i",
+      "expression": "\\b(\\d{4})\\b",
+      "output": {
+        "name": "SEASON_YEAR$i",
+        "type": "string",
+        "show": true
+      },
+      "config": {
+        "loop": { "index": "i", "from": 1, "to": 30, "step": 1 }
+      },
+      "description": "Extracts the year from '64% 2025 • 7 episodios'."
+    },
+    {
+      "command": "regex",
+      "input": "$SEASON_META_RAW$i",
+      "expression": "(?:•|·)\\s*(\\d+)\\b",
+      "output": {
+        "name": "SEASON_EPISODES$i",
+        "type": "int",
+        "show": true
+      },
+      "config": {
+        "loop": { "index": "i", "from": 1, "to": 30, "step": 1 }
+      },
+      "description": "Extracts the number right after the dot/bullet, regardless of the following word."
     }
+
   ]
 }
