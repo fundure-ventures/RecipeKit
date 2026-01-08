@@ -1,0 +1,216 @@
+{
+  "recipe_shortcut": "rottentomatoes_movies",
+  "list_type": "movies",
+  "engine_version": 23,
+  "title": "Rotten Tomatoes Movies",
+  "description": "A recipe to get a list of movies from Rotten Tomatoes",
+  "urls": [
+    "https://www.rottentomatoes.com/m/"
+  ],
+  "headers": {
+    "Accept-Language": "en-US,en",
+    "User-Agent": "Mozilla/5.0 (Linux; Android 10; Pixel 4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Mobile Safari/537.36"
+  },
+  "autocomplete_steps": [
+    {
+      "command": "load",
+      "url": "https://www.rottentomatoes.com/search?search=$INPUT",
+      "config": {
+        "js": true,
+        "timeout": 5000
+      },
+      "description": "Searches movies by title"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "search-page-media-row:nth-child($i) img",
+      "attribute_name": "src",
+      "output": {
+        "name": "COVER$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 1,
+          "to": 6,
+          "step": 1
+        }
+      }
+    },
+    {
+      "command": "store_text",
+      "locator": "search-page-media-row:nth-child($i) a[slot='title']",
+      "output": {
+        "name": "TITLE$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 1,
+          "to": 6,
+          "step": 1
+        }
+      }
+    },
+    {
+      "command": "regex",
+      "input": "$TITLE$i",
+      "expression": "(?<=\\()\\d\\d\\d\\d(?=\\))",
+      "output": {
+        "name": "SUBTITLE$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 1,
+          "to": 6,
+          "step": 1
+        }
+      }
+    },
+    {
+      "command": "regex",
+      "input": "$TITLE$i",
+      "expression": "[^\\(]*",
+      "output": {
+        "name": "TITLE$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 1,
+          "to": 6,
+          "step": 1
+        }
+      }
+    },
+    {
+      "command": "store_attribute",
+      "locator": "search-page-media-row:nth-child($i) a[slot='title']",
+      "attribute_name": "href",
+      "output": {
+        "name": "URL$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 1,
+          "to": 6,
+          "step": 1
+        }
+      }
+    }
+  ],
+  "url_steps": [
+    {
+      "command": "load",
+      "url": "$INPUT",
+      "config": {
+        "js": true,
+        "timeout": 8000
+      },
+      "headers": {
+        "User-Agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.113 Mobile Safari/537.36"
+      },
+      "description": "Load the url of the movie"
+    },
+    {
+      "command": "store_url",
+      "output": {
+        "name": "URL"
+      },
+      "description": "Saves the URL of the detail"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "meta[property='og:title']",
+      "attribute_name": "content",
+      "output": {
+        "name": "TITLE"
+      },
+      "description": "Takes the title of the movie from meta tag"
+    },
+    {
+      "command": "regex",
+      "input": "$TITLE",
+      "expression": "[^\\(|]*",
+      "output": {
+        "name": "TITLE",
+        "type": "string",
+        "show": true
+      },
+      "description": "Removes year and '| Rotten Tomatoes' from title if present"
+    },
+    {
+      "command": "store_text",
+      "locator": "div[slot='description'] rt-text[slot='content']",
+      "output": {
+        "name": "DESCRIPTION",
+        "type": "string",
+        "show": true
+      },
+      "description": "Saves the description from media-scorecard"
+    },
+    {
+      "command": "store_text",
+      "locator": "section[data-qa='section:media-info'] div[data-qa='item']:nth-child(7) rt-link[data-qa='item-value']",
+      "output": {
+        "name": "GENRE",
+        "type": "string",
+        "show": true
+      },
+      "description": "Saves the first genre (Genre is typically the 7th item)"
+    },
+    {
+      "command": "store_text",
+      "locator": "section[data-qa='section:media-info'] div[data-qa='item']:nth-child(12) rt-text[data-qa='item-value']",
+      "output": {
+        "name": "DURATION",
+        "type": "string",
+        "show": true
+      },
+      "description": "Saves the runtime (Runtime is typically the 12th item)"
+    },
+    {
+      "command": "store_text",
+      "locator": "section[data-qa='section:media-info'] div[data-qa='item']:nth-child(1) rt-link[data-qa='item-value']",
+      "output": {
+        "name": "AUTHOR",
+        "type": "string",
+        "show": true
+      },
+      "description": "Saves the director (Director is the first item)"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "meta[property='og:image']",
+      "attribute_name": "content",
+      "output": {
+        "name": "COVER",
+        "type": "string",
+        "show": true
+      },
+      "description": "Saves the image from meta tag"
+    },
+    {
+      "command": "store_text",
+      "locator": "rt-text[slot='criticsScore']",
+      "output": {
+        "name": "AUX_RATING_TEXT"
+      },
+      "description": "Saves the rating text (e.g., 93%)"
+    },
+    {
+      "command": "regex",
+      "input": "$AUX_RATING_TEXT",
+      "expression": "(\\d+)",
+      "output": {
+        "name": "RATING",
+        "type": "float",
+        "show": true
+      },
+      "description": "Extracts the rating number and saves as float (0-100 scale from Rotten Tomatoes)"
+    }
+  ]
+}
+

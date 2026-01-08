@@ -50,3 +50,26 @@ describe("imdb.json", () => {
     expect(result.COVER).toMatch(/^https:\/\/.*\.(jpg|jpeg|png|webp)$/i);
   }, TIMEOUT);
 });
+
+describe("rottentomatoes.json", () => {
+  test("--type autocomplete", async() => {
+    const results = await runEngine("movies/rottentomatoes.json", "autocomplete", "The Matrix");
+    const entry = findEntry(results, "The Matrix");
+    
+    expect(entry).toBeDefined();
+    expect(entry.TITLE).toContain("Matrix");
+    expect(entry.COVER).toMatch(/^https:\/\/.*(\.(jpg|jpeg|png|webp)|=)/i);
+    expect(entry.URL).toMatch(/^https:\/\/www\.rottentomatoes\.com\/m\/.*$/i);
+  }, TIMEOUT);
+
+  test("--type url", async () => {
+    const result = await runEngine("movies/rottentomatoes.json", "url", "https://www.rottentomatoes.com/m/the_matrix");
+
+    expect(result.TITLE).toContain("Matrix");
+    expect(result.DESCRIPTION).toBeDefined();
+    expect(result.DURATION).toBeDefined();
+    expect(result.RATING).toBeDefined();
+    expect(result.AUTHOR).toBeDefined();
+    expect(result.COVER).toMatch(/^https:\/\/.*(\.(jpg|jpeg|png|webp)|=)/i);
+  }, TIMEOUT);
+});
