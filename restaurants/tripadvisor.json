@@ -86,67 +86,59 @@
     },
     {
       "command": "store_text",
-      "locator": "div[data-test-target*=restaurant-detail-info] > div:nth-child(3) > span:nth-child(1) > span:nth-child(1) > a",
-      "output": {
-        "name": "ADDRESS",
-        "show": true
-      },
-      "description": "Saves the address."
-    },
-    {
-      "command": "store_text",
-      "locator": "div[data-test-target*=restaurant-detail-info] > div:nth-child(2) > span:nth-child(3) > a:nth-child(1)",
+      "locator": "[data-test-target*='restaurant-detail-info'] a[href*='zfp']",
       "output": {
         "name": "ORIENTATIVE_PRICE",
         "show": true
       },
-      "description": "Saves the style"
+      "description": "Saves the price"
     },
     {
-      "command": "store_text",
-      "locator": "div[data-test-target*=restaurant-detail-info] > div:nth-child(1) > h1",
+      "command": "store_attribute",
+      "locator": "meta[property='og:title']",
+      "attribute_name": "content",
       "output": {
         "name": "TITLE",
         "show": true
       },
-      "description": "Saves the name"
+      "description": "Saves the title from og:title meta tag"
+    },
+    {
+      "command": "regex",
+      "input": "$TITLE",
+      "expression": "^([^,]+)",
+      "output": {
+        "name": "TITLE",
+        "show": true
+      },
+      "description": "Extracts just the restaurant name from the title"
     },
     {
       "command": "store_text",
-      "locator": "div[data-test-target*=restaurant-detail-info] > div:nth-child(3) > span:nth-child(2) > span:nth-child(1) > span:nth-child(2)",
+      "locator": "a[href^='tel:']",
       "output": {
         "name": "PHONE",
         "show": true
       },
-      "description": "Saves the style"
+      "description": "Saves the phone number"
     },
     {
-      "command": "store_attribute",
-      "locator": "div[data-test-target*=restaurant-detail-info] > div:nth-child(2) > span:nth-child(1) svg",
-      "attribute_name": "aria-label",
-      "output": {
-        "name": "ARATING"
-      },
-      "description": "Saves the rating"
-    },
-    {
-      "command": "regex",
-      "input": "$ARATING",
-      "expression": "\\d\\.\\d",
+      "command": "store_text",
+      "locator": "[data-test-target*='restaurant-detail-info'] [data-automation='bubbleRatingValue']",
       "output": {
         "name": "RATING",
         "show": true
       },
-      "description": "Applies a regular expression to get part of the rating"
+      "description": "Saves the rating"
     },
     {
       "command": "store_text",
-      "locator": "div[data-test-target*=restaurant-detail-info] div:nth-child(2) span:nth-child(3) a:nth-child(2)",
+      "locator": "[data-test-target*='restaurant-detail-info'] a[href*='-c']:not([href*='zfp'])",
       "output": {
         "name": "STYLE",
         "show": true
       },
-      "description": "Saves the style"
+      "description": "Saves the cuisine style"
     },
     {
       "command": "store_attribute",
@@ -160,13 +152,22 @@
     },
     {
       "command": "store_attribute",
-      "locator": "div[data-test-target*=restaurant-detail-info] > div:nth-child(3) > span:nth-child(3) > span:nth-child(1) > a ",
+      "locator": "[data-automation='restaurantsWebsiteButton']",
       "attribute_name": "href",
       "output": {
         "name": "WEBSITE",
         "show": true
       },
       "description": "Saves the website"
+    },
+    {
+      "command": "store_text",
+      "locator": "[data-automation='OVERVIEW_TAB_ELEMENT'] .fIrGe > div",
+      "output": {
+        "name": "DESCRIPTION",
+        "show": true
+      },
+      "description": "Saves the restaurant description from About section"
     },
     {
       "command": "url_encode",
@@ -189,6 +190,16 @@
     },
     {
       "command": "json_store_text",
+      "locator": "results.[0].address",
+      "input": "$JSON",
+      "output": {
+        "name": "ADDRESS",
+        "show": true
+      },
+      "description": "Saves the address from API response"
+    },
+    {
+      "command": "json_store_text",
       "locator": "results.[0].coords",
       "input": "$JSON",
       "output": {
@@ -196,25 +207,6 @@
         "show": true
       },
       "description": "Saves the coords."
-    },
-    {
-      "command": "store_attribute",
-      "locator": "span[data-test-target*=staticMapSnapshot] > img",
-      "attribute_name": "src",
-      "output": {
-        "name": "ACOORDS"
-      },
-      "description": "Saves the address."
-    },
-    {
-      "command": "regex",
-      "input": "$ACOORDS",
-      "expression": "\\d+\\.\\d+\\,\\-?\\d+\\.\\d+",
-      "output": {
-        "name": "COORDS",
-        "show": true
-      },
-      "description": "Applies a regular expression to get part of the rating"
     }
   ]
 }
