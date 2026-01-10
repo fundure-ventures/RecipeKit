@@ -17,7 +17,7 @@
       "url": "https://www.rottentomatoes.com/search?search=$INPUT",
       "config": {
         "js": true,
-        "timeout": 5000
+        "timeout": 1
       },
       "description": "Searches movies by title"
     },
@@ -107,7 +107,7 @@
       "url": "$INPUT",
       "config": {
         "js": true,
-        "timeout": 8000
+        "timeout": 1
       },
       "headers": {
         "User-Agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.113 Mobile Safari/537.36"
