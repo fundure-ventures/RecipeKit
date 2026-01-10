@@ -5,8 +5,6 @@
   "title": "Apple Software",
   "description": "Load software from Apple",
   "urls": [
-    "https://itunes.apple.com/search?media=software",
-    "https://itunes.apple.com",
     "https://apps.apple.com",
     "apps.apple.com"
   ],
@@ -148,13 +146,29 @@
     },
     {
       "command": "json_store_text",
-      "locator": "results.[0].artworkUrl512",
+      "locator": "results.[0].artworkUrl100",
       "input": "$JSON",
+      "output": {
+        "name": "COVER"
+      }
+    },
+    {
+      "command": "regex",
+      "input": "$COVER",
+      "expression": "[\\S]*\\/",
+      "output": {
+        "name": "COVER"
+      }
+    },
+    {
+      "command": "store",
+      "input": "$COVER300x300bb.jpg",
       "output": {
         "name": "COVER",
         "type": "string",
         "show": true
-      }
+      },
+      "description": "Add high res param to the cover"
     },
     {
       "command": "json_store_text",

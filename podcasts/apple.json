@@ -5,8 +5,7 @@
   "title": "Apple Podcasts",
   "description": "Load podcasts from Apple",
   "urls": [
-    "https://podcasts.apple.com/",
-    "https://itunes.apple.com/search?media=podcast"
+    "https://podcasts.apple.com/"
   ],
   "headers": {
     "Accept-Language": "en-UK,en",
@@ -158,13 +157,29 @@
     },
     {
       "command": "json_store_text",
-      "locator": "results.[0].artworkUrl600",
+      "locator": "results.[0].artworkUrl100",
       "input": "$JSON",
+      "output": {
+        "name": "COVER"
+      }
+    },
+    {
+      "command": "regex",
+      "input": "$COVER",
+      "expression": "[\\S]*\\/",
+      "output": {
+        "name": "COVER"
+      }
+    },
+    {
+      "command": "store",
+      "input": "$COVER300x300bb.jpg",
       "output": {
         "name": "COVER",
         "type": "string",
         "show": true
-      }
+      },
+      "description": "Add high res param to the cover"
     },
     {
       "command": "json_store_text",
