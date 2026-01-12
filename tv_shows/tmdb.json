@@ -283,7 +283,7 @@
     {
       "command": "regex",
       "input": "$URL",
-      "expression": "^[^?]+",
+      "expression": "^[^?]+(?=\?|$)",
       "output": {
         "name": "CLEAN_URL",
         "type": "string",
