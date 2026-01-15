@@ -10,13 +10,10 @@
  */
 
 import { spawn } from 'child_process';
-import { promisify } from 'util';
 import { readFile, writeFile, mkdir } from 'fs/promises';
 import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { existsSync } from 'fs';
-
-const execAsync = promisify(spawn);
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = resolve(__dirname, '..');
@@ -623,9 +620,15 @@ describe(RECIPE, () => {
 class AutoRecipeOrchestrator {
   constructor(url) {
     this.url = url;
+    const urlObj = new URL(url);
+    const hostname = urlObj.hostname.replace('www.', '');
+    // Extract the main domain part (e.g., 'themoviedb' from 'themoviedb.org')
+    const domainParts = hostname.split('.');
+    const domain = domainParts.length > 2 ? domainParts[domainParts.length - 2] : domainParts[0];
+    
     this.context = {
       url,
-      domain: new URL(url).hostname.replace('www.', '').replace(/\..+$/, ''),
+      domain,
       topic: null,
       folder: null
     };
@@ -888,7 +891,9 @@ async function main() {
 }
 
 // Run if called directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+const currentModuleUrl = import.meta.url;
+const mainModuleUrl = `file://${process.argv[1]}`;
+if (currentModuleUrl === mainModuleUrl || process.argv[1].endsWith('/autoRecipe.js')) {
   main().catch(error => {
     Logger.error('Fatal error:', error);
     process.exit(1);

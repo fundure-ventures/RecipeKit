@@ -70,15 +70,34 @@ agent-browser wait --load networkidle
 ### Example Workflow
 ```javascript
 // In WebProber.extractFingerprint():
-const { stdout } = await exec('agent-browser', [
-  'open', url,
-  '&&',
-  'agent-browser', 'wait', '--load', 'networkidle',
-  '&&',
-  'agent-browser', 'snapshot', '--json'
+import { spawn } from 'child_process';
+
+function execCommand(command, args) {
+  return new Promise((resolve, reject) => {
+    const proc = spawn(command, args);
+    let stdout = '';
+    let stderr = '';
+    
+    proc.stdout.on('data', (data) => stdout += data.toString());
+    proc.stderr.on('data', (data) => stderr += data.toString());
+    
+    proc.on('close', (code) => {
+      if (code !== 0) reject(new Error(stderr));
+      else resolve({ stdout, stderr });
+    });
+  });
+}
+
+// Use it
+const { stdout } = await execCommand('agent-browser', [
+  'open', url
 ]);
 
-const snapshot = JSON.parse(stdout);
+const { stdout: snapshotJson } = await execCommand('agent-browser', [
+  'snapshot', '--json'
+]);
+
+const snapshot = JSON.parse(snapshotJson);
 const fingerprint = {
   url: snapshot.url,
   title: snapshot.title,
