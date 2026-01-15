@@ -65,7 +65,7 @@ Use loops to avoid repetition:
     "loop": {
       "index": "i",
       "from": 0,
-      "to": 9,
+      "to": 4,
       "step": 1
     }
   },

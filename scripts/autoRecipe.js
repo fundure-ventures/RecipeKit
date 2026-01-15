@@ -622,9 +622,36 @@ class AutoRecipeOrchestrator {
     this.url = url;
     const urlObj = new URL(url);
     const hostname = urlObj.hostname.replace('www.', '');
-    // Extract the main domain part (e.g., 'themoviedb' from 'themoviedb.org')
+    
+    // Extract the main domain part
+    // For 'example.com' -> 'example'
+    // For 'themoviedb.org' -> 'themoviedb'
+    // For 'api.example.com' -> 'example'
+    // For 'example.co.uk' -> 'example'
+    // Note: This is a simple heuristic and may not work for all domain structures
     const domainParts = hostname.split('.');
-    const domain = domainParts.length > 2 ? domainParts[domainParts.length - 2] : domainParts[0];
+    let domain;
+    
+    if (domainParts.length === 2) {
+      // Simple case: example.com
+      domain = domainParts[0];
+    } else if (domainParts.length > 2) {
+      // Complex case: could be subdomain or multi-part TLD
+      // Heuristic: if last part is common TLD and second-to-last is short (2-3 chars),
+      // it's likely a country code (co.uk, com.au), use third-to-last
+      const lastPart = domainParts[domainParts.length - 1];
+      const secondLast = domainParts[domainParts.length - 2];
+      
+      if (secondLast.length <= 3 && ['com', 'co', 'org', 'net', 'gov', 'edu', 'ac'].includes(secondLast)) {
+        // Likely country code TLD: example.co.uk -> 'example'
+        domain = domainParts[domainParts.length - 3] || domainParts[0];
+      } else {
+        // Likely subdomain: api.example.com -> 'example'
+        domain = domainParts[domainParts.length - 2];
+      }
+    } else {
+      domain = domainParts[0];
+    }
     
     this.context = {
       url,
@@ -892,8 +919,11 @@ async function main() {
 
 // Run if called directly
 const currentModuleUrl = import.meta.url;
-const mainModuleUrl = `file://${process.argv[1]}`;
-if (currentModuleUrl === mainModuleUrl || process.argv[1].endsWith('/autoRecipe.js')) {
+const currentModulePath = fileURLToPath(currentModuleUrl);
+const mainModulePath = process.argv[1];
+
+// Check if this is the main module being executed
+if (mainModulePath === currentModulePath || mainModulePath.endsWith('/scripts/autoRecipe.js')) {
   main().catch(error => {
     Logger.error('Fatal error:', error);
     process.exit(1);
