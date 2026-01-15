@@ -1,0 +1,25 @@
+{
+  "name": "recipekit-auto-recipe",
+  "version": "1.0.0",
+  "description": "Autonomous recipe authoring system for RecipeKit",
+  "type": "module",
+  "main": "autoRecipe.js",
+  "scripts": {
+    "auto-recipe": "node autoRecipe.js"
+  },
+  "keywords": [
+    "recipekit",
+    "autonomous",
+    "scraping",
+    "automation"
+  ],
+  "author": "RecipeKit Contributors",
+  "license": "MIT",
+  "dependencies": {},
+  "optionalDependencies": {
+    "@github/copilot-sdk": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
