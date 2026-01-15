@@ -32,6 +32,22 @@ Analyze the failure and new evidence, then provide PATCHED steps that fix the is
 
 ## Common Failure Types and Fixes
 
+### ⚠️ IMPORTANT: RecipeKit Engine Limitations
+
+**The RecipeKit engine does NOT support interactive commands.**
+- ❌ No `click` commands
+- ❌ No `fill` or `type` commands  
+- ❌ No form submissions
+- ✅ Use direct URLs with query parameters instead
+
+**Example**: Instead of clicking a search box and typing, use:
+```json
+{
+  "command": "load",
+  "url": "https://example.com/search?q=$INPUT"
+}
+```
+
 ### 1. Selector Missing / Not Found
 - **Problem**: CSS selector doesn't match any elements
 - **Fix**: Use evidence to find correct selectors

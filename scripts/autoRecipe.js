@@ -564,7 +564,9 @@ class RecipeValidator {
     const query = queries[0];
 
     if (type === 'autocomplete') {
-      // Note: Using escaped template literals (\\$) for generated code
+      // Generate test file content
+      // Note: ${folder}, ${domain}, ${query} are interpolated now during generation
+      // while \${RECIPE} and INPUT.AUTOCOMPLETE are escaped to be interpolated later at test runtime
       return `import { expect, test, describe } from "bun:test";
 import { runEngine, findEntry, loadEnvVariables } from '../../../Engine/utils/test_utils.js';
 
@@ -590,7 +592,9 @@ describe(RECIPE, () => {
 });
 `;
     } else {
-      // Note: Using escaped template literals (\\$) for generated code
+      // Generate test file content
+      // Note: ${folder}, ${domain} are interpolated now during generation
+      // while \${RECIPE} and INPUT.URL are escaped to be interpolated later at test runtime
       return `import { expect, test, describe } from "bun:test";
 import { runEngine, loadEnvVariables } from '../../../Engine/utils/test_utils.js';
 
