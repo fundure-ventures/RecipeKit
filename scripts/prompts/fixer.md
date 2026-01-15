@@ -49,8 +49,9 @@ Analyze the failure and new evidence, then provide PATCHED steps that fix the is
 
 ### 4. Search Flow Incomplete
 - **Problem**: Missing interaction steps (click, type, submit)
-- **Fix**: Use direct search URL with query parameters (RecipeKit engine doesn't support click/type commands)
+- **Fix**: Use direct search URL with query parameters
 - **Strategy**: Find the direct URL pattern for search results
+- **Note**: RecipeKit engine currently supports load, store, and transform commands. Interactive commands (click, fill, type) are not yet implemented. Always use direct URLs with query parameters for search functionality.
 
 ### 5. Data Extraction Issues
 - **Problem**: Regex not matching, wrong attribute

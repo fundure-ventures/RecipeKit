@@ -115,6 +115,22 @@ Validates recipes using:
 bun run ./Engine/engine.js --recipe <path> --type <type> --input <input>
 ```
 
+## RecipeKit Engine Capabilities
+
+The autonomous system generates recipes using commands supported by the RecipeKit engine:
+
+### Supported Commands
+- **Load**: `load` (URLs), `api_request` (API calls)
+- **Store**: `store`, `store_attribute`, `store_text`, `store_array`, `store_url`, `json_store_text`
+- **Transform**: `regex`, `url_encode`, `replace`
+
+### Current Limitations
+- **No interactive commands**: The engine doesn't support `click`, `fill`, `type`, or other interaction commands
+- **Workaround**: Use direct URLs with query parameters for search functionality
+- **Example**: Instead of navigating to a search box, use `https://example.com/search?q=$INPUT`
+
+This limitation is documented in the fixer prompt to guide AI repairs correctly.
+
 ## Configuration
 
 Edit `CONFIG` in `autoRecipe.js` to adjust:

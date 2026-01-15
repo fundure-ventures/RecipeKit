@@ -564,6 +564,7 @@ class RecipeValidator {
     const query = queries[0];
 
     if (type === 'autocomplete') {
+      // Note: Using escaped template literals (\\$) for generated code
       return `import { expect, test, describe } from "bun:test";
 import { runEngine, findEntry, loadEnvVariables } from '../../../Engine/utils/test_utils.js';
 
@@ -589,6 +590,7 @@ describe(RECIPE, () => {
 });
 `;
     } else {
+      // Note: Using escaped template literals (\\$) for generated code
       return `import { expect, test, describe } from "bun:test";
 import { runEngine, loadEnvVariables } from '../../../Engine/utils/test_utils.js';
 
@@ -628,7 +630,13 @@ class AutoRecipeOrchestrator {
     // For 'themoviedb.org' -> 'themoviedb'
     // For 'api.example.com' -> 'example'
     // For 'example.co.uk' -> 'example'
-    // Note: This is a simple heuristic and may not work for all domain structures
+    // For 'api.example.co.uk' -> 'example'
+    // 
+    // Note: This is a heuristic that works for most cases but may fail for:
+    // - Unusual TLD structures (e.g., .pvt.k12.ma.us)
+    // - Very short domain names that match common TLD patterns
+    // In these cases, the script will use the extracted domain, which may need
+    // manual correction or can be overridden by updating the recipe file directly.
     const domainParts = hostname.split('.');
     let domain;
     
@@ -644,7 +652,14 @@ class AutoRecipeOrchestrator {
       
       if (secondLast.length <= 3 && ['com', 'co', 'org', 'net', 'gov', 'edu', 'ac'].includes(secondLast)) {
         // Likely country code TLD: example.co.uk -> 'example'
-        domain = domainParts[domainParts.length - 3] || domainParts[0];
+        // For 'api.example.co.uk', we need the part before the country code
+        const domainIndex = domainParts.length - 3;
+        if (domainIndex >= 0) {
+          domain = domainParts[domainIndex];
+        } else {
+          // Fallback: use first part
+          domain = domainParts[0];
+        }
       } else {
         // Likely subdomain: api.example.com -> 'example'
         domain = domainParts[domainParts.length - 2];
