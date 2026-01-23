@@ -53,8 +53,8 @@ Return **ONLY** valid JSON. No markdown code blocks, no explanations.
 For each search result (using loop index `$i`):
 - `TITLE$i` (required) - The result title
 - `URL$i` (required) - Absolute URL to the detail page
+- `COVER$i` (required) - Thumbnail image URL
 - `SUBTITLE$i` (optional) - Year, author, or secondary info
-- `COVER$i` (optional) - Thumbnail image URL
 
 ## Available Commands
 
@@ -251,6 +251,41 @@ article:nth-of-type($i)
 5. **Check that selectors target visible text elements** - Not meta tags
 6. **Prefer stable selectors** - data attributes, semantic HTML over class names
 7. **Analyze the evidence carefully** - Don't guess; use what you learned from probing
+
+## CRITICAL: Variable Reference Rules
+
+**The engine ONLY supports variable references in these specific places:**
+- In the `input` field of `store` commands: `"input": "https://example.com$URL$i"`
+- In the `input` field of `regex` commands: `"input": "$TITLE$i"`
+- In the `url` field of `load` commands: `"url": "https://example.com/search?q=$INPUT"`
+
+**Variables CANNOT be used in:**
+- The `output.name` value itself (the name is literal, not a reference)
+- The `locator` field (except `$i` for loop index)
+- As values to combine into another variable's content
+
+### ❌ WRONG - This will NOT work:
+```json
+// Creating intermediate variables then trying to combine them
+{ "command": "store_text", "locator": ".team", "output": { "name": "TEAM$i" } },
+{ "command": "store_text", "locator": ".season", "output": { "name": "SEASON$i" } },
+{ "command": "store", "input": "$TEAM$i - $SEASON$i", "output": { "name": "TITLE$i" } }
+// Result: TITLE will be literal "$TEAM$i - $SEASON$i" - variables not replaced!
+```
+
+### ✅ CORRECT - Extract TITLE directly from the page:
+```json
+// Option 1: Extract TITLE directly from an element that contains the full text
+{ "command": "store_text", "locator": ".result:nth-child($i) .item-title", "output": { "name": "TITLE$i" } }
+
+// Option 2: If the title element contains both pieces, extract it as-is
+{ "command": "store_text", "locator": ".result:nth-child($i)", "output": { "name": "TITLE$i" } }
+```
+
+### Key Principle:
+- **TITLE$i must be extracted DIRECTLY from the page** - do NOT try to construct it from other variables
+- If you need secondary info like season, year, or author, extract it into **SUBTITLE$i** (a separate field)
+- The only time you can reference variables is to prepend base URLs or apply regex cleanup
 
 ## Debugging Tips
 

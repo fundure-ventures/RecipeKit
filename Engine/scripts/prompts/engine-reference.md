@@ -41,6 +41,31 @@ Use `$VARIABLE_NAME` in any string field. The engine replaces it with the value:
 }
 ```
 
+### Variable Substitution Limitations
+
+**⚠️ CRITICAL:** Variable substitution ONLY works in these specific places:
+- `url` field in `load` and `api_request` commands
+- `input` field in `store`, `regex`, `replace`, `url_encode` commands
+- `locator` field (ONLY for loop index `$i`)
+- `headers` values
+
+**Variables CANNOT be combined in output values.** The engine does NOT support:
+```json
+// ❌ WRONG - This will NOT work!
+{ "command": "store_text", "locator": ".team", "output": { "name": "TEAM$i" } },
+{ "command": "store_text", "locator": ".year", "output": { "name": "YEAR$i" } },
+{ "command": "store", "input": "$TEAM$i ($YEAR$i)", "output": { "name": "TITLE$i" } }
+// Result: TITLE will literally be "$TEAM$i ($YEAR$i)" - NOT replaced!
+```
+
+**Instead, extract TITLE directly from the page:**
+```json
+// ✅ CORRECT - Extract TITLE directly from the element
+{ "command": "store_text", "locator": ".result:nth-child($i) .title", "output": { "name": "TITLE$i" } }
+// For secondary info, use SUBTITLE as a separate field
+{ "command": "store_text", "locator": ".result:nth-child($i) .year", "output": { "name": "SUBTITLE$i" } }
+```
+
 ### Loop Variables
 Loops create indexed variables. With `"name": "TITLE$i"` and loop `from: 1, to: 3`:
 - Creates: `TITLE1`, `TITLE2`, `TITLE3`
@@ -356,25 +381,50 @@ meta[name="description"]
 }
 ```
 
+## Content Types
+
+Recipes must specify a `list_type` that determines what fields are expected:
+
+| Type | Description | Key Fields |
+|------|-------------|------------|
+| `movies` | Films | TITLE, DATE, RATING, AUTHOR (director), COVER |
+| `tv_shows` | TV series | TITLE, DATE, RATING, EPISODES, COVER |
+| `books` | Books | TITLE, AUTHOR, PAGES, COVER |
+| `anime` | Anime series | TITLE, EPISODES, RATING, COVER |
+| `manga` | Manga series | TITLE, AUTHOR, VOLUMES, COVER |
+| `videogames` | Video games | TITLE, DATE, RATING, COVER |
+| `boardgames` | Board games | TITLE, RATING, COVER |
+| `albums` | Music albums | TITLE, AUTHOR (artist), DATE, COVER |
+| `songs` | Songs | TITLE, AUTHOR (artist), COVER |
+| `artists` | Music artists | TITLE, COVER |
+| `podcasts` | Podcasts | TITLE, AUTHOR, COVER |
+| `software` | Apps | TITLE, AUTHOR, RATING, ICON, COVER |
+| `wines` | Wines | TITLE, WINERY, REGION, VINTAGE, RATING |
+| `beers` | Beers | TITLE, STYLE, REGION, ALCOHOL, RATING |
+| `restaurants` | Restaurants | TITLE, RATING, LATITUDE, LONGITUDE |
+| `recipes` | Cooking recipes | TITLE, INGREDIENTS, COVER |
+| `food` | Food products | TITLE, COVER |
+| `generic` | Any content | TITLE, DESCRIPTION, FAVICON, COVER |
+
 ## Output Contracts
 
 ### autocomplete_steps Output
 Must produce indexed variables that become an array:
 
-**Required:**
-- `TITLE$i` - Result title
-- `URL$i` - Result URL (absolute)
+**Required (all mandatory):**
+- `TITLE$i` - Result title (extracted directly from page element)
+- `URL$i` - Result URL (must be absolute, must be a detail page URL)
+- `COVER$i` - Thumbnail/cover image URL
 
 **Optional:**
 - `SUBTITLE$i` - Secondary info (year, author, etc.)
-- `COVER$i` - Thumbnail image
 
 **Example Output:**
 ```json
 {
   "results": [
-    { "TITLE": "The Matrix", "URL": "https://...", "SUBTITLE": "1999" },
-    { "TITLE": "Matrix Reloaded", "URL": "https://...", "SUBTITLE": "2003" }
+    { "TITLE": "The Matrix", "URL": "https://...", "COVER": "https://...", "SUBTITLE": "1999" },
+    { "TITLE": "Matrix Reloaded", "URL": "https://...", "COVER": "https://...", "SUBTITLE": "2003" }
   ]
 }
 ```
@@ -382,9 +432,36 @@ Must produce indexed variables that become an array:
 ### url_steps Output
 Must produce named variables with `show: true`:
 
-**Generic:** TITLE, DESCRIPTION, FAVICON, COVER
-**Movies:** TITLE, DATE, DESCRIPTION, RATING, AUTHOR, COVER, DURATION
-**TV Shows:** TITLE, DATE, DESCRIPTION, RATING, AUTHOR, COVER, EPISODES
+**Standard Fields:**
+| Field | Type | Description |
+|-------|------|-------------|
+| `TITLE` | string | Item title |
+| `DESCRIPTION` | string | Full description |
+| `COVER` | string | Main image URL |
+| `RATING` | float | Numeric rating |
+| `DATE` | date | Release/publish date |
+| `AUTHOR` | string | Creator/director/artist |
+| `TAGS` | array | Categories/genres |
+| `TIME` | string | Duration |
+| `PRICE` | string | Price |
+| `URL` | string | Canonical URL |
+| `FAVICON` | string | Site favicon |
+
+**Content-Specific Fields:**
+| Field | Used In | Description |
+|-------|---------|-------------|
+| `EPISODES` | tv_shows, anime | Number of episodes |
+| `PAGES` | books, manga | Page count |
+| `VOLUMES` | manga | Number of volumes |
+| `WINERY` | wines | Winery name |
+| `REGION` | wines, beers | Geographic region |
+| `VINTAGE` | wines | Wine vintage year |
+| `ALCOHOL` | beers, wines | Alcohol percentage |
+| `STYLE` | beers | Beer style |
+| `INGREDIENTS` | recipes | Ingredient list |
+| `ICON` | software | App icon |
+| `LATITUDE` | restaurants | Location latitude |
+| `LONGITUDE` | restaurants | Location longitude |
 
 **Example Output:**
 ```json
@@ -392,6 +469,8 @@ Must produce named variables with `show: true`:
   "results": {
     "TITLE": "The Matrix",
     "DESCRIPTION": "A computer hacker...",
+    "DATE": "1999",
+    "RATING": 8.7,
     "COVER": "https://example.com/matrix.jpg"
   }
 }
@@ -419,3 +498,75 @@ bun Engine/engine.js --recipe path/to/recipe.json --type autocomplete --input "t
 4. **Relative URLs** - Always make URLs absolute with a `store` step if needed
 
 5. **Not handling empty results** - If a selector finds nothing, it returns empty string. The step doesn't fail.
+
+6. **Trying to combine variables** - You cannot construct TITLE from `$VAR1 - $VAR2`. Extract TITLE directly from the page element.
+
+## Common Patterns
+
+### Handle Relative URLs
+```json
+{
+  "command": "store_attribute",
+  "locator": ".result:nth-child($i) a",
+  "attribute_name": "href",
+  "output": { "name": "REL_URL$i" },
+  "config": { "loop": { "index": "i", "from": 1, "to": 5, "step": 1 } }
+},
+{
+  "command": "store",
+  "input": "https://example.com$REL_URL$i",
+  "output": { "name": "URL$i" },
+  "config": { "loop": { "index": "i", "from": 1, "to": 5, "step": 1 } }
+}
+```
+
+### Extract from Meta Tags
+```json
+{
+  "command": "store_attribute",
+  "locator": "meta[property='og:title']",
+  "attribute_name": "content",
+  "output": { "name": "TITLE", "type": "string", "show": true }
+}
+```
+
+### Clean Up Extracted Text
+```json
+{
+  "command": "regex",
+  "input": "$TITLE",
+  "expression": "^(.+?)\\s*\\|.*$",
+  "output": { "name": "TITLE", "type": "string", "show": true },
+  "description": "Remove site name suffix"
+}
+```
+
+### Extract from JSON-LD
+```json
+{
+  "command": "store_text",
+  "locator": "script[type='application/ld+json']",
+  "output": { "name": "JSON_LD" }
+},
+{
+  "command": "json_store_text",
+  "input": "$JSON_LD",
+  "locator": "name",
+  "output": { "name": "TITLE", "type": "string", "show": true }
+}
+```
+
+### Extract Rating as Float
+```json
+{
+  "command": "store_text",
+  "locator": ".rating-value",
+  "output": { "name": "RATING_RAW" }
+},
+{
+  "command": "regex",
+  "input": "$RATING_RAW",
+  "expression": "([\\d.]+)",
+  "output": { "name": "RATING", "type": "float", "show": true }
+}
+```
