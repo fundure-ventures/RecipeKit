@@ -124,6 +124,9 @@ Extracts the `textContent` from an element.
 - Uses `textContent.trim()` - works on visible elements with text
 - Does NOT work on `<meta>` tags (they have no textContent, use `store_attribute` instead)
 - Returns empty string if element not found
+- **NEVER use jQuery-specific selectors** like `:contains()`, `:has()`, `:visible`, `:hidden`, `:eq()`, `:first`, `:last` - these are NOT valid CSS and will cause syntax errors
+- Use standard CSS selectors only (classes, IDs, attributes, pseudo-classes like `:nth-child()`)
+
 
 ### `store_attribute` - Extract Attribute Value
 Extracts an attribute from an element.
@@ -146,6 +149,10 @@ Extracts an attribute from an element.
 - `locator` (required): CSS selector
 - `attribute_name` (required): Attribute to extract (e.g., "href", "src", "content")
 - `output.name` (required): Variable name
+
+**Important:**
+- **NEVER use jQuery-specific selectors** like `:contains()`, `:has()`, `:visible`, `:hidden`, `:eq()`, `:first`, `:last`
+- Use standard CSS selectors only
 
 **Common Uses:**
 - `meta[property="og:image"]` + `content` → Cover images
