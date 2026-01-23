@@ -1,0 +1,2512 @@
+#!/usr/bin/env bun
+/**
+ * autoRecipe.js - Autonomous Recipe Authoring for RecipeKit
+ * 
+ * Given a single URL, this script:
+ * 1. Probes the website using Puppeteer
+ * 2. Classifies the site into a list_type using Copilot
+ * 3. Generates autocomplete_steps and url_steps
+ * 4. Writes the recipe and tests
+ * 5. Runs tests and repairs until green (or hard failure)
+ * 
+ * Usage: bun Engine/scripts/autoRecipe.js --url=https://example.com [--force] [--debug]
+ */
+
+import { spawn } from 'bun';
+import { readFile, writeFile, access } from 'fs/promises';
+import { dirname, resolve, join } from 'path';
+import { fileURLToPath } from 'url';
+import { createInterface } from 'readline';
+import minimist from 'minimist';
+import chalk from 'chalk';
+import puppeteer from 'puppeteer';
+
+// Copilot SDK import
+import { CopilotClient } from '@github/copilot-sdk';
+
+/**
+ * Prompt user for input via readline
+ */
+async function prompt(question) {
+  const rl = createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+  
+  return new Promise((resolve) => {
+    rl.question(question, (answer) => {
+      rl.close();
+      resolve(answer.trim().toLowerCase());
+    });
+  });
+}
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const REPO_ROOT = resolve(__dirname, '../..');
+const ENGINE_DIR = resolve(__dirname, '..');
+const PROMPTS_DIR = resolve(__dirname, 'prompts');
+
+const MAX_REPAIR_ITERATIONS = 5;
+const ENGINE_VERSION = 20; // From package.json
+const COPILOT_MODEL = 'claude-opus-4.5'; // Best model for long-running agentic sessions
+
+// Allowed list_type values (existing folders at repo root)
+const ALLOWED_LIST_TYPES = [
+  'albums', 'anime', 'artists', 'beers', 'boardgames', 'books',
+  'food', 'generic', 'manga', 'movies', 'podcasts', 'recipes',
+  'restaurants', 'software', 'songs', 'tv_shows', 'videogames', 'wines'
+];
+
+// Default headers matching existing recipes
+const DEFAULT_HEADERS = {
+  'Accept-Language': 'en-UK,en',
+  'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.113 Safari/537.36'
+};
+
+class Logger {
+  constructor(debug = false) {
+    this.debug = debug;
+  }
+
+  info(msg) { console.log(chalk.blue('ℹ'), msg); }
+  success(msg) { console.log(chalk.green('✓'), msg); }
+  warn(msg) { console.log(chalk.yellow('⚠'), msg); }
+  error(msg) { console.log(chalk.red('✗'), msg); }
+  step(msg) { console.log(chalk.cyan('→'), msg); }
+  log(msg) { if (this.debug) console.log(chalk.gray('  DEBUG:'), msg); }
+}
+
+class EvidenceCollector {
+  constructor(logger) {
+    this.logger = logger;
+    this.browser = null;
+  }
+
+  async initialize() {
+    this.logger.step('Launching browser...');
+    this.browser = await puppeteer.launch({ headless: true });
+  }
+
+  async close() {
+    if (this.browser) {
+      await this.browser.close();
+    }
+  }
+
+  async probe(url) {
+    this.logger.step(`Probing ${url}...`);
+    const page = await this.browser.newPage();
+    
+    // Set a realistic user agent to avoid bot detection
+    await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+    
+    try {
+      await page.goto(url, { waitUntil: 'networkidle2', timeout: 45000 });
+      
+      // Wait for potential dynamic content
+      await page.waitForSelector('body', { timeout: 5000 }).catch(() => {});
+      await new Promise(r => setTimeout(r, 2000)); // Extra wait for JS
+      
+      const evidence = await page.evaluate(() => {
+        const getMetaContent = (selector) => {
+          const el = document.querySelector(selector);
+          return el ? el.getAttribute('content') : null;
+        };
+
+        const getJsonLdTypes = () => {
+          const scripts = document.querySelectorAll('script[type="application/ld+json"]');
+          const types = [];
+          scripts.forEach(script => {
+            try {
+              const data = JSON.parse(script.textContent);
+              if (data['@type']) types.push(data['@type']);
+              if (Array.isArray(data)) {
+                data.forEach(item => {
+                  if (item['@type']) types.push(item['@type']);
+                });
+              }
+            } catch (e) {}
+          });
+          return [...new Set(types)];
+        };
+
+        const getLinksSample = () => {
+          const links = Array.from(document.querySelectorAll('a[href]')).slice(0, 20);
+          return links.map(a => ({
+            text: a.textContent?.trim().slice(0, 100) || '',
+            href: a.href
+          })).filter(l => l.text && l.href);
+        };
+
+        const detectSearch = () => {
+          // Try to find search form/input
+          const searchInput = document.querySelector('input[type="search"], input[name="q"], input[name="query"], input[name="search"], input[placeholder*="search" i]');
+          const searchForm = searchInput?.closest('form');
+          
+          return {
+            has_search: !!searchInput,
+            search_box_locator: searchInput ? `input[name="${searchInput.name || 'search'}"]` : null,
+            search_form_action: searchForm?.action || null
+          };
+        };
+
+        return {
+          title: document.title,
+          meta_description: getMetaContent('meta[name="description"]') || getMetaContent('meta[property="og:description"]'),
+          h1: document.querySelector('h1')?.textContent?.trim() || null,
+          jsonld_types: getJsonLdTypes(),
+          links_sample: getLinksSample(),
+          search: detectSearch()
+        };
+      });
+
+      const finalUrl = page.url();
+      const hostname = new URL(finalUrl).hostname.replace(/^www\./, '');
+
+      return {
+        input_url: url,
+        final_url: finalUrl,
+        hostname,
+        ...evidence
+      };
+    } finally {
+      await page.close();
+    }
+  }
+
+  /**
+   * Dismiss cookie consent banners and other overlays that block content
+   */
+  async dismissCookieBanners(page) {
+    // Common cookie consent button selectors
+    const consentButtons = [
+      // Generic patterns
+      'button[id*="accept"]', 'button[id*="consent"]', 'button[id*="agree"]',
+      'button[class*="accept"]', 'button[class*="consent"]', 'button[class*="agree"]',
+      '[data-testid*="accept"]', '[data-testid*="consent"]',
+      // Common cookie consent frameworks
+      '.fc-cta-consent', '.fc-button-label', // Funding Choices (Google)
+      '#onetrust-accept-btn-handler', // OneTrust
+      '.cc-accept', '.cc-allow', // Cookie Consent
+      '#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll', // Cookiebot
+      '.cky-btn-accept', // CookieYes
+      '#didomi-notice-agree-button', // Didomi
+      '.qc-cmp2-summary-buttons button:first-child', // Quantcast
+      '[aria-label*="accept" i]', '[aria-label*="consent" i]',
+      'button:has-text("Accept")', 'button:has-text("Accept All")',
+      'button:has-text("Agree")', 'button:has-text("OK")', 'button:has-text("Got it")',
+    ];
+    
+    for (const selector of consentButtons) {
+      try {
+        const button = await page.$(selector);
+        if (button) {
+          const isVisible = await button.isIntersectingViewport();
+          if (isVisible) {
+            await button.click();
+            this.logger.log(`Dismissed cookie banner via: ${selector}`);
+            await new Promise(r => setTimeout(r, 500)); // Wait for banner to close
+            return true;
+          }
+        }
+      } catch (e) {
+        // Selector might be invalid or button not clickable, continue
+      }
+    }
+    
+    // Try to close any modal overlays
+    try {
+      await page.evaluate(() => {
+        // Remove common overlay/modal elements
+        const overlaySelectors = [
+          '.fc-consent-root', '.fc-dialog-overlay', // Funding Choices
+          '#onetrust-consent-sdk', // OneTrust
+          '.cc-window', // Cookie Consent
+          '#CybotCookiebotDialog', // Cookiebot
+          '[class*="cookie-banner"]', '[class*="cookie-consent"]',
+          '[class*="gdpr"]', '[class*="privacy-banner"]',
+        ];
+        
+        for (const sel of overlaySelectors) {
+          const el = document.querySelector(sel);
+          if (el) el.remove();
+        }
+      });
+    } catch (e) {
+      // Ignore errors
+    }
+    
+    return false;
+  }
+
+  async probeSearchResults(searchUrl, query) {
+    this.logger.step(`Probing search results for "${query}"...`);
+    const page = await this.browser.newPage();
+    
+    await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+    
+    try {
+      // Strategy 1: Try the searchUrl directly (URL-based search)
+      const url = searchUrl.replace('$INPUT', encodeURIComponent(query));
+      this.logger.info(`Loading search URL: ${url}`);
+      await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+      
+      // Dismiss cookie banners before analyzing
+      await this.dismissCookieBanners(page);
+      
+      await new Promise(r => setTimeout(r, 2000)); // Wait for JS rendering
+      
+      let searchEvidence = await this.analyzeSearchResults(page);
+      searchEvidence.search_url = url;
+      
+      // Strategy 2: If URL-based search found no results, try form submission
+      if (searchEvidence.result_count === 0) {
+        this.logger.info('URL-based search found no results. Trying form submission...');
+        
+        const baseUrl = new URL(url).origin;
+        await page.goto(baseUrl, { waitUntil: 'networkidle2', timeout: 30000 });
+        await this.dismissCookieBanners(page);
+        await new Promise(r => setTimeout(r, 1000));
+        
+        const searchInput = await page.$('input[type="search"], input[name="q"], input[name="query"], input[name="search"], input[placeholder*="search" i]');
+        
+        if (searchInput) {
+          this.logger.info('Found search input. Discovering search URL pattern...');
+          
+          await searchInput.click({ clickCount: 3 });
+          await searchInput.type(query, { delay: 50 });
+          await new Promise(r => setTimeout(r, 1000));
+          
+          await page.keyboard.press('Enter');
+          
+          await Promise.race([
+            page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 10000 }),
+            new Promise(r => setTimeout(r, 5000))
+          ]).catch(() => {});
+          
+          const newUrl = page.url();
+          this.logger.info(`After form submit, URL is: ${newUrl}`);
+          
+          if (newUrl !== baseUrl && newUrl !== url) {
+            await new Promise(r => setTimeout(r, 2000));
+            searchEvidence = await this.analyzeSearchResults(page);
+            searchEvidence.search_url = newUrl;
+            searchEvidence.search_type = 'discovered_url';
+            
+            const urlPattern = newUrl.replace(encodeURIComponent(query), '$INPUT').replace(query, '$INPUT');
+            searchEvidence.discovered_search_url = urlPattern;
+            
+            this.logger.info(`Discovered search URL pattern: ${urlPattern}`);
+          }
+        }
+      } else {
+        searchEvidence.search_type = 'url_query';
+      }
+      
+      // Strategy 3: Try to discover autocomplete API if:
+      // - No results found at all, OR
+      // - The "discovered" URL doesn't contain the query (meaning it's not a real search page)
+      const shouldTryApi = searchEvidence.result_count === 0 || 
+        (searchEvidence.search_type === 'discovered_url' && 
+         searchEvidence.search_url && 
+         !searchEvidence.search_url.toLowerCase().includes(query.toLowerCase()) &&
+         !searchEvidence.search_url.toLowerCase().includes(encodeURIComponent(query).toLowerCase()));
+      
+      if (shouldTryApi) {
+        this.logger.info('Attempting to discover autocomplete API via network interception...');
+        
+        const apiDiscovery = await this.discoverAutocompleteAPI(page, query);
+        if (apiDiscovery) {
+          searchEvidence.api = apiDiscovery;
+          searchEvidence.search_type = 'api';
+          this.logger.success(`Discovered autocomplete API: ${apiDiscovery.url_pattern}`);
+        }
+      }
+
+      return searchEvidence;
+    } finally {
+      await page.close();
+    }
+  }
+  
+  /**
+   * Intercepts XHR/fetch requests while typing in search to discover autocomplete API
+   */
+  async discoverAutocompleteAPI(page, query) {
+    const baseUrl = page.url().startsWith('http') ? new URL(page.url()).origin : null;
+    if (!baseUrl) return null;
+    
+    // Navigate to homepage
+    await page.goto(baseUrl, { waitUntil: 'networkidle2', timeout: 30000 });
+    await new Promise(r => setTimeout(r, 1000));
+    
+    // Capture ALL XHR/fetch with request details and responses
+    const capturedRequests = new Map(); // url -> request info
+    const capturedResponses = [];
+    
+    // We need request interception to capture POST body and headers
+    await page.setRequestInterception(true);
+    
+    page.on('request', request => {
+      const url = request.url();
+      const method = request.method();
+      
+      // Store request details for potential API calls
+      if (method === 'POST' || request.resourceType() === 'xhr' || request.resourceType() === 'fetch') {
+        capturedRequests.set(url, {
+          method: method,
+          headers: request.headers(),
+          postData: request.postData()
+        });
+      }
+      
+      request.continue();
+    });
+    
+    // Listen to responses
+    const responseHandler = async (response) => {
+      try {
+        const url = response.url();
+        const contentType = response.headers()['content-type'] || '';
+        
+        // Capture any JSON response during the search interaction
+        if (contentType.includes('json') || url.endsWith('.json')) {
+          try {
+            const text = await response.text();
+            const json = JSON.parse(text);
+            const requestInfo = capturedRequests.get(url) || { method: 'GET', headers: {}, postData: null };
+            
+            capturedResponses.push({
+              url: url,
+              method: requestInfo.method,
+              headers: requestInfo.headers,
+              postData: requestInfo.postData,
+              status: response.status(),
+              data: json
+            });
+            this.logger.log(`Captured JSON ${requestInfo.method} ${url.slice(0, 80)}...`);
+          } catch (e) {
+            // Not valid JSON, ignore
+          }
+        }
+      } catch (e) {
+        // Response might be unavailable, ignore
+      }
+    };
+    
+    page.on('response', responseHandler);
+    
+    // Find and interact with search input
+    const searchInput = await page.$('input[type="search"], input[name="q"], input[name="query"], input[name="search"], input[placeholder*="search" i]');
+    
+    if (!searchInput) {
+      this.logger.info('No search input found for API discovery');
+      return null;
+    }
+    
+    this.logger.info('Typing in search to trigger autocomplete API...');
+    
+    // Click and type slowly to trigger autocomplete
+    await searchInput.click();
+    await new Promise(r => setTimeout(r, 500));
+    
+    // Type query character by character to trigger autocomplete
+    for (const char of query) {
+      await searchInput.type(char, { delay: 100 });
+      await new Promise(r => setTimeout(r, 200)); // Wait for potential API calls
+    }
+    
+    // Wait for any final API calls
+    await new Promise(r => setTimeout(r, 2000));
+    
+    // Disable interception and remove handler
+    await page.setRequestInterception(false);
+    page.off('response', responseHandler);
+    
+    this.logger.log(`Captured ${capturedResponses.length} JSON responses`);
+    
+    // Log first response structure for debugging
+    if (capturedResponses.length > 0) {
+      const firstData = capturedResponses[0].data;
+      this.logger.log(`First response keys: ${Object.keys(firstData).join(', ')}`);
+      // Look deeper for Algolia-style responses
+      if (firstData.results && Array.isArray(firstData.results)) {
+        this.logger.log(`  results[0] keys: ${Object.keys(firstData.results[0] || {}).join(', ')}`);
+        if (firstData.results[0]?.hits) {
+          const hit = firstData.results[0].hits[0];
+          this.logger.log(`  results[0].hits[0] keys: ${Object.keys(hit).join(', ')}`);
+          this.logger.log(`  results[0].hits[0]: ${JSON.stringify(hit).slice(0, 500)}...`);
+        }
+      }
+    }
+    
+    // Analyze captured responses to find the best autocomplete API
+    if (capturedResponses.length === 0) {
+      return null;
+    }
+    
+    // Find the most relevant response (has array of results with titles)
+    let bestApi = null;
+    for (const response of capturedResponses) {
+      const analysis = this.analyzeAPIResponse(response.data, query);
+      if (analysis.isAutocomplete) {
+        // Build the API info including request details for POST APIs
+        const urlPattern = response.postData 
+          ? response.url // For POST, URL stays the same, body changes
+          : response.url.replace(encodeURIComponent(query), '$INPUT').replace(query, '$INPUT');
+        
+        bestApi = {
+          url: response.url,
+          url_pattern: urlPattern,
+          method: response.method || 'GET',
+          headers: response.headers || {},
+          postData: response.postData,
+          response_structure: analysis.structure,
+          sample_data: analysis.sampleItem,
+          items_path: analysis.itemsPath,
+          title_path: analysis.titlePath,
+          url_path: analysis.urlPath,
+          image_path: analysis.imagePath
+        };
+        
+        this.logger.log(`Found autocomplete API: ${response.method} ${response.url.slice(0, 80)}`);
+        break;
+      }
+    }
+    
+    return bestApi;
+  }
+  
+  /**
+   * Analyzes a JSON API response to determine if it's an autocomplete response
+   * and extracts the structure for recipe generation
+   */
+  analyzeAPIResponse(data, query) {
+    const result = {
+      isAutocomplete: false,
+      structure: null,
+      itemsPath: null,
+      titlePath: null,
+      urlPath: null,
+      sampleItem: null
+    };
+    
+    // Helper to find arrays in nested objects
+    const findArrays = (obj, path = '') => {
+      const arrays = [];
+      if (Array.isArray(obj)) {
+        arrays.push({ path: path || 'root', array: obj });
+      }
+      if (obj && typeof obj === 'object') {
+        for (const [key, value] of Object.entries(obj)) {
+          const newPath = path ? `${path}.${key}` : key;
+          if (Array.isArray(value) && value.length > 0) {
+            arrays.push({ path: newPath, array: value });
+          } else if (typeof value === 'object' && value !== null) {
+            arrays.push(...findArrays(value, newPath));
+          }
+        }
+      }
+      return arrays;
+    };
+    
+    // Helper to find title/name/url fields in an object
+    const findFieldPaths = (obj, basePath = '') => {
+      const fields = { title: null, url: null, image: null };
+      
+      if (!obj || typeof obj !== 'object') return fields;
+      
+      for (const [key, value] of Object.entries(obj)) {
+        const lowerKey = key.toLowerCase();
+        const fullPath = basePath ? `${basePath}.${key}` : key;
+        
+        if (typeof value === 'string') {
+          // Look for title-like fields (including international variations)
+          if (!fields.title && (lowerKey.includes('title') || lowerKey.includes('name') || 
+              lowerKey === 'label' || lowerKey === 'text' || lowerKey === 'display' ||
+              lowerKey === 'naslov' || // Croatian/Serbian for "title"
+              lowerKey === 'naziv' ||  // Croatian/Serbian for "name"
+              lowerKey === 'titulo' || // Spanish for "title"
+              lowerKey === 'titre' ||  // French for "title"
+              lowerKey === 'headline' || lowerKey === 'value' || lowerKey === 'query')) {
+            fields.title = fullPath;
+          }
+          // Look for URL fields
+          if (!fields.url && (lowerKey.includes('url') || lowerKey.includes('href') || 
+              lowerKey.includes('link') || lowerKey === 'uri' || lowerKey === 'path' ||
+              lowerKey === 'slug' || lowerKey === 'permalink')) {
+            fields.url = fullPath;
+          }
+          // Look for image fields
+          if (!fields.image && (lowerKey.includes('image') || lowerKey.includes('img') ||
+              lowerKey.includes('cover') || lowerKey.includes('thumb') || lowerKey.includes('picture') ||
+              lowerKey.includes('photo') || lowerKey.includes('avatar') || lowerKey.includes('poster'))) {
+            fields.image = fullPath;
+          }
+        } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+          // Recurse into nested objects
+          const nested = findFieldPaths(value, fullPath);
+          if (!fields.title && nested.title) fields.title = nested.title;
+          if (!fields.url && nested.url) fields.url = nested.url;
+          if (!fields.image && nested.image) fields.image = nested.image;
+        }
+      }
+      
+      return fields;
+    };
+    
+    // Find arrays that could be result lists
+    const arrays = findArrays(data);
+    
+    for (const { path, array } of arrays) {
+      if (array.length === 0) continue;
+      
+      // Check if items look like search results
+      const firstItem = array[0];
+      if (typeof firstItem === 'string') {
+        // Simple string array - check if any match query
+        const hasMatch = array.some(item => 
+          typeof item === 'string' && item.toLowerCase().includes(query.toLowerCase())
+        );
+        if (hasMatch) {
+          result.isAutocomplete = true;
+          result.itemsPath = path;
+          result.titlePath = ''; // Item itself is the title
+          result.structure = 'string_array';
+          result.sampleItem = firstItem;
+          return result;
+        }
+      } else if (typeof firstItem === 'object') {
+        // Object array - look for title/url fields
+        const fields = findFieldPaths(firstItem);
+        
+        if (fields.title) {
+          // Check if any title contains the query
+          const hasMatch = array.some(item => {
+            const title = this.getNestedValue(item, fields.title);
+            return title && String(title).toLowerCase().includes(query.toLowerCase());
+          });
+          
+          if (hasMatch || array.length >= 3) { // Accept if 3+ results even without query match
+            result.isAutocomplete = true;
+            result.itemsPath = path;
+            result.titlePath = fields.title;
+            result.urlPath = fields.url;
+            result.imagePath = fields.image;
+            result.structure = 'object_array';
+            result.sampleItem = firstItem;
+            return result;
+          }
+        }
+      }
+    }
+    
+    return result;
+  }
+  
+  /**
+   * Helper to get nested value from object using dot notation
+   */
+  getNestedValue(obj, path) {
+    if (!path) return obj;
+    return path.split('.').reduce((o, k) => (o || {})[k], obj);
+  }
+
+  async analyzeSearchResults(page) {
+    return await page.evaluate(() => {
+      // Try to identify result items by common patterns
+      // Priority order: most specific to least
+      const resultSelectors = [
+        // Book/product specific patterns (high priority)
+        '[class*="bookTitle"]', '[class*="book-title"]',
+        '[class*="searchResult"]', '[class*="search-result"]',
+        '[class*="searchItem"]', '[class*="search-item"]',
+        // Generic result patterns
+        '[class*="result"]:not([class*="searchResults"])', // Avoid containers
+        '[class*="item"]:not(li[class*="nav"]):not([class*="menu"])', // Exclude nav items
+        '[class*="card"]:not([class*="sidebar"])', // Exclude sidebar cards
+        '[data-testid*="result"]', '[data-testid*="item"]',
+        // Semantic patterns
+        'article', 'main [class*="row"]', '[class*="listing"]',
+        // Table-based results
+        'table.tableList tr',
+        // Fallback patterns (lower priority)
+        '[class*="perfume"]', '[class*="product"]',
+      ];
+      
+      let resultContainer = null;
+      let resultItems = [];
+      
+      // Patterns that indicate cookie consent / GDPR / non-content elements
+      const nonContentPatterns = [
+        // Cookie consent frameworks
+        'fc-consent', 'fc-preference', 'fc-purpose', 'fc-dialog',
+        'cookie', 'consent', 'gdpr', 'privacy',
+        'onetrust', 'cookiebot', 'didomi', 'quantcast',
+        // Common non-content
+        'newsletter', 'subscribe', 'signup', 'sign-up',
+        'login', 'signin', 'sign-in', 'register',
+        'advertisement', 'ad-', 'ads-', 'sponsor',
+        'modal', 'popup', 'overlay', 'banner',
+      ];
+      
+      // Helper to check if element is part of cookie/consent UI
+      const isNonContentElement = (item) => {
+        const classAndId = `${item.className || ''} ${item.id || ''}`.toLowerCase();
+        const parentClassAndId = `${item.parentElement?.className || ''} ${item.parentElement?.id || ''}`.toLowerCase();
+        const text = item.textContent?.toLowerCase() || '';
+        
+        // Check if element or parent has non-content patterns
+        for (const pattern of nonContentPatterns) {
+          if (classAndId.includes(pattern) || parentClassAndId.includes(pattern)) {
+            return true;
+          }
+        }
+        
+        // Check for GDPR-like text content
+        const gdprPhrases = [
+          'store and/or access', 'advertising', 'personalised', 'personalized',
+          'legitimate interest', 'data processing', 'cookies', 'consent',
+          'privacy policy', 'terms of service', 'accept all', 'reject all',
+        ];
+        for (const phrase of gdprPhrases) {
+          if (text.includes(phrase)) {
+            return true;
+          }
+        }
+        
+        return false;
+      };
+      
+      // Helper to check if an item looks like a search result (has link + meaningful content)
+      const looksLikeResult = (item) => {
+        // First, exclude cookie consent / non-content elements
+        if (isNonContentElement(item)) return false;
+        
+        // Must have a link
+        const hasLink = item.querySelector('a[href]') || item.tagName === 'A';
+        if (!hasLink) return false;
+        
+        // Link should point to a detail page (not navigation)
+        const link = item.querySelector('a[href]') || (item.tagName === 'A' ? item : null);
+        if (link) {
+          const href = link.href || '';
+          // Exclude common navigation patterns and fragment-only links
+          if (href.includes('/genres/') || href.includes('/categories/') || 
+              href.includes('/tags/') || href.includes('/signin') ||
+              href.includes('/login') || href.includes('/register') ||
+              (href.includes('#') && !href.includes('/#/'))) { // Allow hash routing but not anchors
+            return false;
+          }
+        }
+        
+        // Should have some meaningful content (not just a single word link)
+        const textLength = item.textContent?.trim().length || 0;
+        if (textLength < 10) return false;
+        
+        return true;
+      };
+      
+      // Helper to score potential result containers
+      const scoreSelector = (selector, items) => {
+        let score = 0;
+        
+        // Bonus for having images (likely product/book results)
+        const hasImages = items.filter(i => i.querySelector('img')).length;
+        score += hasImages * 2;
+        
+        // Bonus for having title-like elements
+        const hasTitles = items.filter(i => i.querySelector('h1, h2, h3, h4, h5, h6, [class*="title"]')).length;
+        score += hasTitles * 3;
+        
+        // Penalty for navigation-like structure
+        if (selector.includes('ul.') || selector.includes('nav') || 
+            selector.includes('menu') || selector.includes('sidebar') ||
+            selector.includes('footer') || selector.includes('header')) {
+          score -= 10;
+        }
+        
+        // Bonus for being in main content area
+        const inMain = items.some(i => i.closest('main, [role="main"], #content, .content'));
+        if (inMain) score += 5;
+        
+        return score;
+      };
+      
+      let bestScore = -Infinity;
+      
+      for (const selector of resultSelectors) {
+        const items = Array.from(document.querySelectorAll(selector));
+        const validItems = items.filter(looksLikeResult);
+        
+        if (validItems.length >= 2 && validItems.length <= 100) {
+          const score = scoreSelector(selector, validItems);
+          
+          if (score > bestScore) {
+            bestScore = score;
+            resultItems = validItems.slice(0, 10);
+            resultContainer = selector;
+          }
+        }
+      }
+      
+      // IMPORTANT: If we found a single container-like element, drill down to find the actual items
+      // This handles cases like .kit-container which contains many .kit children
+      if (resultItems.length === 1 && resultItems[0].children.length >= 3) {
+        const container = resultItems[0];
+        const children = Array.from(container.children);
+        
+        // Find the most common child class (these are likely the actual result items)
+        const classCount = new Map();
+        children.forEach(child => {
+          const className = child.className?.split(' ')[0];
+          if (className && child.querySelector('a[href]')) {
+            classCount.set(className, (classCount.get(className) || 0) + 1);
+          }
+        });
+        
+        let mostCommonClass = null;
+        let maxCount = 0;
+        classCount.forEach((count, cls) => {
+          if (count > maxCount && count >= 3) {
+            maxCount = count;
+            mostCommonClass = cls;
+          }
+        });
+        
+        if (mostCommonClass) {
+          const childSelector = `.${mostCommonClass}`;
+          const actualItems = Array.from(container.querySelectorAll(`:scope > ${childSelector}`));
+          if (actualItems.length >= 3) {
+            // Found the actual items - update the results
+            resultItems = actualItems.slice(0, 10);
+            // Build the full selector: container > child
+            const containerClass = container.className?.split(' ')[0];
+            if (containerClass) {
+              resultContainer = `.${containerClass} > .${mostCommonClass}`;
+            } else {
+              resultContainer = `${container.tagName.toLowerCase()} > .${mostCommonClass}`;
+            }
+          }
+        }
+      }
+
+      if (resultItems.length === 0) {
+        // Fallback: look for repeated structures with links in main content
+        const main = document.querySelector('main, [role="main"], #content, .content') || document.body;
+        const allLinks = main.querySelectorAll('a[href]');
+        const linkParents = new Map();
+        
+        allLinks.forEach(link => {
+          const parent = link.parentElement?.parentElement;
+          if (parent && !parent.matches('nav, header, footer, aside, [class*="nav"], [class*="menu"]')) {
+            const key = parent.tagName + '.' + (parent.className || '').split(' ')[0];
+            linkParents.set(key, (linkParents.get(key) || 0) + 1);
+          }
+        });
+        
+        // Find the most common parent pattern
+        let maxCount = 0;
+        let bestParent = null;
+        linkParents.forEach((count, key) => {
+          if (count > maxCount && count >= 3) {
+            maxCount = count;
+            bestParent = key;
+          }
+        });
+        
+        if (bestParent) {
+          const [tag, className] = bestParent.split('.');
+          const selector = className ? `${tag.toLowerCase()}.${className}` : tag.toLowerCase();
+          resultItems = Array.from(document.querySelectorAll(selector)).slice(0, 10);
+          resultContainer = selector + ' (inferred from link parent patterns)';
+        }
+      }
+
+      const analyzeItem = (item, index) => {
+        const link = item.querySelector('a[href]') || (item.tagName === 'A' ? item : null);
+        const img = item.querySelector('img');
+        
+        // Look for title in multiple places:
+        // 1. Headings (h1-h6)
+        // 2. Elements with class containing "title"
+        // 3. Links with class containing "title" (common pattern)
+        const headings = item.querySelectorAll('h1, h2, h3, h4, h5, h6, [class*="title"], [class*="name"], a[class*="Title"], a[class*="title"]');
+        
+        // Also try to find the "main" title link (not the image link)
+        // Often the title is a separate link from the image
+        const titleLink = item.querySelector('a[class*="title"], a[class*="Title"], a[class*="name"], a.title');
+        
+        // Get the actual structure of the item for selector building
+        const getSelector = (el) => {
+          if (!el) return null;
+          if (el.id) return `#${el.id}`;
+          if (el.className) {
+            const firstClass = el.className.split(' ').find(c => c && !c.includes('__') && c.length < 30);
+            if (firstClass) return `${el.tagName.toLowerCase()}.${firstClass}`;
+          }
+          return el.tagName.toLowerCase();
+        };
+        
+        // Build title candidates from both headings and the title link
+        const titleCandidates = Array.from(headings).map(h => ({
+          tag: h.tagName,
+          class: h.className,
+          text: h.textContent?.trim().slice(0, 100),
+          selector: getSelector(h)
+        }));
+        
+        // If we found a title link that's different from the main link, add it
+        if (titleLink && titleLink !== link && titleLink.textContent?.trim()) {
+          titleCandidates.unshift({
+            tag: titleLink.tagName,
+            class: titleLink.className,
+            text: titleLink.textContent?.trim().slice(0, 100),
+            selector: getSelector(titleLink),
+            is_primary: true  // Mark as primary title candidate
+          });
+        }
+        
+        return {
+          index,
+          has_link: !!link,
+          link_href: link?.href,
+          link_text: link?.textContent?.trim().slice(0, 100),
+          link_selector: getSelector(link),
+          has_image: !!img,
+          img_src: img?.src,
+          img_selector: getSelector(img),
+          title_candidates: titleCandidates.slice(0, 5),
+          title_link: titleLink ? {
+            href: titleLink.href,
+            text: titleLink.textContent?.trim().slice(0, 100),
+            selector: getSelector(titleLink)
+          } : null,
+          text_content: item.textContent?.trim().slice(0, 200),
+          item_selector: getSelector(item),
+          item_html_snippet: item.outerHTML.slice(0, 500)
+        };
+      };
+
+      // Find the common parent of result items and check if they're direct children
+      let commonParent = null;
+      let commonParentSelector = null;
+      let itemsAreDirectChildren = false;
+      
+      if (resultItems.length >= 2) {
+        const firstParent = resultItems[0].parentElement;
+        const allSameParent = resultItems.every(item => item.parentElement === firstParent);
+        
+        if (allSameParent && firstParent) {
+          commonParent = firstParent;
+          
+          // Build selector for the common parent
+          if (firstParent.id) {
+            commonParentSelector = `#${firstParent.id}`;
+          } else if (firstParent.className) {
+            const firstClass = firstParent.className.split(' ').find(c => c && !c.includes('__') && c.length < 30);
+            if (firstClass) {
+              commonParentSelector = `${firstParent.tagName.toLowerCase()}.${firstClass}`;
+            }
+          }
+          if (!commonParentSelector) {
+            commonParentSelector = firstParent.tagName.toLowerCase();
+          }
+          
+          // Check if items are ALL children of this parent (no other siblings between them)
+          const children = Array.from(firstParent.children);
+          const resultIndexes = resultItems.map(item => children.indexOf(item));
+          
+          // Check if result items are consecutive or only have non-element nodes between them
+          itemsAreDirectChildren = resultIndexes.every(idx => idx !== -1);
+        }
+      }
+      
+      return {
+        result_container: resultContainer,
+        result_count: resultItems.length,
+        results: resultItems.map((item, i) => analyzeItem(item, i)),
+        page_title: document.title,
+        current_url: window.location.href,
+        common_parent_selector: commonParentSelector,
+        items_are_direct_children: itemsAreDirectChildren
+      };
+    });
+  }
+
+  async analyzeAutocompleteDropdown(page) {
+    return await page.evaluate(() => {
+      // Find autocomplete/suggestion items
+      const dropdownSelectors = [
+        '[class*="autocomplete"] a', '[class*="autocomplete"] li',
+        '[class*="suggestion"] a', '[class*="suggestion"] li',
+        '[class*="dropdown"] a', '[class*="dropdown"] li',
+        '[class*="typeahead"] a', '[role="option"]',
+        '[role="listbox"] > *'
+      ];
+      
+      let items = [];
+      let containerSelector = null;
+      
+      for (const selector of dropdownSelectors) {
+        const found = document.querySelectorAll(selector);
+        if (found.length >= 1) {
+          items = Array.from(found).slice(0, 10);
+          containerSelector = selector;
+          break;
+        }
+      }
+      
+      const analyzeItem = (item, index) => {
+        const link = item.tagName === 'A' ? item : item.querySelector('a');
+        const img = item.querySelector('img');
+        
+        return {
+          index,
+          has_link: !!link,
+          link_href: link?.href,
+          link_text: link?.textContent?.trim().slice(0, 100),
+          has_image: !!img,
+          img_src: img?.src,
+          text_content: item.textContent?.trim().slice(0, 200),
+          item_html_snippet: item.outerHTML.slice(0, 300)
+        };
+      };
+      
+      return {
+        result_container: containerSelector,
+        result_count: items.length,
+        results: items.map((item, i) => analyzeItem(item, i)),
+        page_title: document.title,
+        current_url: window.location.href,
+        is_dropdown: true
+      };
+    });
+  }
+
+  async probeDetailPage(url) {
+    this.logger.step(`Probing detail page ${url}...`);
+    const page = await this.browser.newPage();
+    
+    await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+    
+    try {
+      await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+      await new Promise(r => setTimeout(r, 1500)); // Wait for JS
+      
+      const detailEvidence = await page.evaluate(() => {
+        const getMetaContent = (selector) => {
+          const el = document.querySelector(selector);
+          return el ? el.getAttribute('content') : null;
+        };
+
+        const getJsonLd = () => {
+          const scripts = document.querySelectorAll('script[type="application/ld+json"]');
+          const data = [];
+          scripts.forEach(script => {
+            try {
+              data.push(JSON.parse(script.textContent));
+            } catch (e) {}
+          });
+          return data;
+        };
+
+        return {
+          title: document.title,
+          h1: document.querySelector('h1')?.textContent?.trim(),
+          og_title: getMetaContent('meta[property="og:title"]'),
+          og_description: getMetaContent('meta[property="og:description"]'),
+          og_image: getMetaContent('meta[property="og:image"]'),
+          canonical: document.querySelector('link[rel="canonical"]')?.href,
+          jsonld: getJsonLd(),
+          meta_description: getMetaContent('meta[name="description"]')
+        };
+      });
+
+      return {
+        url,
+        final_url: page.url(),
+        ...detailEvidence
+      };
+    } finally {
+      await page.close();
+    }
+  }
+
+  /**
+   * Debug recipe steps by running them manually with Puppeteer
+   * Returns detailed info about what worked and what failed
+   */
+  async debugRecipeSteps(url, steps, stepType) {
+    this.logger.step(`Debugging ${stepType} steps on ${url}...`);
+    const page = await this.browser.newPage();
+    
+    await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+    
+    const debugResults = {
+      url,
+      stepType,
+      stepsAnalyzed: [],
+      workingSelectors: [],
+      failedSelectors: [],
+      suggestedFixes: [],
+      pageSnapshot: null
+    };
+
+    try {
+      // Load the page
+      await page.goto(url, { waitUntil: 'networkidle2', timeout: 45000 });
+      await new Promise(r => setTimeout(r, 2000)); // Wait for JS
+
+      // Take a snapshot of the page structure
+      debugResults.pageSnapshot = await page.evaluate(() => {
+        const getStructure = (el, depth = 0) => {
+          if (depth > 3 || !el) return null;
+          const children = Array.from(el.children || []).slice(0, 10);
+          return {
+            tag: el.tagName?.toLowerCase(),
+            id: el.id || null,
+            classes: el.className?.split?.(' ').filter(c => c).slice(0, 5) || [],
+            text: el.textContent?.trim().slice(0, 50) || null,
+            childCount: el.children?.length || 0
+          };
+        };
+        
+        return {
+          title: document.title,
+          bodyClasses: document.body?.className || '',
+          mainContainers: Array.from(document.querySelectorAll('main, [role="main"], #content, .content, article')).map(el => ({
+            tag: el.tagName.toLowerCase(),
+            id: el.id,
+            classes: el.className
+          }))
+        };
+      });
+
+      // Analyze each step
+      for (let i = 0; i < steps.length; i++) {
+        const step = steps[i];
+        const stepResult = {
+          index: i,
+          command: step.command,
+          description: step.description || '',
+          locator: step.locator || null,
+          status: 'unknown',
+          found: 0,
+          samples: [],
+          error: null,
+          alternatives: []
+        };
+
+        try {
+          if (step.locator) {
+            // Test if the selector finds anything
+            const elements = await page.$$(step.locator);
+            stepResult.found = elements.length;
+            
+            if (elements.length > 0) {
+              stepResult.status = 'working';
+              debugResults.workingSelectors.push({ index: i, locator: step.locator, found: elements.length });
+              
+              // Get sample content from found elements
+              stepResult.samples = await page.evaluate((selector) => {
+                return Array.from(document.querySelectorAll(selector)).slice(0, 3).map(el => ({
+                  tag: el.tagName.toLowerCase(),
+                  text: el.textContent?.trim().slice(0, 100),
+                  href: el.href || el.querySelector('a')?.href,
+                  src: el.src || el.querySelector('img')?.src,
+                  classes: el.className
+                }));
+              }, step.locator);
+            } else {
+              stepResult.status = 'failed';
+              debugResults.failedSelectors.push({ index: i, locator: step.locator, command: step.command });
+              
+              // Try to find alternatives
+              stepResult.alternatives = await this.findAlternativeSelectors(page, step);
+            }
+          } else if (step.command === 'load') {
+            stepResult.status = 'working';
+          } else {
+            stepResult.status = 'no-locator';
+          }
+        } catch (e) {
+          stepResult.status = 'error';
+          stepResult.error = e.message;
+        }
+
+        debugResults.stepsAnalyzed.push(stepResult);
+      }
+
+      // Generate suggested fixes for failed selectors
+      for (const failed of debugResults.failedSelectors) {
+        const stepResult = debugResults.stepsAnalyzed[failed.index];
+        if (stepResult.alternatives.length > 0) {
+          debugResults.suggestedFixes.push({
+            stepIndex: failed.index,
+            originalLocator: failed.locator,
+            suggestedLocator: stepResult.alternatives[0].selector,
+            reason: `Original selector found 0 elements, alternative found ${stepResult.alternatives[0].count}`,
+            confidence: stepResult.alternatives[0].confidence
+          });
+        }
+      }
+
+      return debugResults;
+
+    } finally {
+      await page.close();
+    }
+  }
+
+  /**
+   * Find alternative selectors that might work for a failed step
+   */
+  async findAlternativeSelectors(page, step) {
+    const alternatives = [];
+    
+    // Based on the step's output name or description, try to find alternatives
+    const outputName = step.output?.name || '';
+    const description = step.description || '';
+    const hint = `${outputName} ${description}`.toLowerCase();
+    
+    // Common selector patterns to try based on what we're looking for
+    const selectorPatterns = [];
+    
+    if (hint.includes('title') || hint.includes('name')) {
+      selectorPatterns.push(
+        'h1', 'h2', 'h3',
+        '[class*="title"]', '[class*="name"]', '[class*="heading"]',
+        '[data-testid*="title"]', '[data-testid*="name"]',
+        'meta[property="og:title"]'
+      );
+    }
+    
+    if (hint.includes('cover') || hint.includes('image') || hint.includes('img')) {
+      selectorPatterns.push(
+        'img[src*="cover"]', 'img[src*="poster"]', 'img[class*="cover"]',
+        '[class*="cover"] img', '[class*="poster"] img', '[class*="image"] img',
+        'meta[property="og:image"]',
+        'picture img', 'figure img'
+      );
+    }
+    
+    if (hint.includes('url') || hint.includes('link')) {
+      selectorPatterns.push(
+        'a[href]', '[class*="link"] a', '[class*="item"] a',
+        '[class*="result"] a', '[class*="card"] a'
+      );
+    }
+    
+    if (hint.includes('description') || hint.includes('desc')) {
+      selectorPatterns.push(
+        '[class*="description"]', '[class*="summary"]', '[class*="synopsis"]',
+        'meta[property="og:description"]', 'meta[name="description"]',
+        'p[class*="desc"]'
+      );
+    }
+    
+    if (hint.includes('rating') || hint.includes('score')) {
+      selectorPatterns.push(
+        '[class*="rating"]', '[class*="score"]', '[class*="stars"]',
+        '[data-rating]', '[itemprop="ratingValue"]'
+      );
+    }
+
+    if (hint.includes('subtitle') || hint.includes('year') || hint.includes('date')) {
+      selectorPatterns.push(
+        '[class*="subtitle"]', '[class*="year"]', '[class*="date"]',
+        'time', 'span[class*="meta"]', '[class*="info"]'
+      );
+    }
+
+    // Try each pattern
+    for (const selector of selectorPatterns) {
+      try {
+        const count = await page.$$eval(selector, els => els.length).catch(() => 0);
+        if (count > 0) {
+          const sample = await page.evaluate((sel) => {
+            const el = document.querySelector(sel);
+            return el ? {
+              text: el.textContent?.trim().slice(0, 50),
+              attr: el.getAttribute('content') || el.getAttribute('src') || el.getAttribute('href')
+            } : null;
+          }, selector);
+          
+          alternatives.push({
+            selector,
+            count,
+            sample,
+            confidence: count > 0 && count < 20 ? 'high' : 'medium'
+          });
+        }
+      } catch (e) {
+        // Selector failed, skip
+      }
+    }
+
+    // Sort by confidence and count
+    return alternatives.sort((a, b) => {
+      if (a.confidence !== b.confidence) return a.confidence === 'high' ? -1 : 1;
+      return a.count - b.count; // Prefer fewer matches (more specific)
+    }).slice(0, 5);
+  }
+}
+
+class CopilotAgent {
+  constructor(logger, debugMode = false) {
+    this.logger = logger;
+    this.debugMode = debugMode;
+    this.client = null;
+    this.session = null;
+    this.repairSession = null; // Dedicated session for repair loop to maintain context
+    this.model = COPILOT_MODEL;
+    
+    // Usage tracking
+    this.usage = {
+      totalPromptTokens: 0,
+      totalCompletionTokens: 0,
+      totalTokens: 0,
+      requests: 0
+    };
+  }
+
+  async initialize() {
+    this.logger.step(`Initializing Copilot SDK with model: ${this.model}...`);
+    this.client = new CopilotClient();
+    await this.client.start();
+    this.session = await this.client.createSession({ model: this.model });
+    this.logger.success(`Copilot SDK initialized with ${this.model}`);
+  }
+
+  // Track usage from session events
+  trackUsage(event) {
+    if (event.type === 'session.usage_info' && event.data) {
+      const { promptTokens, completionTokens, totalTokens } = event.data;
+      if (promptTokens) this.usage.totalPromptTokens += promptTokens;
+      if (completionTokens) this.usage.totalCompletionTokens += completionTokens;
+      if (totalTokens) this.usage.totalTokens += totalTokens;
+    }
+  }
+
+  // Track a request
+  trackRequest() {
+    this.usage.requests++;
+  }
+
+  // Get usage summary
+  getUsage() {
+    return {
+      ...this.usage,
+      model: this.model
+    };
+  }
+
+  async close() {
+    if (this.repairSession) {
+      try { await this.repairSession.destroy(); } catch (e) {}
+    }
+    if (this.session) {
+      try { await this.session.destroy(); } catch (e) {}
+    }
+    if (this.client) {
+      try { await this.client.stop(); } catch (e) {}
+    }
+  }
+
+  async loadPrompt(name) {
+    const path = join(PROMPTS_DIR, `${name}.md`);
+    return await readFile(path, 'utf-8');
+  }
+
+  async sendPrompt(promptName, context, useSession = null) {
+    if (!this.session) {
+      throw new Error('Copilot SDK not initialized');
+    }
+
+    const targetSession = useSession || this.session;
+    const systemPrompt = await this.loadPrompt(promptName);
+    
+    // Load the debug strategy for context
+    let debugStrategy = '';
+    try {
+      debugStrategy = await this.loadPrompt('debug-strategy');
+    } catch (e) {
+      // Debug strategy is optional
+    }
+    
+    // Build a comprehensive prompt that encourages deep thinking
+    const fullPrompt = `${debugStrategy ? `## Debugging Strategy Reference\n\n${debugStrategy}\n\n---\n\n` : ''}${systemPrompt}
+
+## Context
+
+\`\`\`json
+${JSON.stringify(context, null, 2)}
+\`\`\`
+
+## IMPORTANT: Think Carefully
+
+Before outputting JSON:
+1. Analyze the evidence provided above
+2. Identify the SPECIFIC selectors that will work for THIS site
+3. Don't use generic patterns - use what you learned from the evidence
+4. If the evidence shows the actual DOM structure, USE IT
+
+Output ONLY valid JSON. No explanations before or after.`;
+    
+    this.logger.log(`Sending prompt: ${promptName}`);
+    
+    // Collect response content and wait for completion
+    let responseContent = '';
+    let eventCount = 0;
+    
+    // Set up event listener and completion promise BEFORE sending
+    const done = new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('Copilot response timeout after 120 seconds'));
+      }, 120000);
+      
+      const unsubscribe = targetSession.on((event) => {
+        eventCount++;
+        // Track usage stats
+        this.trackUsage(event);
+        
+        // Log events in debug mode
+        if (this.debugMode) {
+          this.logger.log(`Event ${eventCount}: type=${event.type}`);
+        }
+        
+        // Handle streaming message chunks
+        if (event.type === 'assistant.message_delta' && event.data?.deltaContent) {
+          responseContent += event.data.deltaContent;
+        }
+        // Handle final message
+        if (event.type === 'assistant.message' && event.data?.content) {
+          responseContent = event.data.content; // Final message replaces accumulated content
+        }
+        // Handle legacy content field
+        if (event.type === 'assistant.message_delta' && event.data?.content) {
+          responseContent += event.data.content;
+        }
+        // Session finished processing
+        if (event.type === 'session.idle') {
+          clearTimeout(timeout);
+          unsubscribe();
+          resolve();
+        }
+        // Handle errors
+        if (event.type === 'error') {
+          clearTimeout(timeout);
+          unsubscribe();
+          reject(new Error(event.data?.message || 'Unknown Copilot error'));
+        }
+      });
+    });
+    
+    // Send the message
+    const messageId = await targetSession.send({ prompt: fullPrompt });
+    this.logger.log(`Message sent: ${messageId}, waiting for response...`);
+    
+    // Wait for completion
+    await done;
+    this.logger.log(`Response complete, received ${eventCount} events`);
+    
+    // Debug: log what we got back
+    if (!responseContent) {
+      this.logger.error('Copilot returned empty response');
+    } else {
+      this.logger.log(`Response length: ${responseContent.length} chars`);
+      this.logger.log(`Response preview: ${responseContent.slice(0, 500).replace(/\n/g, '\\n')}...`);
+    }
+    
+    // Track this request
+    this.trackRequest();
+    
+    // Try to extract JSON from the response
+    const jsonMatch = responseContent.match(/```json\n?([\s\S]*?)\n?```/) || 
+                      responseContent.match(/```\n?([\s\S]*?)\n?```/) ||
+                      responseContent.match(/(\{[\s\S]*\})/);
+    
+    if (jsonMatch) {
+      const jsonStr = jsonMatch[1] || jsonMatch[0];
+      try {
+        return JSON.parse(jsonStr);
+      } catch (parseErr) {
+        this.logger.error(`JSON parse error: ${parseErr.message}`);
+        this.logger.log(`Attempted to parse: ${jsonStr.slice(0, 500)}`);
+        throw new Error(`Invalid JSON in Copilot response: ${parseErr.message}`);
+      }
+    }
+    
+    throw new Error(`No JSON found in Copilot response. Response was: ${responseContent.slice(0, 200) || '(empty)'}`);
+  }
+
+  /**
+   * Start a new repair session to maintain context across multiple fix iterations
+   */
+  async startRepairSession() {
+    if (!this.client) {
+      throw new Error('Copilot SDK not initialized');
+    }
+    
+    // Close existing repair session if any
+    if (this.repairSession) {
+      try { await this.repairSession.destroy(); } catch (e) {}
+    }
+    
+    this.repairSession = await this.client.createSession({ model: this.model });
+    this.logger.log(`Started new repair session with ${this.model}`);
+    return this.repairSession;
+  }
+
+  /**
+   * Send a follow-up message to the repair session (maintains conversation context)
+   */
+  async sendRepairFollowUp(message) {
+    if (!this.repairSession) {
+      throw new Error('No active repair session. Call startRepairSession first.');
+    }
+
+    this.logger.log('Sending follow-up to repair session...');
+    
+    const messageId = await this.repairSession.send({ prompt: message });
+    this.logger.log(`Follow-up message completed: ${messageId}`);
+    
+    const messages = await this.repairSession.getMessages();
+    
+    let responseContent = '';
+    for (const msg of messages) {
+      if (msg.type === 'assistant.message' && msg.data?.content) {
+        responseContent = msg.data.content;
+      }
+    }
+    
+    const jsonMatch = responseContent.match(/```json\n?([\s\S]*?)\n?```/) || 
+                      responseContent.match(/\{[\s\S]*\}/);
+    
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[1] || jsonMatch[0]);
+    }
+    
+    throw new Error('No JSON found in Copilot response');
+  }
+
+  /**
+   * End the repair session
+   */
+  async endRepairSession() {
+    if (this.repairSession) {
+      try { await this.repairSession.destroy(); } catch (e) {}
+      this.repairSession = null;
+      this.logger.log('Ended repair session');
+    }
+  }
+
+  async classify(evidence) {
+    return await this.sendPrompt('classify', { evidence });
+  }
+
+  async authorUrl(evidence, requiredFields) {
+    const result = await this.sendPrompt('author-url', { evidence, required_fields: requiredFields });
+    
+    // Validate that Copilot returned actual url_steps
+    if (!result?.url_steps || !Array.isArray(result.url_steps) || result.url_steps.length === 0) {
+      throw new Error('Copilot returned invalid url_steps');
+    }
+    
+    return result;
+  }
+
+  async authorAutocomplete(evidence, query, expected) {
+    const result = await this.sendPrompt('author-autocomplete', { evidence, query, expected });
+    
+    // Validate that Copilot returned actual autocomplete_steps
+    if (!result?.autocomplete_steps || !Array.isArray(result.autocomplete_steps) || result.autocomplete_steps.length === 0) {
+      throw new Error('Copilot returned invalid autocomplete_steps');
+    }
+    
+    return result;
+  }
+
+  /**
+   * Start a fix session - sends initial context and first error to repair session
+   */
+  async startFix(recipe, stepType, testError, engineError, evidence) {
+    try {
+      await this.startRepairSession();
+      
+      const systemPrompt = await this.loadPrompt('fixer');
+      const initialContext = `${systemPrompt}
+
+## Initial Context
+
+### Recipe (current state)
+\`\`\`json
+${JSON.stringify(recipe, null, 2)}
+\`\`\`
+
+### Step Type Being Fixed
+\`${stepType}\`
+
+### Evidence from Page
+\`\`\`json
+${JSON.stringify(evidence, null, 2)}
+\`\`\`
+
+### Test Error Output
+\`\`\`
+${testError || 'No test output'}
+\`\`\`
+
+### Engine Error (if any)
+\`\`\`
+${engineError || 'Engine ran successfully'}
+\`\`\`
+
+Please analyze the errors and provide a fix. Remember to output only valid JSON.`;
+
+      this.logger.log('Starting fix session with initial context...');
+      
+      const messageId = await this.repairSession.send({ prompt: initialContext });
+      const messages = await this.repairSession.getMessages();
+      
+      let responseContent = '';
+      for (const msg of messages) {
+        if (msg.type === 'assistant.message' && msg.data?.content) {
+          responseContent = msg.data.content;
+        }
+      }
+      
+      const jsonMatch = responseContent.match(/```json\n?([\s\S]*?)\n?```/) || 
+                        responseContent.match(/\{[\s\S]*\}/);
+      
+      if (jsonMatch) {
+        return JSON.parse(jsonMatch[1] || jsonMatch[0]);
+      }
+      
+      throw new Error('No JSON found in Copilot response');
+    } catch (e) {
+      throw new Error(`Fixer failed: ${e.message}`);
+    }
+  }
+
+  /**
+   * Continue fix session - sends new test errors to existing repair session
+   * This maintains conversation context so Copilot knows what was tried before
+   */
+  async continueFix(recipe, testError, engineError, iteration) {
+    if (!this.repairSession) {
+      throw new Error('No active repair session');
+    }
+
+    const followUp = `## Iteration ${iteration} - Still Failing
+
+The previous fix didn't work. Here's the updated state:
+
+### Updated Recipe (after your last fix)
+\`\`\`json
+${JSON.stringify(recipe, null, 2)}
+\`\`\`
+
+### New Test Error Output
+\`\`\`
+${testError || 'No test output'}
+\`\`\`
+
+### Engine Error (if any)
+\`\`\`
+${engineError || 'Engine ran successfully'}
+\`\`\`
+
+Please try a different approach. Consider:
+1. The selectors might be completely wrong - check the evidence again
+2. The page structure might be different than expected
+3. There might be timing issues (try adding config.timeout)
+4. The data might be in JSON-LD or meta tags instead of visible elements
+
+Provide another fix as JSON only.`;
+
+    return await this.sendRepairFollowUp(followUp);
+  }
+}
+
+class RecipeBuilder {
+  constructor(logger) {
+    this.logger = logger;
+  }
+
+  buildSkeleton(hostname, listType, shortcut, autocompleteSteps = null, urlSteps = null) {
+    return {
+      recipe_shortcut: shortcut,
+      list_type: listType,
+      engine_version: ENGINE_VERSION,
+      title: this.titleCase(hostname),
+      description: `Retrieve ${listType} from ${hostname}`,
+      urls: [
+        `https://${hostname}`,
+        `https://www.${hostname}`
+      ],
+      headers: DEFAULT_HEADERS,
+      autocomplete_steps: autocompleteSteps,
+      url_steps: urlSteps
+    };
+  }
+
+  titleCase(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  applyPatches(recipe, stepType, patches) {
+    const steps = [...recipe[stepType]];
+    
+    for (const patch of patches) {
+      if (patch.step_index < steps.length) {
+        steps[patch.step_index] = {
+          ...steps[patch.step_index],
+          [patch.field]: patch.new_value
+        };
+      }
+    }
+    
+    return { ...recipe, [stepType]: steps };
+  }
+}
+
+class TestGenerator {
+  constructor(logger) {
+    this.logger = logger;
+  }
+
+  generate(recipePath, listType, domain, autocompleteQuery, autocompleteExpected, urlInput, urlExpected) {
+    const relativeRecipePath = `${listType}/${domain}.json`;
+    
+    return `import { expect, test, describe } from "bun:test";
+import { runEngine, findEntry, loadEnvVariables } from '../Engine/utils/test_utils.js';
+
+// Auto-generated by autoRecipe.js
+await loadEnvVariables();
+const TIMEOUT = parseInt(process.env.TEST_TIMEOUT);
+
+const RECIPE = "${domain}.json";
+const INPUT = {
+    AUTOCOMPLETE: ${JSON.stringify(autocompleteQuery)},
+    URL: ${JSON.stringify(urlInput)}
+};
+
+const ENTRY = ${JSON.stringify(autocompleteExpected)};
+
+describe(RECIPE, () => {
+    test("--type autocomplete", async () => {
+        const results = await runEngine(\`${listType}/\${RECIPE}\`, "autocomplete", INPUT.AUTOCOMPLETE);
+        const entry = findEntry(results, ENTRY.TITLE${autocompleteExpected.SUBTITLE ? ', ENTRY.SUBTITLE' : ''});
+
+        expect(entry.TITLE).toBe(ENTRY.TITLE);
+        ${autocompleteExpected.SUBTITLE ? 'expect(entry.SUBTITLE).toBe(ENTRY.SUBTITLE);' : ''}
+        expect(entry.URL).toBeDefined();
+        expect(entry.COVER).toBeDefined();
+    }, TIMEOUT);
+
+    test("--type url", async () => {
+        const result = await runEngine(\`${listType}/\${RECIPE}\`, "url", INPUT.URL);
+
+        ${this.generateUrlAssertions(listType, urlExpected)}
+    }, TIMEOUT);
+});
+`;
+  }
+
+  generateUrlAssertions(listType, expected) {
+    const assertions = ['expect(result.TITLE).toBeDefined();'];
+    
+    // Add type-specific assertions
+    const typeFields = {
+      generic: ['DESCRIPTION', 'COVER'],
+      movies: ['DATE', 'DESCRIPTION', 'RATING', 'AUTHOR', 'COVER'],
+      tv_shows: ['DATE', 'DESCRIPTION', 'RATING', 'AUTHOR', 'COVER'],
+      anime: ['DATE', 'DESCRIPTION', 'RATING', 'AUTHOR', 'COVER', 'EPISODES'],
+      manga: ['DATE', 'DESCRIPTION', 'RATING', 'AUTHOR', 'COVER', 'VOLUMES'],
+      books: ['AUTHOR', 'DESCRIPTION', 'RATING', 'COVER'],
+      albums: ['AUTHOR', 'DATE', 'GENRE', 'COVER'],
+      songs: ['AUTHOR', 'DATE', 'GENRE', 'COVER'],
+      beers: ['AUTHOR', 'RATING', 'COVER', 'STYLE'],
+      wines: ['WINERY', 'RATING', 'COVER', 'REGION'],
+      software: ['RATING', 'GENRE', 'DESCRIPTION', 'COVER'],
+      videogames: ['DATE', 'DESCRIPTION', 'RATING', 'COVER'],
+      recipes: ['COVER', 'INGREDIENTS', 'DESCRIPTION', 'STEPS'],
+      podcasts: ['AUTHOR', 'COVER'],
+      boardgames: ['DATE', 'DESCRIPTION', 'RATING', 'COVER']
+    };
+
+    const fields = typeFields[listType] || typeFields.generic;
+    for (const field of fields) {
+      assertions.push(`expect(result.${field}).toBeDefined();`);
+    }
+
+    return assertions.join('\n        ');
+  }
+}
+
+class EngineRunner {
+  constructor(logger) {
+    this.logger = logger;
+  }
+
+  async run(recipePath, type, input) {
+    this.logger.step(`Running engine: ${type} with input "${input.slice(0, 50)}..."`);
+    
+    try {
+      const proc = spawn([
+        'bun',
+        join(ENGINE_DIR, 'engine.js'),
+        '--recipe', recipePath,
+        '--type', type,
+        '--input', input
+      ], { cwd: REPO_ROOT });
+
+      const output = await new Response(proc.stdout).text();
+      const stderr = await new Response(proc.stderr).text();
+      const exitCode = await proc.exited;
+      
+      // Log stderr if present
+      if (stderr) {
+        this.logger.log(`Engine stderr: ${stderr.slice(0, 500)}`);
+      }
+
+      // Check for non-zero exit code
+      if (exitCode !== 0) {
+        const errorMsg = stderr || output || `Engine exited with code ${exitCode}`;
+        this.logger.error(`Engine failed with exit code ${exitCode}`);
+        return { 
+          success: false, 
+          error: errorMsg,
+          output, 
+          stderr,
+          exitCode,
+          errorType: 'engine_crash'
+        };
+      }
+
+      // Try to parse JSON output
+      try {
+        const data = JSON.parse(output);
+        return { success: true, data, output, stderr };
+      } catch (e) {
+        // Output wasn't valid JSON
+        this.logger.error(`Engine output not valid JSON: ${e.message}`);
+        return { 
+          success: false, 
+          error: `Invalid JSON output: ${e.message}`, 
+          output, 
+          stderr,
+          errorType: 'invalid_json'
+        };
+      }
+    } catch (e) {
+      this.logger.error(`Engine spawn failed: ${e.message}`);
+      return { 
+        success: false, 
+        error: e.message, 
+        output: '', 
+        stderr: '',
+        errorType: 'spawn_error'
+      };
+    }
+  }
+
+  async runTest(testPath) {
+    this.logger.step(`Running test: ${testPath}`);
+    
+    const proc = spawn(['bun', 'test', testPath], { cwd: REPO_ROOT });
+
+    const output = await new Response(proc.stdout).text();
+    const stderr = await new Response(proc.stderr).text();
+    const exitCode = await proc.exited;
+
+    return {
+      success: exitCode === 0,
+      output,
+      stderr,
+      exitCode
+    };
+  }
+}
+class AutoRecipe {
+  constructor(options) {
+    this.url = options.url;
+    this.force = options.force || false;
+    this.debug = options.debug || false;
+    
+    this.logger = new Logger(this.debug);
+    this.evidence = new EvidenceCollector(this.logger);
+    this.copilot = new CopilotAgent(this.logger, this.debug);
+    this.builder = new RecipeBuilder(this.logger);
+    this.testGen = new TestGenerator(this.logger);
+    this.engine = new EngineRunner(this.logger);
+  }
+
+  async run() {
+    this.logger.info(`Starting autoRecipe for ${this.url}`);
+    
+    try {
+      await this.evidence.initialize();
+      await this.copilot.initialize();
+
+      // Phase 1: Probe and classify
+      const siteEvidence = await this.evidence.probe(this.url);
+      this.logger.log(JSON.stringify(siteEvidence, null, 2));
+
+      const classification = await this.copilot.classify(siteEvidence);
+      this.logger.info(`Classified as: ${classification.list_type} (confidence: ${classification.confidence})`);
+
+      if (!ALLOWED_LIST_TYPES.includes(classification.list_type)) {
+        throw new Error(`Invalid list_type: ${classification.list_type}`);
+      }
+
+      const domain = siteEvidence.hostname.replace(/\./g, '');
+      const recipePath = join(REPO_ROOT, classification.list_type, `${domain}.json`);
+      const testPath = join(REPO_ROOT, classification.list_type, `${domain}.autorecipe.test.js`);
+
+      // Check for existing files
+      if (!this.force) {
+        let recipeExists = false;
+        try {
+          await access(recipePath);
+          recipeExists = true;
+        } catch (e) {
+          if (e.code !== 'ENOENT') throw e;
+        }
+        
+        if (recipeExists) {
+          this.logger.warn(`Recipe already exists: ${recipePath}`);
+          const answer = await prompt(chalk.yellow('What would you like to do?\n  [o] Overwrite existing recipe\n  [n] Create new recipe with suffix\n  [c] Cancel\nChoice (o/n/c): '));
+          
+          if (answer === 'o' || answer === 'overwrite') {
+            this.logger.info('Overwriting existing recipe...');
+            this.force = true;
+          } else if (answer === 'n' || answer === 'new') {
+            // Find a unique suffix
+            let suffix = 2;
+            let newDomain = `${domain}_${suffix}`;
+            let newRecipePath = join(REPO_ROOT, classification.list_type, `${newDomain}.json`);
+            
+            while (true) {
+              try {
+                await access(newRecipePath);
+                suffix++;
+                newDomain = `${domain}_${suffix}`;
+                newRecipePath = join(REPO_ROOT, classification.list_type, `${newDomain}.json`);
+              } catch (e) {
+                if (e.code === 'ENOENT') break;
+                throw e;
+              }
+            }
+            
+            // Update paths to use the new suffix
+            Object.assign(this, { _domain: newDomain });
+            this.logger.info(`Creating new recipe as: ${newDomain}.json`);
+            return await this.runWithPaths(
+              siteEvidence,
+              classification,
+              newDomain,
+              newRecipePath,
+              join(REPO_ROOT, classification.list_type, `${newDomain}.autorecipe.test.js`)
+            );
+          } else {
+            this.logger.info('Cancelled.');
+            return { success: false, cancelled: true, usage: this.copilot.getUsage() };
+          }
+        }
+      }
+
+      // Continue with recipe generation using determined paths
+      const result = await this.runWithPaths(siteEvidence, classification, domain, recipePath, testPath);
+      
+      // Add usage stats to result
+      result.usage = this.copilot.getUsage();
+      return result;
+
+    } finally {
+      await this.evidence.close();
+      await this.copilot.close();
+    }
+  }
+
+  /**
+   * Run the recipe generation with specific paths (called by run() after path resolution)
+   */
+  async runWithPaths(siteEvidence, classification, domain, recipePath, testPath) {
+    // Phase 2: Autocomplete generation
+    this.logger.info('Phase 2: Generating autocomplete_steps...');
+    
+    // Discover search URL template
+    let searchUrl = siteEvidence.search?.search_form_action;
+    if (searchUrl) {
+      // If we have a search form action, add query parameter if not present
+      if (!searchUrl.includes('$INPUT')) {
+        // Determine the query parameter name from the search box locator
+        // e.g., input[name="query"] -> query, input[name="q"] -> q
+        let paramName = 'q'; // default
+        const locator = siteEvidence.search?.search_box_locator || '';
+        const nameMatch = locator.match(/name="([^"]+)"/);
+        if (nameMatch) {
+          paramName = nameMatch[1];
+        }
+        
+        // Add the query parameter
+        const separator = searchUrl.includes('?') ? '&' : '?';
+        searchUrl = `${searchUrl}${separator}${paramName}=$INPUT`;
+      }
+    } else {
+      // Try common patterns
+      const baseUrl = `https://${siteEvidence.hostname}`;
+      searchUrl = `${baseUrl}/search?q=$INPUT`;
+    }
+
+    // Pick a test query based on list_type
+    const testQueries = {
+      movies: 'Matrix',
+      tv_shows: 'Friends',
+      books: 'Harry Potter',
+      anime: 'Death Note',
+      manga: 'One Piece',
+      beers: 'IPA',
+      wines: 'Merlot',
+      albums: 'Abbey Road',
+      songs: 'Bohemian Rhapsody',
+      videogames: 'Zelda',
+      software: 'Calculator',
+      podcasts: 'Serial',
+      boardgames: 'Catan',
+      recipes: 'Pasta',
+      generic: 'test'
+    };
+    const testQuery = testQueries[classification.list_type] || 'test';
+
+    // Probe search results
+    const searchEvidence = await this.evidence.probeSearchResults(searchUrl, testQuery);
+    
+    // Debug: Check if API was discovered
+    this.logger.log(`searchEvidence.api: ${searchEvidence.api ? 'FOUND' : 'null'}`);
+    this.logger.log(`searchEvidence.search_type: ${searchEvidence.search_type}`);
+    
+    // If we discovered a better search URL, use it
+    if (searchEvidence.discovered_search_url) {
+      searchUrl = searchEvidence.discovered_search_url;
+      this.logger.info(`Using discovered search URL: ${searchUrl}`);
+    }
+    
+    // Author autocomplete steps
+    const autocompleteResult = await this.copilot.authorAutocomplete(
+      { site: siteEvidence, search: searchEvidence },
+      testQuery,
+      { title: null, subtitle: null, url_regex: `https://${siteEvidence.hostname}` }
+    );
+    
+    // If the autocomplete steps use a different URL than what we discovered, update them
+    if (autocompleteResult.autocomplete_steps?.[0]?.url && searchEvidence.discovered_search_url) {
+      autocompleteResult.autocomplete_steps[0].url = searchEvidence.discovered_search_url;
+    }
+
+    // Build initial recipe
+    let recipe = this.builder.buildSkeleton(
+      siteEvidence.hostname,
+      classification.list_type,
+      classification.suggested_recipe_shortcut,
+      autocompleteResult.autocomplete_steps
+    );
+
+    // Write recipe
+    await writeFile(recipePath, JSON.stringify(recipe, null, 2));
+    this.logger.success(`Wrote recipe: ${recipePath}`);
+
+    // Phase 2b: Debug and fix autocomplete until working
+    this.logger.info('Testing autocomplete_steps...');
+    const autocompleteRepair = await this.repairLoop(recipe, 'autocomplete_steps', recipePath, testQuery, siteEvidence, searchEvidence);
+    recipe = autocompleteRepair.recipe;
+    const autocompleteFixed = autocompleteRepair.success;
+    
+    // Verify autocomplete results have actual data
+    const autocompleteTest = await this.engine.run(recipePath, 'autocomplete', testQuery);
+    const autocompleteResults = autocompleteTest.data?.results || [];
+    
+    // Check for non-empty TITLE and URL in results
+    const validResults = autocompleteResults.filter(r => {
+      const hasTitle = r.TITLE && r.TITLE.trim() !== '';
+      const hasUrl = r.URL && r.URL.trim() !== '';
+      return hasTitle && hasUrl;
+    });
+    
+    const autocompleteWorking = validResults.length > 0;
+    
+    if (autocompleteWorking) {
+      this.logger.success(`Autocomplete working: ${validResults.length} valid results`);
+      // Log sample result
+      const sample = validResults[0];
+      this.logger.info(`  Sample: "${sample.TITLE}" → ${sample.URL?.slice(0, 50)}...`);
+    } else {
+      this.logger.error('autocomplete_steps not working - no valid results with TITLE and URL');
+      if (autocompleteResults.length > 0) {
+        this.logger.warn(`Got ${autocompleteResults.length} results but all have empty TITLE or URL`);
+        const sample = autocompleteResults[0];
+        this.logger.warn(`  Sample: TITLE="${sample.TITLE || '(empty)'}", URL="${sample.URL || '(empty)'}"`);
+      }
+      
+      // Cannot proceed without working autocomplete
+      this.logger.error('Cannot proceed to url_steps without working autocomplete_steps');
+      
+      // Still write test file and return failure
+      this.logger.info('Phase 4: Generating test file (for debugging)...');
+      const testContent = this.testGen.generate(
+        recipePath,
+        classification.list_type,
+        domain,
+        testQuery,
+        { TITLE: 'Test', SUBTITLE: '' },
+        this.url,
+        {}
+      );
+      await writeFile(testPath, testContent);
+      this.logger.success(`Wrote test: ${testPath}`);
+      
+      this.logger.warn('Recipe created but autocomplete_steps not working. Manual review needed.');
+      return { success: false, recipePath, testPath };
+    }
+    
+    // Get detail URL from working autocomplete result
+    const stableResult = validResults[0];
+    let detailUrl = stableResult.URL;
+    
+    // Make sure the detail URL is absolute
+    if (detailUrl && !detailUrl.startsWith('http')) {
+      const baseUrl = `https://${siteEvidence.hostname}`;
+      detailUrl = detailUrl.startsWith('/') ? `${baseUrl}${detailUrl}` : `${baseUrl}/${detailUrl}`;
+      this.logger.info(`Converted relative URL to absolute: ${detailUrl}`);
+    }
+
+    // Phase 3: URL/detail generation
+    this.logger.info('Phase 3: Generating url_steps...');
+    
+    const detailEvidence = await this.evidence.probeDetailPage(detailUrl);
+    
+    const urlResult = await this.copilot.authorUrl(
+      detailEvidence,
+      this.getRequiredFields(classification.list_type)
+    );
+
+    recipe.url_steps = urlResult.url_steps;
+    await writeFile(recipePath, JSON.stringify(recipe, null, 2));
+
+    // Phase 3b: Debug and fix url_steps until working
+    this.logger.info('Testing url_steps...');
+    const urlRepair = await this.repairLoop(recipe, 'url_steps', recipePath, detailUrl, siteEvidence, detailEvidence);
+    recipe = urlRepair.recipe;
+    const urlFixed = urlRepair.success;
+    
+    // Final verification - check for non-empty values
+    const urlTest = await this.engine.run(recipePath, 'url', detailUrl);
+    const urlResults = urlTest.data?.results || {};
+    const urlFields = Object.keys(urlResults);
+    const nonEmptyUrlFields = urlFields.filter(k => urlResults[k] !== '' && urlResults[k] !== null && urlResults[k] !== undefined);
+    const emptyUrlFields = urlFields.filter(k => urlResults[k] === '' || urlResults[k] === null || urlResults[k] === undefined);
+    
+    if (nonEmptyUrlFields.length > 0) {
+      this.logger.success(`URL steps working: ${nonEmptyUrlFields.join(', ')}`);
+      if (emptyUrlFields.length > 0) {
+        this.logger.warn(`URL steps with empty values: ${emptyUrlFields.join(', ')}`);
+      }
+    }
+
+    // Phase 4: Generate test file (optional, for CI)
+    this.logger.info('Phase 4: Generating test file...');
+    const testContent = this.testGen.generate(
+      recipePath,
+      classification.list_type,
+      domain,
+      testQuery,
+      { TITLE: stableResult.TITLE, SUBTITLE: stableResult.SUBTITLE },
+      detailUrl,
+      urlTest.data?.results || {}
+    );
+    await writeFile(testPath, testContent);
+    this.logger.success(`Wrote test: ${testPath}`);
+
+    // Final summary - autocompleteWorking is already validated above (we wouldn't be here otherwise)
+    const urlWorking = urlFixed && nonEmptyUrlFields.length > 0 && emptyUrlFields.length === 0;
+    
+    if (urlWorking) {
+      this.logger.success('✓ Recipe is fully functional!');
+      return { success: true, recipePath, testPath };
+    } else {
+      this.logger.warn('Recipe created but url_steps may need manual review:');
+      if (emptyUrlFields.length > 0) {
+        this.logger.warn(`  Empty fields: ${emptyUrlFields.join(', ')}`);
+      }
+      return { success: false, recipePath, testPath };
+    }
+  }
+
+  /**
+   * Debug-first repair loop: Run engine, debug with Puppeteer if fails, fix and retry
+   */
+  async repairLoop(recipe, stepType, recipePath, input, siteEvidence, stepEvidence) {
+    this.logger.info(`Starting debug-first repair loop for ${stepType}...`);
+    
+    for (let i = 0; i < MAX_REPAIR_ITERATIONS; i++) {
+      this.logger.step(`Repair iteration ${i + 1}/${MAX_REPAIR_ITERATIONS}...`);
+      
+      // Step 1: Run engine and check output
+      const engineResult = await this.engine.run(recipePath, stepType.replace('_steps', ''), input);
+      
+      // Check for engine crashes/errors first
+      if (!engineResult.success) {
+        const errorInfo = this.parseEngineError(engineResult);
+        this.logger.error(`Engine error: ${errorInfo.message}`);
+        this.logger.log(`Error type: ${errorInfo.type}`);
+        if (errorInfo.details) {
+          this.logger.log(`Details: ${errorInfo.details.slice(0, 500)}`);
+        }
+      }
+      
+      // Check that we have non-empty results
+      let hasResults = false;
+      let emptyFields = [];
+      
+      if (engineResult.success && stepType === 'autocomplete_steps') {
+        hasResults = engineResult.data?.results?.length > 0;
+      } else if (engineResult.success && engineResult.data?.results) {
+        const results = engineResult.data.results;
+        const fields = Object.keys(results);
+        // Check which fields have actual non-empty values
+        const nonEmptyFields = fields.filter(k => {
+          const val = results[k];
+          return val !== '' && val !== null && val !== undefined;
+        });
+        emptyFields = fields.filter(k => {
+          const val = results[k];
+          return val === '' || val === null || val === undefined;
+        });
+        // Must have at least one non-empty field and no critical empty fields
+        hasResults = nonEmptyFields.length > 0 && emptyFields.length === 0;
+      }
+      
+      if (hasResults) {
+        this.logger.success(`Recipe working after ${i} iteration(s)!`);
+        if (stepType === 'autocomplete_steps') {
+          this.logger.info(`  → Got ${engineResult.data.results.length} results`);
+        } else {
+          this.logger.info(`  → Got fields: ${Object.keys(engineResult.data.results).join(', ')}`);
+        }
+        return { recipe, success: true };
+      }
+      
+      // Log which fields are empty
+      if (emptyFields.length > 0) {
+        this.logger.warn(`Fields with empty values: ${emptyFields.join(', ')}`);
+      }
+      
+      // Step 2: Engine failed or returned empty - debug with Puppeteer
+      this.logger.warn('Engine output not as expected. Debugging recipe steps with Puppeteer...');
+      
+      let steps = recipe[stepType] || [];
+      
+      // If no steps exist, we cannot proceed - SDK must generate them
+      if (steps.length === 0) {
+        throw new Error(`No ${stepType} found in recipe. Cannot proceed without SDK-generated steps.`);
+      }
+      
+      // Determine the URL to debug
+      let debugUrl = input;
+      if (stepType === 'autocomplete_steps') {
+        // For autocomplete, we need to construct the search URL
+        const loadStep = steps.find(s => s.command === 'load');
+        if (loadStep?.url) {
+          debugUrl = loadStep.url.replace('$INPUT', encodeURIComponent(input));
+        }
+      }
+      
+      // Step 3: Debug each step manually with Puppeteer
+      const debugResult = await this.evidence.debugRecipeSteps(debugUrl, steps, stepType);
+      
+      this.logger.info(`Debug results: ${debugResult.workingSelectors.length} working, ${debugResult.failedSelectors.length} failed`);
+      
+      if (debugResult.failedSelectors.length === 0 && !hasResults) {
+        // All selectors work but engine returns nothing - might be a loop or output issue
+        this.logger.warn('All selectors found elements, but engine returned no results.');
+        this.logger.info('This might be a loop configuration or output mapping issue.');
+      }
+      
+      // Log failed selectors
+      for (const failed of debugResult.failedSelectors) {
+        const step = steps[failed.index];
+        this.logger.error(`  Step ${failed.index}: "${step.description || failed.command}" - selector "${failed.locator}" found 0 elements`);
+        
+        const stepDebug = debugResult.stepsAnalyzed[failed.index];
+        if (stepDebug.alternatives.length > 0) {
+          this.logger.info(`    → Suggested alternative: "${stepDebug.alternatives[0].selector}" (found ${stepDebug.alternatives[0].count})`);
+        }
+      }
+      
+      // Step 4: Build comprehensive error context for Copilot
+      const engineErrorInfo = this.parseEngineError(engineResult);
+      const errorContext = `
+Engine Error: ${engineErrorInfo.message}
+Error Type: ${engineErrorInfo.type}
+${engineErrorInfo.details ? `Details: ${engineErrorInfo.details.slice(0, 1000)}` : ''}
+${engineResult.output ? `Raw Output: ${engineResult.output.slice(0, 500)}` : ''}
+${engineResult.stderr ? `Stderr: ${engineResult.stderr.slice(0, 500)}` : ''}
+`.trim();
+      
+      const debugContext = {
+        recipe,
+        stepType,
+        engineError: errorContext,
+        engineOutput: engineResult.data,
+        debugResult: {
+          url: debugResult.url,
+          workingSelectors: debugResult.workingSelectors,
+          failedSelectors: debugResult.failedSelectors,
+          suggestedFixes: debugResult.suggestedFixes,
+          stepsAnalyzed: debugResult.stepsAnalyzed.map(s => ({
+            index: s.index,
+            command: s.command,
+            locator: s.locator,
+            status: s.status,
+            found: s.found,
+            samples: s.samples?.slice(0, 2),
+            alternatives: s.alternatives?.slice(0, 3)
+          }))
+        },
+        siteEvidence: stepType === 'autocomplete_steps' ? stepEvidence : siteEvidence
+      };
+      
+      let fix;
+      try {
+        if (i === 0) {
+          fix = await this.copilot.startFix(
+            recipe, 
+            stepType, 
+            `Debug analysis:\n${JSON.stringify(debugContext.debugResult, null, 2)}`,
+            errorContext,
+            debugContext.siteEvidence
+          );
+        } else {
+          fix = await this.copilot.continueFix(
+            recipe,
+            `Debug analysis:\n${JSON.stringify(debugContext.debugResult, null, 2)}\n\n${errorContext}`,
+            null,
+            i + 1
+          );
+        }
+      } catch (e) {
+        this.logger.warn(`Copilot fix failed: ${e.message}`);
+        
+        // Try to apply suggested fixes automatically
+        if (debugResult.suggestedFixes.length > 0) {
+          this.logger.info('Applying automatic fixes based on debug analysis...');
+          for (const suggested of debugResult.suggestedFixes) {
+            if (recipe[stepType][suggested.stepIndex]) {
+              this.logger.log(`  Fixing step ${suggested.stepIndex}: "${suggested.originalLocator}" → "${suggested.suggestedLocator}"`);
+              recipe[stepType][suggested.stepIndex].locator = suggested.suggestedLocator;
+            }
+          }
+          await writeFile(recipePath, JSON.stringify(recipe, null, 2));
+          continue; // Retry with auto-fixed recipe
+        }
+        break;
+      }
+      
+      // Step 5: Apply the fix
+      let fixApplied = false;
+      
+      if (fix.action === 'rewrite' && fix.steps) {
+        recipe[stepType] = fix.steps;
+        fixApplied = true;
+        this.logger.success(`Applied rewrite: ${fix.explanation || 'No explanation'}`);
+      } else if (fix.action === 'patch' && fix.patches?.length) {
+        recipe = this.builder.applyPatches(recipe, stepType, fix.patches);
+        fixApplied = true;
+        this.logger.success(`Applied ${fix.patches.length} patches: ${fix.explanation || 'No explanation'}`);
+      } else {
+        this.logger.warn(`Copilot returned no actionable fix: ${fix.action || 'none'}`);
+        
+        // Try auto-fixes as fallback
+        if (debugResult.suggestedFixes.length > 0) {
+          this.logger.info('Applying automatic fixes as fallback...');
+          for (const suggested of debugResult.suggestedFixes) {
+            if (recipe[stepType][suggested.stepIndex]) {
+              recipe[stepType][suggested.stepIndex].locator = suggested.suggestedLocator;
+              fixApplied = true;
+            }
+          }
+        }
+      }
+      
+      if (fixApplied) {
+        await writeFile(recipePath, JSON.stringify(recipe, null, 2));
+        this.logger.info('Recipe updated. Retrying...');
+      } else {
+        this.logger.error('No fix could be applied. Stopping.');
+        break;
+      }
+    }
+
+    this.logger.error(`Repair loop exhausted after ${MAX_REPAIR_ITERATIONS} iterations`);
+    await this.copilot.endRepairSession();
+    return { recipe, success: false };
+  }
+
+  getRequiredFields(listType) {
+    const fields = {
+      generic: ['TITLE', 'DESCRIPTION', 'FAVICON', 'COVER'],
+      movies: ['TITLE', 'DATE', 'DESCRIPTION', 'RATING', 'AUTHOR', 'COVER', 'DURATION'],
+      tv_shows: ['TITLE', 'DATE', 'DESCRIPTION', 'RATING', 'AUTHOR', 'COVER', 'EPISODES'],
+      anime: ['TITLE', 'DATE', 'DESCRIPTION', 'RATING', 'AUTHOR', 'COVER', 'ORIGINAL_TITLE', 'EPISODES'],
+      manga: ['TITLE', 'DATE', 'DESCRIPTION', 'RATING', 'AUTHOR', 'COVER', 'ORIGINAL_TITLE', 'VOLUMES'],
+      books: ['TITLE', 'AUTHOR', 'YEAR', 'PAGES', 'DESCRIPTION', 'RATING', 'COVER'],
+      albums: ['TITLE', 'AUTHOR', 'DATE', 'GENRE', 'COVER'],
+      songs: ['TITLE', 'AUTHOR', 'DATE', 'GENRE', 'COVER', 'PRICE'],
+      beers: ['TITLE', 'AUTHOR', 'RATING', 'COVER', 'STYLE', 'ALCOHOL'],
+      wines: ['TITLE', 'WINERY', 'RATING', 'COVER', 'REGION', 'COUNTRY', 'GRAPES', 'STYLE'],
+      software: ['TITLE', 'RATING', 'GENRE', 'DESCRIPTION', 'COVER'],
+      videogames: ['TITLE', 'DATE', 'DESCRIPTION', 'RATING', 'COVER'],
+      recipes: ['TITLE', 'COVER', 'INGREDIENTS', 'DESCRIPTION', 'STEPS', 'COOKING_TIME', 'DINERS'],
+      podcasts: ['TITLE', 'AUTHOR', 'ALBUM', 'DATE', 'GENRE', 'COVER'],
+      boardgames: ['TITLE', 'DATE', 'DESCRIPTION', 'PLAYERS', 'TIME', 'CATEGORY', 'RATING', 'COVER'],
+      restaurants: ['TITLE', 'RATING', 'COVER', 'ADDRESS'],
+      artists: ['AUTHOR', 'GENRE', 'COVER'],
+      food: ['TITLE', 'COVER', 'DESCRIPTION']
+    };
+    return fields[listType] || fields.generic;
+  }
+
+  /**
+   * Parse engine error into a structured format for better debugging
+   */
+  parseEngineError(engineResult) {
+    if (engineResult.success) {
+      // Not an error, but empty results
+      return {
+        type: 'empty_results',
+        message: 'Engine ran successfully but returned no results',
+        details: JSON.stringify(engineResult.data, null, 2)
+      };
+    }
+
+    const output = engineResult.output || '';
+    const stderr = engineResult.stderr || '';
+    const combined = `${output}\n${stderr}`;
+
+    // Categorize the error
+    if (engineResult.errorType === 'spawn_error') {
+      return {
+        type: 'spawn_error',
+        message: 'Failed to start the engine process',
+        details: engineResult.error
+      };
+    }
+
+    if (engineResult.errorType === 'invalid_json') {
+      return {
+        type: 'invalid_json',
+        message: 'Engine output was not valid JSON',
+        details: output.slice(0, 1000)
+      };
+    }
+
+    // Check for common error patterns
+    if (/no steps found/i.test(combined)) {
+      return {
+        type: 'no_steps',
+        message: 'No steps found for the specified step type',
+        details: 'The recipe may be missing the required steps array',
+        suggestion: 'Ensure the recipe has autocomplete_steps or url_steps defined'
+      };
+    }
+
+    if (/selector.*not found|element not found|timeout/i.test(combined)) {
+      return {
+        type: 'selector_timeout',
+        message: 'A selector failed to find elements or timed out',
+        details: combined.slice(0, 1000),
+        suggestion: 'Check if the selector is correct or increase timeout'
+      };
+    }
+
+    if (/network|fetch|ECONNREFUSED|ETIMEDOUT/i.test(combined)) {
+      return {
+        type: 'network_error',
+        message: 'Network error while fetching the page',
+        details: combined.slice(0, 1000),
+        suggestion: 'Check if the URL is accessible and the site is not blocking requests'
+      };
+    }
+
+    if (/captcha|blocked|forbidden|403/i.test(combined)) {
+      return {
+        type: 'blocked',
+        message: 'The site may be blocking automated requests',
+        details: combined.slice(0, 1000),
+        suggestion: 'The site may require different headers or have anti-bot protection'
+      };
+    }
+
+    if (/syntax|parse|unexpected token/i.test(combined)) {
+      return {
+        type: 'recipe_syntax',
+        message: 'Recipe JSON syntax error',
+        details: combined.slice(0, 1000),
+        suggestion: 'Check the recipe JSON for syntax errors'
+      };
+    }
+
+    // Generic error
+    return {
+      type: 'unknown',
+      message: engineResult.error || 'Unknown engine error',
+      details: combined.slice(0, 1000)
+    };
+  }
+}
+
+// Main
+const args = minimist(process.argv.slice(2));
+
+if (!args.url) {
+  console.log('Usage: bun Engine/scripts/autoRecipe.js --url=https://example.com [--force] [--debug]');
+  process.exit(1);
+}
+
+const autoRecipe = new AutoRecipe({
+  url: args.url,
+  force: args.force || false,
+  debug: args.debug || false
+});
+
+autoRecipe.run()
+  .then(result => {
+    // Display usage stats
+    if (result.usage) {
+      console.log(chalk.cyan('\n📊 Copilot Usage:'));
+      console.log(`  Model: ${result.usage.model}`);
+      console.log(`  Requests: ${result.usage.requests}`);
+      if (result.usage.totalTokens > 0) {
+        console.log(`  Prompt tokens: ${result.usage.totalPromptTokens.toLocaleString()}`);
+        console.log(`  Completion tokens: ${result.usage.totalCompletionTokens.toLocaleString()}`);
+        console.log(`  Total tokens: ${result.usage.totalTokens.toLocaleString()}`);
+      }
+    }
+    
+    if (result.success) {
+      console.log(chalk.green('\n✓ Recipe created successfully!'));
+      console.log(`  Recipe: ${result.recipePath}`);
+      console.log(`  Test: ${result.testPath}`);
+    } else {
+      console.log(chalk.yellow('\n⚠ Recipe created but tests failed. Manual review needed.'));
+      process.exit(1);
+    }
+  })
+  .catch(err => {
+    console.error(chalk.red('\n✗ Error:'), err.message);
+    if (args.debug) console.error(err.stack);
+    process.exit(1);
+  });
