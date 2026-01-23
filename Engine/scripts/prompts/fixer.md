@@ -97,6 +97,31 @@ When analyzing test failures, look for:
 - The results container selector may be wrong
 - The site may require JavaScript (check `config.js: true`)
 
+### Unreplaced variable in output (e.g., TITLE contains "$SEASON$i")
+**This is a critical error.** The recipe is trying to combine variables which the engine does NOT support.
+
+**How this happens:**
+```json
+// WRONG: Creating intermediate variables then combining them
+{ "command": "store_text", "locator": ".team", "output": { "name": "TEAM$i" } },
+{ "command": "store_text", "locator": ".season", "output": { "name": "SEASON$i" } },
+{ "command": "store", "input": "$TEAM$i - $SEASON$i", "output": { "name": "TITLE$i" } }
+// Result: TITLE will literally contain "$TEAM$i - $SEASON$i" - NOT replaced!
+```
+
+**The fix:** Extract TITLE directly from the page element:
+```json
+// CORRECT: Extract TITLE directly from the element containing the full text
+{ "command": "store_text", "locator": ".result:nth-child($i) .item-title", "output": { "name": "TITLE$i" } }
+```
+
+If the page doesn't have a single element with the full title, use regex on the existing extracted value or accept extracting just the primary text into TITLE and secondary info into SUBTITLE.
+
+**Variable references ONLY work in:**
+- `input` field of `store` commands (to prepend base URL)
+- `input` field of `regex` commands (to transform a value)
+- `url` field of `load` commands (for `$INPUT`)
+
 ### Test assertion failure
 - The expected value in the test may be outdated
 - The selector may be extracting extra whitespace (add regex to trim)

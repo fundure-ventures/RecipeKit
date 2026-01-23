@@ -1327,16 +1327,22 @@ class CopilotAgent {
     const targetSession = useSession || this.session;
     const systemPrompt = await this.loadPrompt(promptName);
     
-    // Load the debug strategy for context
+    // Load reference documentation for context
+    let engineReference = '';
     let debugStrategy = '';
+    try {
+      engineReference = await this.loadPrompt('engine-reference');
+    } catch (e) {
+      // Engine reference is optional
+    }
     try {
       debugStrategy = await this.loadPrompt('debug-strategy');
     } catch (e) {
       // Debug strategy is optional
     }
     
-    // Build a comprehensive prompt that encourages deep thinking
-    const fullPrompt = `${debugStrategy ? `## Debugging Strategy Reference\n\n${debugStrategy}\n\n---\n\n` : ''}${systemPrompt}
+    // Build a comprehensive prompt with full documentation
+    const fullPrompt = `${engineReference ? `## RecipeKit Engine Reference\n\n${engineReference}\n\n---\n\n` : ''}${debugStrategy ? `## Debugging Strategy Reference\n\n${debugStrategy}\n\n---\n\n` : ''}${systemPrompt}
 
 ## Context
 
@@ -2029,26 +2035,35 @@ class AutoRecipe {
     const autocompleteTest = await this.engine.run(recipePath, 'autocomplete', testQuery);
     const autocompleteResults = autocompleteTest.data?.results || [];
     
-    // Check for non-empty TITLE and URL in results
-    const validResults = autocompleteResults.filter(r => {
-      const hasTitle = r.TITLE && r.TITLE.trim() !== '';
-      const hasUrl = r.URL && r.URL.trim() !== '';
-      return hasTitle && hasUrl;
-    });
+    // Validate autocomplete results
+    const validResults = this.validateAutocompleteResults(autocompleteResults, siteEvidence.hostname);
     
-    const autocompleteWorking = validResults.length > 0;
+    const autocompleteWorking = validResults.valid.length > 0;
     
     if (autocompleteWorking) {
-      this.logger.success(`Autocomplete working: ${validResults.length} valid results`);
+      this.logger.success(`Autocomplete working: ${validResults.valid.length} valid results`);
       // Log sample result
-      const sample = validResults[0];
+      const sample = validResults.valid[0];
       this.logger.info(`  Sample: "${sample.TITLE}" → ${sample.URL?.slice(0, 50)}...`);
+      
+      // Log any warnings
+      if (validResults.warnings.length > 0) {
+        for (const warn of validResults.warnings) {
+          this.logger.warn(`  ${warn}`);
+        }
+      }
     } else {
-      this.logger.error('autocomplete_steps not working - no valid results with TITLE and URL');
+      this.logger.error('autocomplete_steps not working - no valid results');
+      
+      // Log specific issues
+      for (const issue of validResults.issues) {
+        this.logger.error(`  ${issue}`);
+      }
+      
       if (autocompleteResults.length > 0) {
-        this.logger.warn(`Got ${autocompleteResults.length} results but all have empty TITLE or URL`);
+        this.logger.warn(`Got ${autocompleteResults.length} results but validation failed`);
         const sample = autocompleteResults[0];
-        this.logger.warn(`  Sample: TITLE="${sample.TITLE || '(empty)'}", URL="${sample.URL || '(empty)'}"`);
+        this.logger.warn(`  Sample: ${JSON.stringify(sample, null, 2).slice(0, 300)}`);
       }
       
       // Cannot proceed without working autocomplete
@@ -2073,7 +2088,7 @@ class AutoRecipe {
     }
     
     // Get detail URL from working autocomplete result
-    const stableResult = validResults[0];
+    const stableResult = validResults.valid[0];
     let detailUrl = stableResult.URL;
     
     // Make sure the detail URL is absolute
@@ -2146,6 +2161,88 @@ class AutoRecipe {
   }
 
   /**
+   * Validate autocomplete results for common issues
+   * Returns: { valid: [], issues: [], warnings: [] }
+   */
+  validateAutocompleteResults(results, hostname) {
+    const valid = [];
+    const issues = [];
+    const warnings = [];
+    
+    if (!results || results.length === 0) {
+      issues.push('No results returned from engine');
+      return { valid, issues, warnings };
+    }
+    
+    for (let i = 0; i < results.length; i++) {
+      const r = results[i];
+      const resultIssues = [];
+      
+      // Check TITLE (mandatory)
+      if (!r.TITLE || r.TITLE.trim() === '') {
+        resultIssues.push('TITLE is empty');
+      } else if (/\$[A-Z_]+\$?i?\b/.test(r.TITLE)) {
+        // Check for unreplaced variables like $SEASON, $TITLE$i, etc.
+        resultIssues.push(`TITLE contains unreplaced variable: "${r.TITLE}"`);
+      }
+      
+      // Check URL (mandatory)
+      if (!r.URL || r.URL.trim() === '') {
+        resultIssues.push('URL is empty');
+      } else {
+        // URL should not be just the base domain
+        try {
+          const url = new URL(r.URL);
+          const pathLength = url.pathname.replace(/\/$/, '').length;
+          if (pathLength <= 1 && !url.search) {
+            resultIssues.push(`URL is just base domain: "${r.URL}" (should be a detail page)`);
+          }
+        } catch (e) {
+          // URL might be relative
+          if (r.URL === '/' || r.URL === hostname || r.URL === `https://${hostname}` || r.URL === `https://www.${hostname}`) {
+            resultIssues.push(`URL is just base domain: "${r.URL}"`);
+          }
+        }
+        
+        // Check for unreplaced variables in URL
+        if (/\$[A-Z_]+\$?i?\b/.test(r.URL)) {
+          resultIssues.push(`URL contains unreplaced variable: "${r.URL}"`);
+        }
+      }
+      
+      // Check COVER (mandatory)
+      if (!r.COVER || r.COVER.trim() === '') {
+        resultIssues.push('COVER is empty');
+      } else if (/\$[A-Z_]+\$?i?\b/.test(r.COVER)) {
+        resultIssues.push(`COVER contains unreplaced variable: "${r.COVER}"`);
+      }
+      
+      // Check other fields for unreplaced variables
+      for (const [key, value] of Object.entries(r)) {
+        if (key === 'TITLE' || key === 'URL' || key === 'COVER') continue; // Already checked
+        if (typeof value === 'string' && /\$[A-Z_]+\$?i?\b/.test(value)) {
+          resultIssues.push(`${key} contains unreplaced variable: "${value}"`);
+        }
+      }
+      
+      // SUBTITLE is optional (warning if empty, not error)
+      if (!r.SUBTITLE || r.SUBTITLE.trim() === '') {
+        warnings.push(`Result ${i + 1}: SUBTITLE is empty (optional)`);
+      }
+      
+      if (resultIssues.length === 0) {
+        valid.push(r);
+      } else {
+        for (const issue of resultIssues) {
+          issues.push(`Result ${i + 1}: ${issue}`);
+        }
+      }
+    }
+    
+    return { valid, issues, warnings };
+  }
+
+  /**
    * Debug-first repair loop: Run engine, debug with Puppeteer if fails, fix and retry
    */
   async repairLoop(recipe, stepType, recipePath, input, siteEvidence, stepEvidence) {
@@ -2167,15 +2264,38 @@ class AutoRecipe {
         }
       }
       
-      // Check that we have non-empty results
-      let hasResults = false;
+      // Check that we have valid results (different validation for autocomplete vs url)
+      let hasValidResults = false;
+      let validationIssues = [];
       let emptyFields = [];
       
       if (engineResult.success && stepType === 'autocomplete_steps') {
-        hasResults = engineResult.data?.results?.length > 0;
+        // Use comprehensive validation for autocomplete
+        const hostname = siteEvidence?.hostname || new URL(input).hostname;
+        const validation = this.validateAutocompleteResults(engineResult.data?.results || [], hostname);
+        hasValidResults = validation.valid.length > 0;
+        validationIssues = validation.issues;
+        
+        if (!hasValidResults && validation.issues.length > 0) {
+          this.logger.warn('Autocomplete validation failed:');
+          for (const issue of validation.issues.slice(0, 5)) {
+            this.logger.warn(`  - ${issue}`);
+          }
+          if (validation.issues.length > 5) {
+            this.logger.warn(`  ... and ${validation.issues.length - 5} more issues`);
+          }
+        }
       } else if (engineResult.success && engineResult.data?.results) {
         const results = engineResult.data.results;
         const fields = Object.keys(results);
+        
+        // Check for unreplaced variables in any field
+        for (const [key, val] of Object.entries(results)) {
+          if (typeof val === 'string' && /\$[A-Z_]+\$?i?\b/.test(val)) {
+            validationIssues.push(`${key} contains unreplaced variable: "${val}"`);
+          }
+        }
+        
         // Check which fields have actual non-empty values
         const nonEmptyFields = fields.filter(k => {
           const val = results[k];
@@ -2185,11 +2305,19 @@ class AutoRecipe {
           const val = results[k];
           return val === '' || val === null || val === undefined;
         });
-        // Must have at least one non-empty field and no critical empty fields
-        hasResults = nonEmptyFields.length > 0 && emptyFields.length === 0;
+        
+        // Must have at least one non-empty field, no critical empty fields, and no unreplaced variables
+        hasValidResults = nonEmptyFields.length > 0 && emptyFields.length === 0 && validationIssues.length === 0;
+        
+        if (validationIssues.length > 0) {
+          this.logger.warn('URL steps validation failed:');
+          for (const issue of validationIssues) {
+            this.logger.warn(`  - ${issue}`);
+          }
+        }
       }
       
-      if (hasResults) {
+      if (hasValidResults) {
         this.logger.success(`Recipe working after ${i} iteration(s)!`);
         if (stepType === 'autocomplete_steps') {
           this.logger.info(`  → Got ${engineResult.data.results.length} results`);
@@ -2229,10 +2357,10 @@ class AutoRecipe {
       
       this.logger.info(`Debug results: ${debugResult.workingSelectors.length} working, ${debugResult.failedSelectors.length} failed`);
       
-      if (debugResult.failedSelectors.length === 0 && !hasResults) {
+      if (debugResult.failedSelectors.length === 0 && !hasValidResults) {
         // All selectors work but engine returns nothing - might be a loop or output issue
-        this.logger.warn('All selectors found elements, but engine returned no results.');
-        this.logger.info('This might be a loop configuration or output mapping issue.');
+        this.logger.warn('All selectors found elements, but engine returned no results or validation failed.');
+        this.logger.info('This might be a loop configuration, output mapping issue, or unreplaced variables.');
       }
       
       // Log failed selectors
@@ -2248,12 +2376,29 @@ class AutoRecipe {
       
       // Step 4: Build comprehensive error context for Copilot
       const engineErrorInfo = this.parseEngineError(engineResult);
+      
+      // Include validation issues in the error context
+      let validationContext = '';
+      if (validationIssues.length > 0) {
+        validationContext = `
+VALIDATION ERRORS (CRITICAL - These must be fixed):
+${validationIssues.map(issue => `- ${issue}`).join('\n')}
+
+If you see "contains unreplaced variable" errors:
+- The recipe is trying to combine variables like "$TEAM$i - $SEASON$i" which the engine does NOT support
+- Variables can ONLY be referenced in: store.input (for URL prepending), regex.input, load.url
+- The fix is to extract TITLE directly from a page element, NOT construct it from other variables
+- Use SUBTITLE for secondary info like season/year instead of trying to combine into TITLE
+`;
+      }
+      
       const errorContext = `
 Engine Error: ${engineErrorInfo.message}
 Error Type: ${engineErrorInfo.type}
 ${engineErrorInfo.details ? `Details: ${engineErrorInfo.details.slice(0, 1000)}` : ''}
 ${engineResult.output ? `Raw Output: ${engineResult.output.slice(0, 500)}` : ''}
 ${engineResult.stderr ? `Stderr: ${engineResult.stderr.slice(0, 500)}` : ''}
+${validationContext}
 `.trim();
       
       const debugContext = {
