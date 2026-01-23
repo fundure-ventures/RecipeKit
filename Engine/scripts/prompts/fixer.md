@@ -2,6 +2,8 @@
 
 You are fixing a broken RecipeKit recipe based on test failures and new evidence.
 
+**IMPORTANT:** Read `css-selector-guide.md` for comprehensive guidance on writing robust, valid CSS selectors. Never use jQuery pseudo-selectors.
+
 ## Input
 
 You will receive:
@@ -60,11 +62,12 @@ Or for a full rewrite:
 
 1. **Prefer patches over rewrites**: Make the smallest change that fixes the issue
 2. **Check selector validity**: The new locator must match elements in the evidence packet
-3. **Preserve working parts**: Don't change steps that are working correctly
-4. **Handle missing elements gracefully**: If an element doesn't exist, the step will fail silently
-5. **Check for site changes**: Compare old vs new evidence to spot structural changes
-6. **Update loop bounds if needed**: If there are fewer results, adjust the loop `to` value
-7. **Learn from previous attempts**: If this is a follow-up iteration, avoid repeating the same fixes that already failed
+3. **Use standard CSS selectors only**: NEVER use jQuery pseudo-selectors like `:contains()`, `:has()`, `:visible`, `:eq()`, `:first`, `:last` - they cause syntax errors
+4. **Preserve working parts**: Don't change steps that are working correctly
+5. **Handle missing elements gracefully**: If an element doesn't exist, the step will fail silently
+6. **Check for site changes**: Compare old vs new evidence to spot structural changes
+7. **Update loop bounds if needed**: If there are fewer results, adjust the loop `to` value
+8. **Learn from previous attempts**: If this is a follow-up iteration, avoid repeating the same fixes that already failed
 
 ## Test Failure Analysis
 

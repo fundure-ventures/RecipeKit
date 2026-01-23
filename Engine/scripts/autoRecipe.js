@@ -2,6 +2,7 @@
 /**
  * autoRecipe.js - Autonomous Recipe Authoring for RecipeKit
  * 
+ * MODE 1: Direct URL (--url)
  * Given a single URL, this script:
  * 1. Probes the website using Puppeteer
  * 2. Classifies the site into a list_type using Copilot
@@ -9,7 +10,16 @@
  * 4. Writes the recipe and tests
  * 5. Runs tests and repairs until green (or hard failure)
  * 
- * Usage: bun Engine/scripts/autoRecipe.js --url=https://example.com [--force] [--debug]
+ * MODE 2: Discovery Mode (--prompt)
+ * Given a search prompt, this script:
+ * 1. Searches the web for candidate websites
+ * 2. Evaluates and ranks candidates using Copilot
+ * 3. Presents options to user for selection
+ * 4. Then proceeds with MODE 1 workflow on selected URL
+ * 
+ * Usage: 
+ *   bun Engine/scripts/autoRecipe.js --url=https://example.com [--force] [--debug]
+ *   bun Engine/scripts/autoRecipe.js --prompt="movie database" [--force] [--debug]
  */
 
 import { spawn } from 'bun';
@@ -74,6 +84,47 @@ class Logger {
   error(msg) { console.log(chalk.red('✗'), msg); }
   step(msg) { console.log(chalk.cyan('→'), msg); }
   log(msg) { if (this.debug) console.log(chalk.gray('  DEBUG:'), msg); }
+}
+
+/**
+ * Validate CSS selector syntax - checks for invalid pseudo-classes
+ * Returns { valid: boolean, error?: string, suggestion?: string }
+ */
+function validateSelector(selector) {
+  if (!selector || typeof selector !== 'string') {
+    return { valid: false, error: 'Selector is empty or not a string' };
+  }
+  
+  // Check for jQuery-specific pseudo-selectors that are not valid CSS
+  const jQueryPseudos = [':contains', ':has', ':visible', ':hidden', ':selected', ':checked', ':parent', ':file', ':input', ':password', ':radio', ':submit', ':text', ':header', ':animated', ':eq', ':gt', ':lt', ':even', ':odd', ':first', ':last'];
+  
+  for (const pseudo of jQueryPseudos) {
+    if (selector.includes(pseudo + '(')) {
+      const suggestion = selector.replace(new RegExp(`${pseudo.replace(':', '\\:')}\\([^)]+\\)`, 'g'), '');
+      return { 
+        valid: false, 
+        error: `Invalid pseudo-selector '${pseudo}' (jQuery-specific, not standard CSS)`,
+        suggestion: suggestion || 'Use standard CSS selectors or XPath'
+      };
+    }
+  }
+  
+  // Try to validate by attempting a querySelector in a safe context
+  try {
+    // This will throw SyntaxError if selector is invalid
+    if (typeof document !== 'undefined') {
+      document.querySelector.bind(document.createDocumentFragment())(selector);
+    }
+  } catch (e) {
+    if (e.name === 'SyntaxError') {
+      return { 
+        valid: false, 
+        error: `Invalid CSS selector syntax: ${e.message}`
+      };
+    }
+  }
+  
+  return { valid: true };
 }
 
 class EvidenceCollector {
@@ -1100,30 +1151,150 @@ class EvidenceCollector {
 
         try {
           if (step.locator) {
-            // Test if the selector finds anything
-            const elements = await page.$$(step.locator);
-            stepResult.found = elements.length;
+            // Check if selector has loop variables ($i, $j, etc.)
+            const hasLoopVar = /\$[a-z]/i.test(step.locator);
+            const loopConfig = step.config?.loop;
             
-            if (elements.length > 0) {
-              stepResult.status = 'working';
-              debugResults.workingSelectors.push({ index: i, locator: step.locator, found: elements.length });
+            if (hasLoopVar && loopConfig) {
+              // Test the selector with actual values from the loop range
+              this.logger.log(`Testing loop selector with range ${loopConfig.from}-${loopConfig.to}`);
               
-              // Get sample content from found elements
-              stepResult.samples = await page.evaluate((selector) => {
-                return Array.from(document.querySelectorAll(selector)).slice(0, 3).map(el => ({
-                  tag: el.tagName.toLowerCase(),
-                  text: el.textContent?.trim().slice(0, 100),
-                  href: el.href || el.querySelector('a')?.href,
-                  src: el.src || el.querySelector('img')?.src,
-                  classes: el.className
-                }));
-              }, step.locator);
+              let totalFound = 0;
+              const samples = [];
+              
+              for (let idx = loopConfig.from; idx <= Math.min(loopConfig.from + 2, loopConfig.to); idx++) {
+                const testSelector = step.locator.replace(new RegExp(`\\$${loopConfig.index}`, 'g'), idx);
+                
+                // Validate the instantiated selector
+                const validation = validateSelector(testSelector);
+                if (!validation.valid) {
+                  stepResult.status = 'invalid-selector';
+                  stepResult.error = `Loop iteration ${idx}: ${validation.error}`;
+                  if (validation.suggestion) {
+                    stepResult.alternatives.push({
+                      selector: validation.suggestion,
+                      confidence: 0.5,
+                      count: 0,
+                      reason: 'Suggested fix for invalid selector'
+                    });
+                  }
+                  debugResults.failedSelectors.push({ 
+                    index: i, 
+                    locator: testSelector, 
+                    command: step.command,
+                    error: validation.error
+                  });
+                  this.logger.warn(`Invalid selector at step ${i} (loop iteration ${idx}): ${validation.error}`);
+                  break;
+                }
+                
+                try {
+                  const elements = await page.$$(testSelector);
+                  totalFound += elements.length;
+                  
+                  if (elements.length > 0 && samples.length < 3) {
+                    const sample = await page.evaluate((sel) => {
+                      const el = document.querySelector(sel);
+                      if (!el) return null;
+                      return {
+                        tag: el.tagName.toLowerCase(),
+                        text: el.textContent?.trim().slice(0, 100),
+                        href: el.href || el.querySelector('a')?.href,
+                        src: el.src || el.querySelector('img')?.src,
+                        classes: el.className
+                      };
+                    }, testSelector);
+                    if (sample) samples.push({ iteration: idx, ...sample });
+                  }
+                } catch (e) {
+                  this.logger.warn(`Error testing loop selector at iteration ${idx}: ${e.message}`);
+                }
+              }
+              
+              stepResult.found = totalFound;
+              stepResult.samples = samples;
+              
+              if (totalFound > 0) {
+                stepResult.status = 'working';
+                debugResults.workingSelectors.push({ 
+                  index: i, 
+                  locator: step.locator,
+                  loopConfig,
+                  found: totalFound 
+                });
+              } else {
+                stepResult.status = 'failed';
+                debugResults.failedSelectors.push({ 
+                  index: i, 
+                  locator: step.locator, 
+                  command: step.command 
+                });
+                stepResult.alternatives = await this.findAlternativeSelectors(page, step);
+              }
+            } else if (hasLoopVar && !loopConfig) {
+              // Has $i but no loop config - ERROR
+              stepResult.status = 'invalid-loop';
+              stepResult.error = 'Selector contains loop variable ($i) but no loop configuration found';
+              this.logger.warn(`Step ${i} has $i in selector but no config.loop`);
+              debugResults.failedSelectors.push({ 
+                index: i, 
+                locator: step.locator, 
+                command: step.command,
+                error: stepResult.error
+              });
             } else {
-              stepResult.status = 'failed';
-              debugResults.failedSelectors.push({ index: i, locator: step.locator, command: step.command });
-              
-              // Try to find alternatives
-              stepResult.alternatives = await this.findAlternativeSelectors(page, step);
+              // Regular selector without loop variables
+              // Validate selector before using it
+              const validation = validateSelector(step.locator);
+              if (!validation.valid) {
+                stepResult.status = 'invalid-selector';
+                stepResult.error = validation.error;
+                if (validation.suggestion) {
+                  stepResult.alternatives.push({
+                    selector: validation.suggestion,
+                    confidence: 0.5,
+                    count: 0,
+                    reason: 'Suggested fix for invalid selector'
+                  });
+                }
+                debugResults.failedSelectors.push({ 
+                  index: i, 
+                  locator: step.locator, 
+                  command: step.command,
+                  error: validation.error
+                });
+                this.logger.warn(`Invalid selector at step ${i}: ${validation.error}`);
+                this.logger.log(`  Original: ${step.locator}`);
+                if (validation.suggestion) {
+                  this.logger.log(`  Suggestion: ${validation.suggestion}`);
+                }
+              } else {
+                // Test if the selector finds anything
+                const elements = await page.$$(step.locator);
+                stepResult.found = elements.length;
+                
+                if (elements.length > 0) {
+                  stepResult.status = 'working';
+                  debugResults.workingSelectors.push({ index: i, locator: step.locator, found: elements.length });
+                  
+                  // Get sample content from found elements
+                  stepResult.samples = await page.evaluate((selector) => {
+                    return Array.from(document.querySelectorAll(selector)).slice(0, 3).map(el => ({
+                      tag: el.tagName.toLowerCase(),
+                      text: el.textContent?.trim().slice(0, 100),
+                      href: el.href || el.querySelector('a')?.href,
+                      src: el.src || el.querySelector('img')?.src,
+                      classes: el.className
+                    }));
+                  }, step.locator);
+                } else {
+                  stepResult.status = 'failed';
+                  debugResults.failedSelectors.push({ index: i, locator: step.locator, command: step.command });
+                  
+                  // Try to find alternatives
+                  stepResult.alternatives = await this.findAlternativeSelectors(page, step);
+                }
+              }
             }
           } else if (step.command === 'load') {
             stepResult.status = 'working';
@@ -1133,6 +1304,7 @@ class EvidenceCollector {
         } catch (e) {
           stepResult.status = 'error';
           stepResult.error = e.message;
+          this.logger.warn(`Error testing selector at step ${i}: ${e.message}`);
         }
 
         debugResults.stepsAnalyzed.push(stepResult);
@@ -1704,6 +1876,12 @@ const ENTRY = ${JSON.stringify(autocompleteExpected)};
 describe(RECIPE, () => {
     test("--type autocomplete", async () => {
         const results = await runEngine(\`${listType}/\${RECIPE}\`, "autocomplete", INPUT.AUTOCOMPLETE);
+        
+        // Validate we got multiple results (not just 1)
+        expect(results.results).toBeDefined();
+        expect(Array.isArray(results.results)).toBe(true);
+        expect(results.results.length).toBeGreaterThanOrEqual(2);
+        
         const entry = findEntry(results, ENTRY.TITLE${autocompleteExpected.SUBTITLE ? ', ENTRY.SUBTITLE' : ''});
 
         expect(entry.TITLE).toBe(ENTRY.TITLE);
@@ -1836,6 +2014,475 @@ class EngineRunner {
     };
   }
 }
+
+/**
+ * SourceDiscovery class
+ * Discovers and evaluates potential recipe sources using web search
+ */
+class SourceDiscovery {
+  constructor(logger, copilot) {
+    this.logger = logger;
+    this.copilot = copilot;
+  }
+
+  /**
+   * Main discovery workflow
+   */
+  async discover(userPrompt) {
+    this.logger.step(`Discovery mode for: "${userPrompt}"`);
+    
+    if (this.logger.debug) {
+      this.logger.log('═══ DISCOVERY WORKFLOW ═══');
+      this.logger.log(`Original user prompt: "${userPrompt}"`);
+    }
+    
+    // Step 1: Clarify and enhance the user's intent
+    this.logger.step('Clarifying search intent...');
+    const clarifiedIntent = await this.clarifyIntent(userPrompt);
+    
+    if (this.logger.debug) {
+      this.logger.log('─── Intent Clarification ───');
+      this.logger.log(`Purpose: ${clarifiedIntent.purpose}`);
+      this.logger.log(`Content type: ${clarifiedIntent.list_type_hint || 'unknown'}`);
+      this.logger.log(`Key features: ${clarifiedIntent.key_features?.join(', ') || 'none specified'}`);
+      this.logger.log(`Enhanced query: "${clarifiedIntent.search_query}"`);
+    }
+    
+    // Step 2: Search the web for candidate sites using enhanced query
+    this.logger.step(`Searching: "${clarifiedIntent.search_query}"`);
+    const searchResults = await this.searchWeb(clarifiedIntent.search_query, clarifiedIntent);
+    
+    if (searchResults.length === 0) {
+      this.logger.warn('AI web search returned no results.');
+      this.logger.warn('This could mean:');
+      this.logger.warn('  1. No good websites found for this query');
+      this.logger.warn('  2. AI web search is not available/enabled');
+      this.logger.warn('  3. The query was too vague or specific');
+      this.logger.warn('');
+      this.logger.warn('Try using --url with a known website instead:');
+      this.logger.warn(`  bun Engine/scripts/autoRecipe.js --url=https://example.com`);
+      throw new Error('No search results found - try using --url mode instead');
+    }
+    
+    if (this.logger.debug) {
+      this.logger.log('─── Search Results ───');
+      this.logger.log(`Found ${searchResults.length} potential sources`);
+      searchResults.slice(0, 3).forEach((r, i) => {
+        this.logger.log(`  ${i + 1}. ${r.title} - ${r.url}`);
+      });
+    }
+    
+    this.logger.info(`Found ${searchResults.length} potential sources`);
+    
+    // Step 3: Evaluate candidates with Copilot
+    const evaluation = await this.evaluateCandidates(searchResults, userPrompt, clarifiedIntent);
+    
+    if (!evaluation || !evaluation.candidates || evaluation.candidates.length === 0) {
+      throw new Error('No viable candidates found after evaluation');
+    }
+    
+    if (this.logger.debug) {
+      this.logger.log('─── Evaluation Results ───');
+      evaluation.candidates.slice(0, 3).forEach((c, i) => {
+        this.logger.log(`  ${i + 1}. ${c.title} (score: ${c.score}, confidence: ${(c.confidence * 100).toFixed(0)}%)`);
+      });
+    }
+    
+    // Step 4: Present options to user
+    const selectedUrl = await this.promptUserSelection(evaluation.candidates, evaluation.top_recommendation);
+    
+    if (this.logger.debug) {
+      this.logger.log('─── Final Selection ───');
+      this.logger.log(`Selected URL: ${selectedUrl}`);
+      this.logger.log('═══════════════════════════');
+    }
+    
+    return selectedUrl;
+  }
+  
+  /**
+   * Clarify user intent and enhance the search query
+   */
+  async clarifyIntent(userPrompt) {
+    const clarificationPrompt = `You are helping to clarify a user's search intent for finding websites.
+
+User wants: "${userPrompt}"
+
+Analyze this request and provide:
+1. **Purpose**: What is the user trying to find? (1-2 sentences)
+2. **Content Type**: What RecipeKit list_type does this match? (movies, books, wines, recipes, etc.)
+3. **Key Features**: What features would a good site have? (list 3-5)
+4. **Search Query**: An optimized search query for web search (focus on database/aggregator sites)
+
+Return ONLY valid JSON:
+
+\`\`\`json
+{
+  "purpose": "Find websites that...",
+  "list_type_hint": "wines",
+  "key_features": ["ratings", "reviews", "vintage info"],
+  "search_query": "wine rating database reviews vintage cellar"
+}
+\`\`\`
+
+Rules:
+- Make search_query specific and focused on databases/aggregators
+- Add terms like "database", "website", "ratings" to help find structured sites
+- Filter out social media by adding "-youtube -facebook -twitter -reddit"
+- Be concise but descriptive
+
+Output ONLY the JSON.`;
+
+    if (this.logger.debug) {
+      this.logger.log('Sending intent clarification prompt...');
+    }
+
+    let responseContent = '';
+    
+    const done = new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('Intent clarification timeout'));
+      }, 30000);
+      
+      const unsubscribe = this.copilot.session.on((event) => {
+        if (event.type === 'assistant.message_delta' && event.data?.deltaContent) {
+          responseContent += event.data.deltaContent;
+        }
+        if (event.type === 'assistant.message' && event.data?.content) {
+          if (event.data.content.length > responseContent.length) {
+            responseContent = event.data.content;
+          }
+        }
+        if (event.type === 'session.idle') {
+          clearTimeout(timeout);
+          unsubscribe();
+          resolve();
+        }
+        if (event.type === 'error') {
+          clearTimeout(timeout);
+          unsubscribe();
+          reject(new Error(event.data?.message || 'Clarification failed'));
+        }
+      });
+    });
+    
+    await this.copilot.session.send({ prompt: clarificationPrompt });
+    await done;
+    
+    // Extract JSON
+    const jsonMatch = responseContent.match(/```json\n?([\s\S]*?)\n?```/) || 
+                      responseContent.match(/```\n?([\s\S]*?)\n?```/) ||
+                      responseContent.match(/(\{[\s\S]*\})/);
+    
+    if (jsonMatch) {
+      try {
+        const clarified = JSON.parse(jsonMatch[1] || jsonMatch[0]);
+        this.logger.success('Intent clarified');
+        return clarified;
+      } catch (e) {
+        this.logger.warn('Failed to parse clarification, using original prompt');
+      }
+    }
+    
+    // Fallback: use original prompt with enhancements
+    return {
+      purpose: `Find ${userPrompt} websites`,
+      list_type_hint: null,
+      key_features: [],
+      search_query: `${userPrompt} database website -youtube -facebook -twitter`
+    };
+  }
+
+  /**
+   * Use the AI model's web search capability to find candidate websites
+   */
+  async searchWeb(searchQuery, clarifiedIntent) {
+    this.logger.log('Using AI web search to find candidates...');
+    
+    try {
+      if (this.logger.debug) {
+        this.logger.log(`Search query: "${searchQuery}"`);
+        if (clarifiedIntent?.list_type_hint) {
+          this.logger.log(`Target content type: ${clarifiedIntent.list_type_hint}`);
+        }
+      }
+      
+      // Create enhanced search prompt with context
+      const searchPrompt = `# Web Search Task
+
+${clarifiedIntent ? `**Context**: ${clarifiedIntent.purpose}` : ''}
+${clarifiedIntent?.key_features ? `**Looking for sites with**: ${clarifiedIntent.key_features.join(', ')}` : ''}
+
+Use web search to find websites matching this query:
+"${searchQuery}"
+
+Find 10-15 websites that are actual databases, aggregators, or content sites.
+
+Filter out:
+- Social media (YouTube, Facebook, Twitter, Instagram, LinkedIn, Reddit, Pinterest)
+- Generic sites (Wikipedia unless highly relevant)
+- News sites
+- Shopping sites (unless specifically relevant)
+
+Return ONLY valid JSON in this exact format:
+
+\`\`\`json
+{
+  "results": [
+    {
+      "title": "Site Name",
+      "url": "https://example.com",
+      "description": "What the site offers"
+    }
+  ]
+}
+\`\`\`
+
+Use web search now to find these sites. Output ONLY the JSON.`;
+
+      if (this.logger.debug) {
+        this.logger.log('─── Search Prompt ───');
+        this.logger.log(searchPrompt.split('\n').slice(0, 10).join('\n') + '\n...');
+      }
+      
+      // Send to Copilot's main session which should have web search enabled
+      this.logger.log('Requesting AI web search...');
+      
+      let responseContent = '';
+      let eventCount = 0;
+      let toolExecutions = 0;
+      
+      const done = new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('Search timeout after 90 seconds'));
+        }, 90000);
+        
+        const unsubscribe = this.copilot.session.on((event) => {
+          eventCount++;
+          
+          if (event.type === 'tool.execution_start') {
+            toolExecutions++;
+            if (this.logger.debug) {
+              this.logger.log(`  → Tool execution #${toolExecutions} started`);
+            }
+          }
+          
+          if (event.type === 'tool.execution_complete') {
+            if (this.logger.debug) {
+              this.logger.log(`  ✓ Tool execution #${toolExecutions} completed`);
+            }
+          }
+          
+          // Handle streaming message chunks
+          if (event.type === 'assistant.message_delta' && event.data?.deltaContent) {
+            responseContent += event.data.deltaContent;
+          }
+          // Handle final message
+          if (event.type === 'assistant.message' && event.data?.content) {
+            if (event.data.content.length > responseContent.length) {
+              responseContent = event.data.content;
+            }
+          }
+          // Session finished
+          if (event.type === 'session.idle') {
+            clearTimeout(timeout);
+            unsubscribe();
+            resolve();
+          }
+          // Handle errors
+          if (event.type === 'error') {
+            clearTimeout(timeout);
+            unsubscribe();
+            reject(new Error(event.data?.message || 'Search failed'));
+          }
+        });
+      });
+      
+      // Send the prompt
+      await this.copilot.session.send({ prompt: searchPrompt });
+      
+      // Wait for completion
+      await done;
+      
+      if (this.logger.debug) {
+        this.logger.log(`Search completed: ${toolExecutions} tool executions, ${eventCount} events`);
+      }
+      
+      if (!responseContent) {
+        this.logger.warn('AI returned empty search response');
+        return [];
+      }
+      
+      this.logger.log(`Search response received (${responseContent.length} chars)`);
+      
+      if (this.logger.debug) {
+        this.logger.log(`Response preview: ${responseContent.slice(0, 300)}...`);
+      }
+      
+      // Extract JSON from response
+      const jsonMatch = responseContent.match(/```json\n?([\s\S]*?)\n?```/) || 
+                        responseContent.match(/```\n?([\s\S]*?)\n?```/) ||
+                        responseContent.match(/(\{[\s\S]*\})/);
+      
+      if (jsonMatch) {
+        const jsonStr = jsonMatch[1] || jsonMatch[0];
+        try {
+          const parsed = JSON.parse(jsonStr);
+          const results = parsed.results || parsed;
+          
+          if (Array.isArray(results) && results.length > 0) {
+            this.logger.success(`AI found ${results.length} websites via web search`);
+            return results;
+          }
+        } catch (parseErr) {
+          this.logger.warn(`Failed to parse search results: ${parseErr.message}`);
+          if (this.logger.debug) {
+            this.logger.log(`JSON string was: ${jsonStr.slice(0, 500)}`);
+          }
+        }
+      } else {
+        this.logger.warn('No JSON found in AI response');
+        if (this.logger.debug) {
+          this.logger.log(`Full response: ${responseContent}`);
+        }
+      }
+      
+      return [];
+      
+    } catch (error) {
+      this.logger.warn(`AI web search failed: ${error.message}`);
+      if (this.logger.debug) {
+        this.logger.error(error.stack);
+      }
+      return [];
+    }
+  }
+
+  /**
+   * Evaluate candidates using Copilot
+   */
+  async evaluateCandidates(searchResults, userPrompt, clarifiedIntent) {
+    this.logger.step('Evaluating candidates with Copilot...');
+    
+    const context = {
+      prompt: userPrompt,
+      clarified_intent: clarifiedIntent,
+      search_results: searchResults
+    };
+    
+    if (this.logger.debug) {
+      this.logger.log('─── Evaluation Context ───');
+      this.logger.log(`Original prompt: ${userPrompt}`);
+      this.logger.log(`Clarified purpose: ${clarifiedIntent?.purpose || 'none'}`);
+      this.logger.log(`Suggested list_type: ${clarifiedIntent?.list_type_hint || 'unknown'}`);
+      this.logger.log(`Candidates to evaluate: ${searchResults.length}`);
+    }
+    
+    const evaluation = await this.copilot.sendPrompt('discover-sources', context);
+    
+    if (!evaluation || !evaluation.candidates) {
+      throw new Error('Copilot evaluation failed or returned invalid format');
+    }
+    
+    // Sort candidates by score (highest first)
+    evaluation.candidates.sort((a, b) => b.score - a.score);
+    
+    this.logger.success(`Evaluated ${evaluation.candidates.length} candidates`);
+    
+    if (this.logger.debug) {
+      this.logger.log('─── Top 3 Candidates ───');
+      evaluation.candidates.slice(0, 3).forEach((c, i) => {
+        this.logger.log(`  ${i + 1}. ${c.title}`);
+        this.logger.log(`     Score: ${c.score}/100, Confidence: ${(c.confidence * 100).toFixed(0)}%`);
+        this.logger.log(`     URL: ${c.url}`);
+        this.logger.log(`     Reasoning: ${c.reasoning?.slice(0, 100)}...`);
+      });
+    }
+    
+    return evaluation;
+  }
+
+  /**
+   * Interactive user selection
+   */
+  async promptUserSelection(candidates, topRecommendation) {
+    console.log(chalk.bold.cyan('\n🔍 Found Recipe Source Candidates:\n'));
+    
+    // Show top 5 candidates
+    const displayCandidates = candidates.slice(0, 5);
+    
+    displayCandidates.forEach((candidate, index) => {
+      const isTop = topRecommendation && candidate.url === topRecommendation.url;
+      const marker = isTop ? chalk.green('⭐ RECOMMENDED') : '';
+      
+      console.log(chalk.bold(`${index + 1}. ${candidate.title}`) + ` ${marker}`);
+      console.log(chalk.gray(`   ${candidate.url}`));
+      console.log(`   Score: ${chalk.yellow(candidate.score)}/100 | Confidence: ${chalk.yellow((candidate.confidence * 100).toFixed(0))}%`);
+      console.log(chalk.gray(`   ${candidate.description.slice(0, 100)}${candidate.description.length > 100 ? '...' : ''}`));
+      
+      if (candidate.pros && candidate.pros.length > 0) {
+        console.log(chalk.green('   ✓'), candidate.pros.slice(0, 2).join('; '));
+      }
+      
+      if (candidate.cons && candidate.cons.length > 0) {
+        console.log(chalk.yellow('   ⚠'), candidate.cons.slice(0, 2).join('; '));
+      }
+      
+      console.log('');
+    });
+    
+    console.log(chalk.gray('Other options:'));
+    console.log(chalk.gray('  0) Enter custom URL'));
+    console.log(chalk.gray('  q) Quit\n'));
+    
+    const rl = createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
+    
+    return new Promise((resolve, reject) => {
+      rl.question(chalk.bold('Select a source (1-5, 0 for custom, q to quit): '), async (answer) => {
+        rl.close();
+        
+        const choice = answer.trim().toLowerCase();
+        
+        if (choice === 'q' || choice === 'quit') {
+          reject(new Error('User cancelled'));
+          return;
+        }
+        
+        if (choice === '0' || choice === 'custom') {
+          const customRl = createInterface({
+            input: process.stdin,
+            output: process.stdout
+          });
+          
+          customRl.question('Enter URL: ', (url) => {
+            customRl.close();
+            const trimmedUrl = url.trim();
+            if (!trimmedUrl.startsWith('http')) {
+              reject(new Error('Invalid URL'));
+            } else {
+              resolve(trimmedUrl);
+            }
+          });
+          return;
+        }
+        
+        const index = parseInt(choice) - 1;
+        if (index >= 0 && index < displayCandidates.length) {
+          const selected = displayCandidates[index];
+          console.log(chalk.green(`\n✓ Selected: ${selected.title}`));
+          console.log(chalk.gray(`  ${selected.url}\n`));
+          resolve(selected.url);
+        } else {
+          reject(new Error('Invalid selection'));
+        }
+      });
+    });
+  }
+}
+
 class AutoRecipe {
   constructor(options) {
     this.url = options.url;
@@ -2616,19 +3263,48 @@ ${validationContext}
 // Main
 const args = minimist(process.argv.slice(2));
 
-if (!args.url) {
-  console.log('Usage: bun Engine/scripts/autoRecipe.js --url=https://example.com [--force] [--debug]');
+// Check for either --url or --prompt
+if (!args.url && !args.prompt) {
+  console.log(chalk.red('Error: Either --url or --prompt is required\n'));
+  console.log('Usage:');
+  console.log('  bun Engine/scripts/autoRecipe.js --url=https://example.com [--force] [--debug]');
+  console.log('  bun Engine/scripts/autoRecipe.js --prompt="movie database" [--force] [--debug]');
+  console.log('');
+  console.log('Examples:');
+  console.log('  bun Engine/scripts/autoRecipe.js --url=https://www.themoviedb.org --debug');
+  console.log('  bun Engine/scripts/autoRecipe.js --prompt="recipe website with ingredients"');
+  console.log('  bun Engine/scripts/autoRecipe.js --prompt="wine ratings database" --force');
   process.exit(1);
 }
 
-const autoRecipe = new AutoRecipe({
-  url: args.url,
-  force: args.force || false,
-  debug: args.debug || false
-});
-
-autoRecipe.run()
-  .then(result => {
+// Main workflow
+(async () => {
+  try {
+    let targetUrl = args.url;
+    
+    // If prompt mode, discover sources first
+    if (args.prompt && !args.url) {
+      console.log(chalk.bold.cyan('\n🔍 Discovery Mode: Finding sources for your prompt\n'));
+      
+      const logger = new Logger(args.debug || false);
+      const copilot = new CopilotAgent(logger, args.debug || false);
+      await copilot.initialize();
+      
+      const discovery = new SourceDiscovery(logger, copilot);
+      targetUrl = await discovery.discover(args.prompt);
+      
+      console.log(chalk.green(`\n✓ Starting recipe generation for: ${targetUrl}\n`));
+    }
+    
+    // Create and run AutoRecipe with the target URL
+    const autoRecipe = new AutoRecipe({
+      url: targetUrl,
+      force: args.force || false,
+      debug: args.debug || false
+    });
+    
+    const result = await autoRecipe.run();
+    
     // Display usage stats
     if (result.usage) {
       console.log(chalk.cyan('\n📊 Copilot Usage:'));
@@ -2649,9 +3325,9 @@ autoRecipe.run()
       console.log(chalk.yellow('\n⚠ Recipe created but tests failed. Manual review needed.'));
       process.exit(1);
     }
-  })
-  .catch(err => {
+  } catch (err) {
     console.error(chalk.red('\n✗ Error:'), err.message);
     if (args.debug) console.error(err.stack);
     process.exit(1);
-  });
+  }
+})();
