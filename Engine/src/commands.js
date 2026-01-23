@@ -249,9 +249,16 @@ export class StepExecutor {
       }
 
       let url = this.RecipeEngine.replaceVariablesinString(step.url);
-      Log.debug(`Making API request: ${step.config.method || 'GET'} ${url}`);
+      
+      // Clone config and replace variables in body if present
+      let config = { ...step.config };
+      if (config.body) {
+        config.body = this.RecipeEngine.replaceVariablesinString(config.body);
+      }
+      
+      Log.debug(`Making API request: ${config.method || 'GET'} ${url}`);
       try {
-        const response = await fetch(url, step.config);
+        const response = await fetch(url, config);
         Log.debug(`Response status: ${response.status} ${response.statusText}`);
         if (!response.ok) {
           const errorText = await response.text().catch(() => 'Could not read error response');
@@ -302,7 +309,11 @@ export class StepExecutor {
         return '';
       }
       const input = this.RecipeEngine.replaceVariablesinString(step.input);
-      const output = input.replace(step.find, step.replace);
+      // Escape special regex characters in find string, then use global flag to replace all occurrences
+      const escapedFind = step.find.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(escapedFind, 'g');
+      const output = input.replace(regex, step.replace);
       return output;
     }
+
 }

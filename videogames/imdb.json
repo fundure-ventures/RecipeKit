@@ -1,7 +1,7 @@
 {
   "recipe_shortcut": "imdb_videogames",
   "list_type": "videogames",
-  "engine_version": 16,
+  "engine_version": 24,
   "title": "IMDB Videogames",
   "description": "A recipe to get a list of videogames",
   "urls": [
@@ -14,103 +14,112 @@
   },
   "autocomplete_steps": [
     {
-      "command": "load",
-      "url": "https://www.imdb.com/find/?q=$INPUT&s=tt&ttype=vg",
-      "config": {
-        "js": true,
-        "timeout": 1
+      "command": "api_request",
+      "url": "https://caching.graphql.imdb.com/",
+      "output": {
+        "name": "JSON"
       },
-      "description": "Searches videogames by title"
+      "config": {
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json",
+          "x-imdb-client-name": "imdb-web-next-localized"
+        },
+        "body": "{\"query\":\"query MainSearch($term: String!) { mainSearch(first: 6, options: {searchTerm: $term, isExactMatch: false, type: TITLE, titleSearchOptions: {type: VIDEO_GAME}}) { edges { node { entity { ... on Title { id titleText { text } releaseYear { year } primaryImage { url } } } } } } }\",\"variables\":{\"term\":\"$INPUT\"}}"
+      },
+      "description": "Search videogames using IMDB GraphQL API"
     },
     {
-      "command": "store_attribute",
-      "locator": "ul.ipc-metadata-list > li:nth-child($i) img",
-      "attribute_name": "src",
+      "command": "json_store_text",
+      "locator": "data.mainSearch.edges.[$i].node.entity.primaryImage.url",
+      "input": "$JSON",
       "output": {
         "name": "COVER$i"
       },
       "config": {
         "loop": {
           "index": "i",
-          "from": 1,
-          "to": 6,
+          "from": 0,
+          "to": 5,
           "step": 1
         }
       }
     },
     {
-      "command": "store_text",
-      "locator": "ul.ipc-metadata-list > li:nth-child($i) .ipc-title-link-wrapper h3",
+      "command": "json_store_text",
+      "locator": "data.mainSearch.edges.[$i].node.entity.titleText.text",
+      "input": "$JSON",
       "output": {
         "name": "TITLE$i"
       },
       "config": {
         "loop": {
           "index": "i",
-          "from": 1,
-          "to": 6,
+          "from": 0,
+          "to": 5,
           "step": 1
         }
       }
     },
     {
-      "command": "store_text",
-      "locator": "ul.ipc-metadata-list > li:nth-child($i) .cli-title-metadata",
+      "command": "json_store_text",
+      "locator": "data.mainSearch.edges.[$i].node.entity.releaseYear.year",
+      "input": "$JSON",
       "output": {
-        "name": "SUBTITLE$i"
+        "name": "YEAR$i"
       },
       "config": {
         "loop": {
           "index": "i",
-          "from": 1,
-          "to": 6,
-          "step": 1
-        }
-      }
-    },
-    {
-      "command": "regex",
-      "input": "$SUBTITLE$i",
-      "expression": "(\\d\\d\\d\\d)",
-      "output": {
-        "name": "SUBTITLE$i"
-      },
-      "config": {
-        "loop": {
-          "index": "i",
-          "from": 1,
-          "to": 6,
-          "step": 1
-        }
-      }
-    },
-    {
-      "command": "store_attribute",
-      "locator": "ul.ipc-metadata-list > li:nth-child($i) .ipc-title-link-wrapper",
-      "attribute_name": "href",
-      "output": {
-        "name": "URL$i"
-      },
-      "config": {
-        "loop": {
-          "index": "i",
-          "from": 1,
-          "to": 6,
+          "from": 0,
+          "to": 5,
           "step": 1
         }
       }
     },
     {
       "command": "store",
-      "input": "https://m.imdb.com$URL$i",
+      "input": "$YEAR$i",
+      "output": {
+        "name": "SUBTITLE$i"
+      },
+      "description": "Convert year to string for SUBTITLE",
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 0,
+          "to": 5,
+          "step": 1
+        }
+      }
+    },
+    {
+      "command": "json_store_text",
+      "locator": "data.mainSearch.edges.[$i].node.entity.id",
+      "input": "$JSON",
+      "output": {
+        "name": "ID$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 0,
+          "to": 5,
+          "step": 1
+        }
+      }
+    },
+    {
+      "command": "store",
+      "input": "https://m.imdb.com/title/$ID$i/",
       "output": {
         "name": "URL$i"
       },
       "config": {
         "loop": {
           "index": "i",
-          "from": 1,
-          "to": 6,
+          "from": 0,
+          "to": 5,
           "step": 1
         }
       }
@@ -118,392 +127,93 @@
   ],
   "url_steps": [
     {
-      "command": "load",
-      "url": "$INPUT",
-      "config": {
-        "js": true,
-        "timeout": 1
-      },
-      "description": "Load the url of the movie"
-    },
-    {
-      "command": "store_url",
-      "output": {
-        "name": "URL"
-      },
-      "description": "Saves the URL of the detail"
-    },
-    {
-      "command": "store_attribute",
-      "locator": "meta[property='og:title']",
-      "attribute_name": "content",
-      "output": {
-        "name": "TITLE"
-      },
-      "description": "Takes the title of the movie including the year"
-    },
-    {
       "command": "regex",
-      "input": "$TITLE",
-      "expression": "\\d\\d\\d\\d(?=\\))",
+      "input": "$INPUT",
+      "expression": "(tt\\d+)",
+      "output": {
+        "name": "ID"
+      },
+      "description": "Extract IMDB ID from URL"
+    },
+    {
+      "command": "api_request",
+      "url": "https://caching.graphql.imdb.com/",
+      "output": {
+        "name": "JSON"
+      },
+      "config": {
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json",
+          "x-imdb-client-name": "imdb-web-next-localized"
+        },
+        "body": "{\"query\":\"query Title($id: ID!) { title(id: $id) { id titleText { text } releaseYear { year } plot { plotText { plainText } } ratingsSummary { aggregateRating } primaryImage { url } } }\",\"variables\":{\"id\":\"$ID\"}}"
+      },
+      "description": "Get videogame details using IMDB GraphQL API"
+    },
+    {
+      "command": "json_store_text",
+      "locator": "data.title.titleText.text",
+      "input": "$JSON",
+      "output": {
+        "name": "TITLE",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract title"
+    },
+    {
+      "command": "json_store_text",
+      "locator": "data.title.releaseYear.year",
+      "input": "$JSON",
+      "output": {
+        "name": "YEAR"
+      },
+      "description": "Extract year"
+    },
+    {
+      "command": "store",
+      "input": "$YEAR",
       "output": {
         "name": "DATE",
         "type": "date",
         "format": "YYYY",
         "show": true
       },
-      "description": "Applies a regular expression to get just the year of the date"
+      "description": "Convert year to DATE"
     },
     {
-      "command": "regex",
-      "input": "$TITLE",
-      "expression": "[^\\(]*",
-      "output": {
-        "name": "TITLE",
-        "type": "string",
-        "show": true
-      },
-      "description": "Applies a regular expression to get just the title of the movie before the year"
-    },
-    {
-      "command": "store_attribute",
-      "locator": "meta[name='description']",
-      "attribute_name": "content",
+      "command": "json_store_text",
+      "locator": "data.title.plot.plotText.plainText",
+      "input": "$JSON",
       "output": {
         "name": "DESCRIPTION",
         "type": "string",
         "show": true
       },
-      "description": "Saves temporary the actors, director and description"
+      "description": "Extract description"
     },
     {
-      "command": "store_text",
-      "locator": "div[data-testid*=hero-rating-bar__aggregate-rating__score]",
-      "output": {
-        "name": "RATING",
-        "type": "string"
-      },
-      "description": "Saves the rating of the movie"
-    },
-    {
-      "command": "regex",
-      "input": "$RATING",
-      "expression": "([0-9,\\.]+)",
+      "command": "json_store_text",
+      "locator": "data.title.ratingsSummary.aggregateRating",
+      "input": "$JSON",
       "output": {
         "name": "RATING",
         "type": "float",
         "show": true
       },
-      "description": "Applies a regular expression to get part of the rating"
+      "description": "Extract rating"
     },
     {
-      "command": "store_attribute",
-      "locator": "meta[property='og:image']",
-      "attribute_name": "content",
-      "output": {
-        "name": "COVER"
-      },
-      "description": "Saves the image"
-    },
-    {
-      "command": "regex",
-      "input": "$COVER",
-      "expression": ".+?images.+?[\\.]",
-      "output": {
-        "name": "COVER"
-      },
-      "description": "Applies a regular expression to get part of the cover"
-    },
-    {
-      "command": "store",
-      "input": "$COVER._V1_.jpg",
+      "command": "json_store_text",
+      "locator": "data.title.primaryImage.url",
+      "input": "$JSON",
       "output": {
         "name": "COVER",
         "type": "string",
         "show": true
       },
-      "description": "Add high res param to the cover"
-    },
-    {
-      "command": "regex",
-      "input": "$URL",
-      "expression": "(?<=m.).*",
-      "output": {
-        "name": "KEYWORDS"
-      },
-      "description": "Applies a regular expression to get part of the cover"
-    },
-    {
-      "command": "regex",
-      "input": "$KEYWORDS",
-      "expression": ".*\\/",
-      "output": {
-        "name": "KEYWORDS"
-      },
-      "description": "Applies a regular expression to get part of the cover"
-    },
-    {
-      "command": "store",
-      "input": "https://www.$KEYWORDSkeywords",
-      "output": {
-        "name": "KEYWORDS"
-      },
-      "description": "Get the platforms url"
-    },
-    {
-      "command": "load",
-      "url": "$KEYWORDS",
-      "description": "Load the url of the keywords"
-    },
-    {
-      "command": "store_array",
-      "locator": ".ipc-metadata-list-summary-item__t[href*='playstation']",
-      "output": {
-        "name": "TAGS",
-        "type": "string",
-        "show": true
-      },
-      "description": "List of platforms"
-    },
-    {
-      "command": "store_array",
-      "locator": ".ipc-metadata-list-summary-item__t[href*='playstation-1']",
-      "output": {
-        "name": "TAGS",
-        "type": "string",
-        "show": true
-      },
-      "description": "List of platforms"
-    },
-    {
-      "command": "store_array",
-      "locator": ".ipc-metadata-list-summary-item__t[href*='playstation-2']",
-      "output": {
-        "name": "TAGS",
-        "type": "string",
-        "show": true
-      },
-      "description": "List of platforms"
-    },
-    {
-      "command": "store_array",
-      "locator": ".ipc-metadata-list-summary-item__t[href*='playstation-3']",
-      "output": {
-        "name": "TAGS",
-        "type": "string",
-        "show": true
-      },
-      "description": "List of platforms"
-    },
-    {
-      "command": "store_array",
-      "locator": ".ipc-metadata-list-summary-item__t[href*='playstation-4']",
-      "output": {
-        "name": "TAGS",
-        "type": "string",
-        "show": true
-      },
-      "description": "List of platforms"
-    },
-    {
-      "command": "store_array",
-      "locator": ".ipc-metadata-list-summary-item__t[href*='game-boy']",
-      "output": {
-        "name": "TAGS",
-        "type": "string",
-        "show": true
-      },
-      "description": "List of platforms"
-    },
-    {
-      "command": "store_array",
-      "locator": ".ipc-metadata-list-summary-item__t[href*='game-boy-advance']",
-      "output": {
-        "name": "TAGS",
-        "type": "string",
-        "show": true
-      },
-      "description": "List of platforms"
-    },
-    {
-      "command": "store_array",
-      "locator": ".ipc-metadata-list-summary-item__t[href*='nintendo-ds']",
-      "output": {
-        "name": "TAGS",
-        "type": "string",
-        "show": true
-      },
-      "description": "List of platforms"
-    },
-    {
-      "command": "store_array",
-      "locator": ".ipc-metadata-list-summary-item__t[href*='xbox']",
-      "output": {
-        "name": "TAGS",
-        "type": "string",
-        "show": true
-      },
-      "description": "List of platforms"
-    },
-    {
-      "command": "store_array",
-      "locator": ".ipc-metadata-list-summary-item__t[href*='megadrive']",
-      "output": {
-        "name": "TAGS",
-        "type": "string",
-        "show": true
-      },
-      "description": "List of platforms"
-    },
-    {
-      "command": "store_array",
-      "locator": ".ipc-metadata-list-summary-item__t[href*='sega-genesis']",
-      "output": {
-        "name": "TAGS",
-        "type": "string",
-        "show": true
-      },
-      "description": "List of platforms"
-    },
-    {
-      "command": "store_array",
-      "locator": ".ipc-metadata-list-summary-item__t[href*='sega-master-system']",
-      "output": {
-        "name": "TAGS",
-        "type": "string",
-        "show": true
-      },
-      "description": "List of platforms"
-    },
-    {
-      "command": "store_array",
-      "locator": ".ipc-metadata-list-summary-item__t[href*='sega-game-gear']",
-      "output": {
-        "name": "TAGS",
-        "type": "string",
-        "show": true
-      },
-      "description": "List of platforms"
-    },
-    {
-      "command": "store_array",
-      "locator": ".ipc-metadata-list-summary-item__t[href*='nintendo-3ds']",
-      "output": {
-        "name": "TAGS",
-        "type": "string",
-        "show": true
-      },
-      "description": "List of platforms"
-    },
-    {
-      "command": "store_array",
-      "locator": ".ipc-metadata-list-summary-item__t[href*='nintendo-switch']",
-      "output": {
-        "name": "TAGS",
-        "type": "string",
-        "show": true
-      },
-      "description": "List of platforms"
-    },
-    {
-      "command": "store_array",
-      "locator": ".ipc-metadata-list-summary-item__t[href*='nintendo-64']",
-      "output": {
-        "name": "TAGS",
-        "type": "string",
-        "show": true
-      },
-      "description": "List of platforms"
-    },
-    {
-      "command": "store_array",
-      "locator": ".ipc-metadata-list-summary-item__t[href*='nintendo-gamecube']",
-      "output": {
-        "name": "TAGS",
-        "type": "string",
-        "show": true
-      },
-      "description": "List of platforms"
-    },
-    {
-      "command": "store_array",
-      "locator": ".ipc-metadata-list-summary-item__t[href*='nintendo-wii']",
-      "output": {
-        "name": "TAGS",
-        "type": "string",
-        "show": true
-      },
-      "description": "List of platforms"
-    },
-    {
-      "command": "store_array",
-      "locator": ".ipc-metadata-list-summary-item__t[href*='xbox-one']",
-      "output": {
-        "name": "TAGS",
-        "type": "string",
-        "show": true
-      },
-      "description": "List of platforms"
-    },
-    {
-      "command": "store_array",
-      "locator": ".ipc-metadata-list-summary-item__t[href*='sega-dreamcast']",
-      "output": {
-        "name": "TAGS",
-        "type": "string",
-        "show": true
-      },
-      "description": "List of platforms"
-    },
-    {
-      "command": "store_array",
-      "locator": ".ipc-metadata-list-summary-item__t[href*='xbox-360']",
-      "output": {
-        "name": "TAGS",
-        "type": "string",
-        "show": true
-      },
-      "description": "List of platforms"
-    },
-    {
-      "command": "store_array",
-      "locator": ".ipc-metadata-list-summary-item__t[href*='microsoft-windows']",
-      "output": {
-        "name": "TAGS",
-        "type": "string",
-        "show": true
-      },
-      "description": "List of platforms"
-    },
-    {
-      "command": "store_array",
-      "locator": ".ipc-metadata-list-summary-item__t[href*='super-nintendo']",
-      "output": {
-        "name": "TAGS",
-        "type": "string",
-        "show": true
-      },
-      "description": "List of platforms"
-    },
-    {
-      "command": "store_array",
-      "locator": ".ipc-metadata-list-summary-item__t[href*='nintendo-wii-u']",
-      "output": {
-        "name": "TAGS",
-        "type": "string",
-        "show": true
-      },
-      "description": "List of platforms"
-    },
-    {
-      "command": "store_array",
-      "locator": ".ipc-metadata-list-summary-item__t[href*='playstation-5']",
-      "output": {
-        "name": "TAGS",
-        "type": "string",
-        "show": true
-      },
-      "description": "List of platforms"
+      "description": "Extract cover image"
     }
   ]
 }
