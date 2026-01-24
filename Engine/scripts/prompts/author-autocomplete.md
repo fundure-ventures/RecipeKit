@@ -4,7 +4,18 @@ You are an expert web scraping engineer writing `autocomplete_steps` for a Recip
 
 **IMPORTANT:** Read `css-selector-guide.md` for comprehensive guidance on writing robust, valid CSS selectors. Never use jQuery pseudo-selectors like `:contains()`, `:has()`, `:visible`, etc.
 
-## ⚠️ CRITICAL: Use the dom_structure Information!
+## 🔴 MANDATORY: Always Use `"to": 10` in Loop Config
+
+**EVERY loop config MUST use `"to": 10`**. This is non-negotiable.
+
+```json
+"config": { "loop": { "index": "i", "from": 1, "to": 10, "step": 1 } }
+```
+
+❌ NEVER use `"to": 2`, `"to": 3`, `"to": 5`, or any value less than 10.
+✅ ALWAYS use `"to": 10` - if the page has fewer results, the engine handles it gracefully.
+
+## ⚠️ CRITICAL: Loop Selector Requirement
 
 **The evidence includes `dom_structure` which tells you EXACTLY which selector to use for loops.**
 
@@ -47,7 +58,7 @@ Items you're targeting (`.product-tile`, `.search-result`, `.item`) are **RARELY
 ```json
 {
   "locator": ".product-tile:nth-child($i) .title",
-  "config": { "loop": { "index": "i", "from": 1, "to": 6 } }
+  "config": { "loop": { "index": "i", "from": 1, "to": 10 } }
 }
 ```
 
@@ -55,7 +66,7 @@ Items you're targeting (`.product-tile`, `.search-result`, `.item`) are **RARELY
 ```json
 {
   "locator": ".col-6:nth-child($i) .product-tile .title",
-  "config": { "loop": { "index": "i", "from": 1, "to": 6 } }
+  "config": { "loop": { "index": "i", "from": 1, "to": 10 } }
 }
 ```
 
@@ -118,7 +129,7 @@ Return **ONLY** valid JSON. No markdown code blocks, no explanations.
 1. Steps execute **sequentially** on a Puppeteer browser
 2. The `$INPUT` variable contains the user's search query
 3. **CRITICAL: Use loops with `config.loop` on each step**: Extract `TITLE$i`, `URL$i`, `SUBTITLE$i`, `COVER$i`
-4. **You MUST extract multiple results** (minimum 5) using the loop configuration
+4. **You MUST extract multiple results** (minimum 10) using the loop configuration
 5. The engine restructures output into: `{ results: [{ TITLE: "...", URL: "..." }, ...] }`
 
 ### Why Loops Are Required
@@ -134,7 +145,7 @@ Search results pages typically show 5-50+ items. Your recipe MUST extract multip
 }
 ```
 
-**✅ GOOD - Extracts 5 results using config.loop:**
+**✅ GOOD - Extracts 10 results using config.loop:**
 ```json
 {
   "command": "store_text",
@@ -144,7 +155,7 @@ Search results pages typically show 5-50+ items. Your recipe MUST extract multip
     "loop": {
       "index": "i",
       "from": 1,
-      "to": 5,
+      "to": 10,
       "step": 1
     }
   }
@@ -164,7 +175,7 @@ Search results pages typically show 5-50+ items. Your recipe MUST extract multip
     "loop": {
       "index": "i",
       "from": 1,
-      "to": 5,
+      "to": 10,
       "step": 1
     }
   }
@@ -173,7 +184,7 @@ Search results pages typically show 5-50+ items. Your recipe MUST extract multip
 
 - `index`: Variable name (appears as `$i` in selector)
 - `from`: Start value (usually 1 for :nth-child)
-- `to`: End value (minimum 5, ideally 10)
+- `to`: End value (always use 10)
 - `step`: Increment (usually 1)
 
 **All steps extracting loop data need the SAME loop config.**
@@ -208,7 +219,7 @@ For each search result (using loop index `$i`):
   "locator": ".search-result:nth-child($i) h3",
   "output": { "name": "TITLE$i" },
   "config": {
-    "loop": { "index": "i", "from": 1, "to": 5, "step": 1 }
+    "loop": { "index": "i", "from": 1, "to": 10, "step": 1 }
   },
   "description": "Extract result titles"
 }
@@ -225,7 +236,7 @@ For each search result (using loop index `$i`):
   "attribute_name": "href",
   "output": { "name": "URL$i" },
   "config": {
-    "loop": { "index": "i", "from": 1, "to": 5, "step": 1 }
+    "loop": { "index": "i", "from": 1, "to": 10, "step": 1 }
   },
   "description": "Extract result URLs"
 }
@@ -240,7 +251,7 @@ For each search result (using loop index `$i`):
   "input": "https://example.com$URL$i",
   "output": { "name": "URL$i" },
   "config": {
-    "loop": { "index": "i", "from": 1, "to": 5, "step": 1 }
+    "loop": { "index": "i", "from": 1, "to": 10, "step": 1 }
   },
   "description": "Make URLs absolute"
 }
@@ -255,7 +266,7 @@ For each search result (using loop index `$i`):
   "expression": "(.+?)\\s*\\(\\d{4}\\)",
   "output": { "name": "TITLE$i" },
   "config": {
-    "loop": { "index": "i", "from": 1, "to": 5, "step": 1 }
+    "loop": { "index": "i", "from": 1, "to": 10, "step": 1 }
   },
   "description": "Remove year from title"
 }
@@ -313,7 +324,7 @@ Each step that uses a loop variable (like `$i`) **MUST** have a `config.loop` pr
     "loop": {
       "index": "i",
       "from": 1,
-      "to": 5,
+      "to": 10,
       "step": 1
     }
   }
@@ -323,7 +334,7 @@ Each step that uses a loop variable (like `$i`) **MUST** have a `config.loop` pr
 **Loop Configuration Properties:**
 - `index`: The loop variable name (use in selectors as `$i`, `$j`, etc.)
 - `from`: Starting value (usually 1 for :nth-child)
-- `to`: Ending value (extract 5-10 results minimum)
+- `to`: Ending value (always use 10)
 - `step`: Increment value (usually 1)
 
 **IMPORTANT:**
@@ -337,7 +348,7 @@ Each step that uses a loop variable (like `$i`) **MUST** have a `config.loop` pr
 ```
 - `index`: Loop variable name (use `$i` in locator and output.name)
 - `from`: Start value (usually 1 for :nth-child)
-- `to`: End value (5 gives 5 results)
+- `to`: End value (always use 10)
 - `step`: Increment (usually 1)
 
 ## Example: Complete autocomplete_steps
@@ -355,7 +366,7 @@ Each step that uses a loop variable (like `$i`) **MUST** have a `config.loop` pr
       "command": "store_text",
       "locator": ".result-item:nth-child($i) .title",
       "output": { "name": "TITLE$i" },
-      "config": { "loop": { "index": "i", "from": 1, "to": 5, "step": 1 } },
+      "config": { "loop": { "index": "i", "from": 1, "to": 10, "step": 1 } },
       "description": "Extract titles"
     },
     {
@@ -363,21 +374,21 @@ Each step that uses a loop variable (like `$i`) **MUST** have a `config.loop` pr
       "locator": ".result-item:nth-child($i) a",
       "attribute_name": "href",
       "output": { "name": "URL$i" },
-      "config": { "loop": { "index": "i", "from": 1, "to": 5, "step": 1 } },
+      "config": { "loop": { "index": "i", "from": 1, "to": 10, "step": 1 } },
       "description": "Extract URLs"
     },
     {
       "command": "store",
       "input": "https://example.com$URL$i",
       "output": { "name": "URL$i" },
-      "config": { "loop": { "index": "i", "from": 1, "to": 5, "step": 1 } },
+      "config": { "loop": { "index": "i", "from": 1, "to": 10, "step": 1 } },
       "description": "Make URLs absolute"
     },
     {
       "command": "store_text",
       "locator": ".result-item:nth-child($i) .subtitle",
       "output": { "name": "SUBTITLE$i" },
-      "config": { "loop": { "index": "i", "from": 1, "to": 5, "step": 1 } },
+      "config": { "loop": { "index": "i", "from": 1, "to": 10, "step": 1 } },
       "description": "Extract subtitles"
     },
     {
@@ -385,7 +396,7 @@ Each step that uses a loop variable (like `$i`) **MUST** have a `config.loop` pr
       "locator": ".result-item:nth-child($i) img",
       "attribute_name": "src",
       "output": { "name": "COVER$i" },
-      "config": { "loop": { "index": "i", "from": 1, "to": 5, "step": 1 } },
+      "config": { "loop": { "index": "i", "from": 1, "to": 10, "step": 1 } },
       "description": "Extract thumbnails"
     }
   ],
@@ -404,7 +415,7 @@ Each step that uses a loop variable (like `$i`) **MUST** have a `config.loop` pr
 5. **Check that selectors target visible text elements** - Not meta tags
 6. **Prefer stable selectors** - data attributes, semantic HTML over class names
 7. **Use standard CSS selectors only** - NEVER use jQuery pseudo-selectors like `:contains()`, `:has()`, `:visible`, `:eq()`, etc.
-8. **Always use a loop** - Extract minimum 5 results, not just 1
+8. **Always use a loop** - Extract minimum 10 results, not just 1
 9. **Test nth-child indices** - Ensure `:nth-child($i)` targets the correct elements
 10. **⚠️ USE PARENT CONTAINERS** - Put `:nth-child($i)` on the consecutive parent (`.col-6`, `li`), NOT the item (`.product-tile`)
 
@@ -492,7 +503,7 @@ Here is a COMPLETE `autocomplete_steps` array showing the EXACT CORRECT syntax:
       "attribute_name": "src",
       "output": { "name": "COVER$i" },
       "config": {
-        "loop": { "index": "i", "from": 1, "to": 6, "step": 1 }
+        "loop": { "index": "i", "from": 1, "to": 10, "step": 1 }
       },
       "description": "Extract cover images"
     },
@@ -501,7 +512,7 @@ Here is a COMPLETE `autocomplete_steps` array showing the EXACT CORRECT syntax:
       "locator": ".search-result:nth-child($i) .title",
       "output": { "name": "TITLE$i" },
       "config": {
-        "loop": { "index": "i", "from": 1, "to": 6, "step": 1 }
+        "loop": { "index": "i", "from": 1, "to": 10, "step": 1 }
       },
       "description": "Extract titles"
     },
@@ -510,7 +521,7 @@ Here is a COMPLETE `autocomplete_steps` array showing the EXACT CORRECT syntax:
       "locator": ".search-result:nth-child($i) .year",
       "output": { "name": "YEAR$i" },
       "config": {
-        "loop": { "index": "i", "from": 1, "to": 6, "step": 1 }
+        "loop": { "index": "i", "from": 1, "to": 10, "step": 1 }
       },
       "description": "Extract years"
     },
@@ -520,7 +531,7 @@ Here is a COMPLETE `autocomplete_steps` array showing the EXACT CORRECT syntax:
       "expression": "(\\d{4})",
       "output": { "name": "SUBTITLE$i" },
       "config": {
-        "loop": { "index": "i", "from": 1, "to": 6, "step": 1 }
+        "loop": { "index": "i", "from": 1, "to": 10, "step": 1 }
       },
       "description": "Extract 4-digit year"
     },
@@ -530,7 +541,7 @@ Here is a COMPLETE `autocomplete_steps` array showing the EXACT CORRECT syntax:
       "attribute_name": "href",
       "output": { "name": "URL$i" },
       "config": {
-        "loop": { "index": "i", "from": 1, "to": 6, "step": 1 }
+        "loop": { "index": "i", "from": 1, "to": 10, "step": 1 }
       },
       "description": "Extract URLs"
     },
@@ -539,7 +550,7 @@ Here is a COMPLETE `autocomplete_steps` array showing the EXACT CORRECT syntax:
       "input": "https://www.themoviedb.org$URL$i",
       "output": { "name": "URL$i" },
       "config": {
-        "loop": { "index": "i", "from": 1, "to": 6, "step": 1 }
+        "loop": { "index": "i", "from": 1, "to": 10, "step": 1 }
       },
       "description": "Make URLs absolute"
     }
@@ -587,7 +598,7 @@ Here is a COMPLETE `autocomplete_steps` array showing the EXACT CORRECT syntax:
   "command": "store_text",
   "locator": ".product-tile:nth-child($i) .title",
   "output": { "name": "TITLE$i" },
-  "config": { "loop": { "index": "i", "from": 1, "to": 6 } }
+  "config": { "loop": { "index": "i", "from": 1, "to": 10 } }
 }
 ```
 **Why it fails:** `.product-tile` is NOT a consecutive sibling - there are `.col-6` containers between them. Only the first `.product-tile` that happens to match `:nth-child()` will be found.
@@ -598,7 +609,7 @@ Here is a COMPLETE `autocomplete_steps` array showing the EXACT CORRECT syntax:
   "command": "store_text",
   "locator": ".col-6:nth-child($i) .product-tile .title",
   "output": { "name": "TITLE$i" },
-  "config": { "loop": { "index": "i", "from": 1, "to": 6 } }
+  "config": { "loop": { "index": "i", "from": 1, "to": 10 } }
 }
 ```
 **Why it works:** `.col-6` containers ARE consecutive siblings. We target them with `:nth-child($i)`, then drill down to `.product-tile .title`.

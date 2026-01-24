@@ -31,8 +31,14 @@ import minimist from 'minimist';
 import chalk from 'chalk';
 import puppeteer from 'puppeteer';
 
-// Copilot SDK import
-import { CopilotClient, defineTool } from '@github/copilot-sdk';
+// Copilot agents import
+import { 
+  AgentOrchestrator, 
+  AuthorAgent, 
+  FixerAgent, 
+  DiscoveryAgent,
+  MODELS 
+} from './agents/index.js';
 
 /**
  * Prompt user for input via readline
@@ -58,7 +64,6 @@ const PROMPTS_DIR = resolve(__dirname, 'prompts');
 
 const MAX_REPAIR_ITERATIONS = 5;
 const ENGINE_VERSION = 20; // From package.json
-const COPILOT_MODEL = 'claude-opus-4.5'; // Best model for long-running agentic sessions
 
 // Allowed list_type values (existing folders at repo root)
 const ALLOWED_LIST_TYPES = [
@@ -1707,417 +1712,6 @@ class EvidenceCollector {
     }).slice(0, 5);
   }
 }
-
-class CopilotAgent {
-  constructor(logger, debugMode = false) {
-    this.logger = logger;
-    this.debugMode = debugMode;
-    this.client = null;
-    this.session = null;
-    this.repairSession = null; // Dedicated session for repair loop to maintain context
-    this.model = COPILOT_MODEL;
-    
-    // Usage tracking
-    this.usage = {
-      totalPromptTokens: 0,
-      totalCompletionTokens: 0,
-      totalTokens: 0,
-      requests: 0
-    };
-  }
-
-  async initialize() {
-    this.logger.step(`Initializing Copilot SDK with model: ${this.model}...`);
-    this.client = new CopilotClient();
-    await this.client.start();
-    
-    // Create session with tools registered
-    this.session = await this.client.createSession({ 
-      model: this.model,
-      streaming: true,
-      tools: COPILOT_TOOLS
-    });
-    
-    // Set up event listener for usage tracking
-    this.session.on((event) => {
-      this.trackUsage(event);
-    });
-    
-    this.logger.success(`Copilot SDK initialized with ${this.model} and ${COPILOT_TOOLS.length} tools`);
-  }
-
-  // Track usage from session events
-  trackUsage(event) {
-    if (event.type === 'session.usage_info' && event.data) {
-      const { promptTokens, completionTokens, totalTokens } = event.data;
-      if (promptTokens) this.usage.totalPromptTokens += promptTokens;
-      if (completionTokens) this.usage.totalCompletionTokens += completionTokens;
-      if (totalTokens) this.usage.totalTokens += totalTokens;
-    }
-  }
-
-  // Track a request
-  trackRequest() {
-    this.usage.requests++;
-  }
-
-  // Get usage summary
-  getUsage() {
-    return {
-      ...this.usage,
-      model: this.model
-    };
-  }
-
-  async close() {
-    if (this.repairSession) {
-      try { await this.repairSession.destroy(); } catch (e) {}
-    }
-    if (this.session) {
-      try { await this.session.destroy(); } catch (e) {}
-    }
-    if (this.client) {
-      try { await this.client.stop(); } catch (e) {}
-    }
-  }
-
-  async loadPrompt(name) {
-    const path = join(PROMPTS_DIR, `${name}.md`);
-    return await readFile(path, 'utf-8');
-  }
-
-  /**
-   * Build a comprehensive prompt with instructions and context
-   */
-  buildPrompt(systemPrompt, context, includeReferences = true) {
-    let prompt = '';
-    
-    if (includeReferences && this.engineReference) {
-      prompt += `## RecipeKit Engine Reference\n\n${this.engineReference}\n\n---\n\n`;
-    }
-    
-    prompt += `${systemPrompt}
-
-## Context
-
-\`\`\`json
-${JSON.stringify(context, null, 2)}
-\`\`\`
-
-## IMPORTANT: Think Carefully
-
-Before outputting JSON:
-1. Analyze the evidence provided above
-2. Identify the SPECIFIC selectors that will work for THIS site
-3. Don't use generic patterns - use what you learned from the evidence
-4. If the evidence shows the actual DOM structure, USE IT
-
-Output ONLY valid JSON. No explanations before or after.`;
-    
-    return prompt;
-  }
-
-  /**
-   * Extract JSON from response content (handles markdown code blocks)
-   */
-  extractJSON(responseContent) {
-    if (!responseContent) {
-      throw new Error('Empty response from Copilot');
-    }
-
-    const jsonMatch = responseContent.match(/```json\n?([\s\S]*?)\n?```/) || 
-                      responseContent.match(/```\n?([\s\S]*?)\n?```/) ||
-                      responseContent.match(/(\{[\s\S]*\})/);
-    
-    if (jsonMatch) {
-      const jsonStr = jsonMatch[1] || jsonMatch[0];
-      try {
-        return JSON.parse(jsonStr);
-      } catch (parseErr) {
-        this.logger.error(`JSON parse error: ${parseErr.message}`);
-        this.logger.log(`Attempted to parse: ${jsonStr.slice(0, 500)}`);
-        throw new Error(`Invalid JSON in Copilot response: ${parseErr.message}`);
-      }
-    }
-    
-    throw new Error(`No JSON found in Copilot response. Response was: ${responseContent.slice(0, 200) || '(empty)'}`);
-  }
-
-  /**
-   * Send prompt and wait for response using sendAndWait()
-   * This is the new simplified method using the SDK properly
-   */
-  async sendPromptAndWait(promptName, context) {
-    if (!this.session) {
-      throw new Error('Copilot SDK not initialized');
-    }
-
-    // Load prompts on first use
-    if (!this.engineReference) {
-      try {
-        this.engineReference = await this.loadPrompt('engine-reference');
-      } catch (e) {
-        this.engineReference = '';
-      }
-    }
-
-    const systemPrompt = await this.loadPrompt(promptName);
-    const fullPrompt = this.buildPrompt(systemPrompt, context);
-    
-    this.logger.log(`Sending prompt: ${promptName}`);
-    this.trackRequest();
-    
-    // Use sendAndWait with 180 second timeout (LLM can be slow for complex prompts)
-    const response = await this.session.sendAndWait({ prompt: fullPrompt }, 180000);
-    
-    if (!response?.data?.content) {
-      throw new Error('Copilot returned empty response');
-    }
-    
-    this.logger.log(`Response length: ${response.data.content.length} chars`);
-    
-    return this.extractJSON(response.data.content);
-  }
-
-  // Keep old sendPrompt for backward compatibility during transition
-  async sendPrompt(promptName, context, useSession = null) {
-    // Delegate to new method for main session
-    if (!useSession || useSession === this.session) {
-      return await this.sendPromptAndWait(promptName, context);
-    }
-    
-    // For repair session, use the old approach with manual event handling
-    const targetSession = useSession;
-    const systemPrompt = await this.loadPrompt(promptName);
-    const fullPrompt = this.buildPrompt(systemPrompt, context);
-    
-    this.logger.log(`Sending prompt to repair session: ${promptName}`);
-    
-    let responseContent = '';
-    
-    const done = new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        reject(new Error('Copilot response timeout after 120 seconds'));
-      }, 120000);
-      
-      const unsubscribe = targetSession.on((event) => {
-        this.trackUsage(event);
-        
-        if (event.type === 'assistant.message_delta' && event.data?.deltaContent) {
-          responseContent += event.data.deltaContent;
-        }
-        if (event.type === 'assistant.message' && event.data?.content) {
-          responseContent = event.data.content;
-        }
-        if (event.type === 'session.idle') {
-          clearTimeout(timeout);
-          unsubscribe();
-          resolve();
-        }
-        if (event.type === 'error') {
-          clearTimeout(timeout);
-          unsubscribe();
-          reject(new Error(event.data?.message || 'Unknown Copilot error'));
-        }
-      });
-    });
-    
-    await targetSession.send({ prompt: fullPrompt });
-    await done;
-    
-    this.trackRequest();
-    return this.extractJSON(responseContent);
-  }
-
-  /**
-   * Start a new repair session to maintain context across multiple fix iterations
-   */
-  async startRepairSession() {
-    if (!this.client) {
-      throw new Error('Copilot SDK not initialized');
-    }
-    
-    // Close existing repair session if any
-    if (this.repairSession) {
-      try { await this.repairSession.destroy(); } catch (e) {}
-    }
-    
-    this.repairSession = await this.client.createSession({ model: this.model });
-    this.logger.log(`Started new repair session with ${this.model}`);
-    return this.repairSession;
-  }
-
-  /**
-   * Send a follow-up message to the repair session (maintains conversation context)
-   */
-  async sendRepairFollowUp(message) {
-    if (!this.repairSession) {
-      throw new Error('No active repair session. Call startRepairSession first.');
-    }
-
-    this.logger.log('Sending follow-up to repair session...');
-    
-    const messageId = await this.repairSession.send({ prompt: message });
-    this.logger.log(`Follow-up message completed: ${messageId}`);
-    
-    const messages = await this.repairSession.getMessages();
-    
-    let responseContent = '';
-    for (const msg of messages) {
-      if (msg.type === 'assistant.message' && msg.data?.content) {
-        responseContent = msg.data.content;
-      }
-    }
-    
-    const jsonMatch = responseContent.match(/```json\n?([\s\S]*?)\n?```/) || 
-                      responseContent.match(/\{[\s\S]*\}/);
-    
-    if (jsonMatch) {
-      return JSON.parse(jsonMatch[1] || jsonMatch[0]);
-    }
-    
-    throw new Error('No JSON found in Copilot response');
-  }
-
-  /**
-   * End the repair session
-   */
-  async endRepairSession() {
-    if (this.repairSession) {
-      try { await this.repairSession.destroy(); } catch (e) {}
-      this.repairSession = null;
-      this.logger.log('Ended repair session');
-    }
-  }
-
-  // REMOVED: classify() - no longer needed, all recipes go to /generated
-
-  /**
-   * Generate URL extraction steps using sendAndWait
-   */
-  async authorUrl(evidence, requiredFields) {
-    this.logger.step('Generating url_steps...');
-    
-    const result = await this.sendPromptAndWait('author-url', { 
-      evidence, 
-      required_fields: requiredFields 
-    });
-    
-    // Validate that Copilot returned actual url_steps
-    if (!result?.url_steps || !Array.isArray(result.url_steps) || result.url_steps.length === 0) {
-      throw new Error('Copilot returned invalid url_steps');
-    }
-    
-    this.logger.success(`Generated ${result.url_steps.length} url_steps`);
-    return result;
-  }
-
-  /**
-   * Generate autocomplete extraction steps using sendAndWait
-   */
-  async authorAutocomplete(evidence, query, expected) {
-    this.logger.step('Generating autocomplete_steps...');
-    
-    const result = await this.sendPromptAndWait('author-autocomplete', { 
-      evidence, 
-      query, 
-      expected 
-    });
-    
-    // Validate that Copilot returned actual autocomplete_steps
-    if (!result?.autocomplete_steps || !Array.isArray(result.autocomplete_steps) || result.autocomplete_steps.length === 0) {
-      throw new Error('Copilot returned invalid autocomplete_steps');
-    }
-    
-    this.logger.success(`Generated ${result.autocomplete_steps.length} autocomplete_steps`);
-    return result;
-  }
-
-  /**
-   * Start a fix session - sends initial context and first error to repair session
-   * Uses sendAndWait for cleaner handling
-   */
-  async startFix(recipe, stepType, testError, engineError, evidence) {
-    this.logger.step('Starting fix session...');
-    
-    try {
-      await this.startRepairSession();
-      
-      const systemPrompt = await this.loadPrompt('fixer');
-      const context = {
-        recipe,
-        step_type: stepType,
-        test_error: testError || 'No test output',
-        engine_error: engineError || 'Engine ran successfully',
-        evidence
-      };
-      
-      const fullPrompt = this.buildPrompt(systemPrompt, context);
-      
-      // Use sendAndWait on repair session with 180s timeout
-      const response = await this.repairSession.sendAndWait({ prompt: fullPrompt }, 180000);
-      
-      if (!response?.data?.content) {
-        throw new Error('Empty response from fixer');
-      }
-      
-      this.trackRequest();
-      return this.extractJSON(response.data.content);
-    } catch (e) {
-      throw new Error(`Fixer failed: ${e.message}`);
-    }
-  }
-
-  /**
-   * Continue fix session - sends new test errors to existing repair session
-   * This maintains conversation context so Copilot knows what was tried before
-   */
-  async continueFix(recipe, testError, engineError, iteration) {
-    if (!this.repairSession) {
-      throw new Error('No active repair session');
-    }
-
-    this.logger.step(`Fix iteration ${iteration}...`);
-
-    const followUp = `## Iteration ${iteration} - Still Failing
-
-The previous fix didn't work. Here's the updated state:
-
-### Updated Recipe (after your last fix)
-\`\`\`json
-${JSON.stringify(recipe, null, 2)}
-\`\`\`
-
-### New Test Error Output
-\`\`\`
-${testError || 'No test output'}
-\`\`\`
-
-### Engine Error (if any)
-\`\`\`
-${engineError || 'Engine ran successfully'}
-\`\`\`
-
-Please try a different approach. Consider:
-1. The selectors might be completely wrong - check the evidence again
-2. The page structure might be different than expected
-3. There might be timing issues (try adding config.timeout)
-4. The data might be in JSON-LD or meta tags instead of visible elements
-
-Provide another fix as JSON only.`;
-
-    // Use 180s timeout for repair responses
-    const response = await this.repairSession.sendAndWait({ prompt: followUp }, 180000);
-    
-    if (!response?.data?.content) {
-      throw new Error('Empty response from fixer');
-    }
-    
-    this.trackRequest();
-    return this.extractJSON(response.data.content);
-  }
-}
-
 class RecipeBuilder {
   constructor(logger) {
     this.logger = logger;
@@ -2330,9 +1924,10 @@ class EngineRunner {
  * Discovers and evaluates potential recipe sources using web search
  */
 class SourceDiscovery {
-  constructor(logger, copilot) {
+  constructor(logger, orchestrator, discoveryAgent) {
     this.logger = logger;
-    this.copilot = copilot;
+    this.orchestrator = orchestrator;
+    this.discoveryAgent = discoveryAgent;
   }
 
   /**
@@ -2414,93 +2009,24 @@ class SourceDiscovery {
    * Clarify user intent and enhance the search query
    */
   async clarifyIntent(userPrompt) {
-    const clarificationPrompt = `You are helping to clarify a user's search intent for finding websites.
-
-User wants: "${userPrompt}"
-
-Analyze this request and provide:
-1. **Purpose**: What is the user trying to find? (1-2 sentences)
-2. **Content Type**: What RecipeKit list_type does this match? (movies, books, wines, recipes, etc.)
-3. **Key Features**: What features would a good site have? (list 3-5)
-4. **Search Query**: An optimized search query for web search (focus on database/aggregator sites)
-
-Return ONLY valid JSON:
-
-\`\`\`json
-{
-  "purpose": "Find websites that...",
-  "list_type_hint": "wines",
-  "key_features": ["ratings", "reviews", "vintage info"],
-  "search_query": "wine rating database reviews vintage cellar"
-}
-\`\`\`
-
-Rules:
-- Make search_query specific and focused on databases/aggregators
-- Add terms like "database", "website", "ratings" to help find structured sites
-- Filter out social media by adding "-youtube -facebook -twitter -reddit"
-- Be concise but descriptive
-
-Output ONLY the JSON.`;
-
-    if (this.logger.debug) {
-      this.logger.log('Sending intent clarification prompt...');
+    try {
+      const result = await this.discoveryAgent.clarifyIntent(userPrompt);
+      this.logger.success('Intent clarified');
+      return {
+        purpose: result.clarified_query || `Find ${userPrompt} websites`,
+        list_type_hint: result.list_type_hint || null,
+        key_features: [],
+        search_query: result.search_terms?.join(' ') || `${userPrompt} database website -youtube -facebook -twitter`
+      };
+    } catch (e) {
+      this.logger.warn(`Intent clarification failed: ${e.message}, using original prompt`);
+      return {
+        purpose: `Find ${userPrompt} websites`,
+        list_type_hint: null,
+        key_features: [],
+        search_query: `${userPrompt} database website -youtube -facebook -twitter`
+      };
     }
-
-    let responseContent = '';
-    
-    const done = new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        reject(new Error('Intent clarification timeout'));
-      }, 30000);
-      
-      const unsubscribe = this.copilot.session.on((event) => {
-        if (event.type === 'assistant.message_delta' && event.data?.deltaContent) {
-          responseContent += event.data.deltaContent;
-        }
-        if (event.type === 'assistant.message' && event.data?.content) {
-          if (event.data.content.length > responseContent.length) {
-            responseContent = event.data.content;
-          }
-        }
-        if (event.type === 'session.idle') {
-          clearTimeout(timeout);
-          unsubscribe();
-          resolve();
-        }
-        if (event.type === 'error') {
-          clearTimeout(timeout);
-          unsubscribe();
-          reject(new Error(event.data?.message || 'Clarification failed'));
-        }
-      });
-    });
-    
-    await this.copilot.session.send({ prompt: clarificationPrompt });
-    await done;
-    
-    // Extract JSON
-    const jsonMatch = responseContent.match(/```json\n?([\s\S]*?)\n?```/) || 
-                      responseContent.match(/```\n?([\s\S]*?)\n?```/) ||
-                      responseContent.match(/(\{[\s\S]*\})/);
-    
-    if (jsonMatch) {
-      try {
-        const clarified = JSON.parse(jsonMatch[1] || jsonMatch[0]);
-        this.logger.success('Intent clarified');
-        return clarified;
-      } catch (e) {
-        this.logger.warn('Failed to parse clarification, using original prompt');
-      }
-    }
-    
-    // Fallback: use original prompt with enhancements
-    return {
-      purpose: `Find ${userPrompt} websites`,
-      list_type_hint: null,
-      key_features: [],
-      search_query: `${userPrompt} database website -youtube -facebook -twitter`
-    };
   }
 
   /**
@@ -2555,8 +2081,12 @@ Use web search now to find these sites. Output ONLY the JSON.`;
         this.logger.log(searchPrompt.split('\n').slice(0, 10).join('\n') + '\n...');
       }
       
-      // Send to Copilot's main session which should have web search enabled
+      // Send to discovery agent session which should have web search enabled
       this.logger.log('Requesting AI web search...');
+      
+      // Use the discovery agent's sendAndWait directly for web search
+      // This gives us access to the raw session for handling tool events
+      const session = this.discoveryAgent.session;
       
       let responseContent = '';
       let eventCount = 0;
@@ -2567,7 +2097,7 @@ Use web search now to find these sites. Output ONLY the JSON.`;
           reject(new Error('Search timeout after 90 seconds'));
         }, 90000);
         
-        const unsubscribe = this.copilot.session.on((event) => {
+        const unsubscribe = session.on((event) => {
           eventCount++;
           
           if (event.type === 'tool.execution_start') {
@@ -2609,7 +2139,7 @@ Use web search now to find these sites. Output ONLY the JSON.`;
       });
       
       // Send the prompt
-      await this.copilot.session.send({ prompt: searchPrompt });
+      await session.send({ prompt: searchPrompt });
       
       // Wait for completion
       await done;
@@ -2669,16 +2199,10 @@ Use web search now to find these sites. Output ONLY the JSON.`;
   }
 
   /**
-   * Evaluate candidates using Copilot
+   * Evaluate candidates using DiscoveryAgent
    */
   async evaluateCandidates(searchResults, userPrompt, clarifiedIntent) {
-    this.logger.step('Evaluating candidates with Copilot...');
-    
-    const context = {
-      prompt: userPrompt,
-      clarified_intent: clarifiedIntent,
-      search_results: searchResults
-    };
+    this.logger.step('Evaluating candidates with DiscoveryAgent...');
     
     if (this.logger.debug) {
       this.logger.log('─── Evaluation Context ───');
@@ -2688,14 +2212,14 @@ Use web search now to find these sites. Output ONLY the JSON.`;
       this.logger.log(`Candidates to evaluate: ${searchResults.length}`);
     }
     
-    const evaluation = await this.copilot.sendPrompt('discover-sources', context);
+    const evaluation = await this.discoveryAgent.searchAndEvaluate(userPrompt, searchResults);
     
     if (!evaluation || !evaluation.candidates) {
-      throw new Error('Copilot evaluation failed or returned invalid format');
+      throw new Error('DiscoveryAgent evaluation failed or returned invalid format');
     }
     
     // Sort candidates by score (highest first)
-    evaluation.candidates.sort((a, b) => b.score - a.score);
+    evaluation.candidates.sort((a, b) => (b.score || 0) - (a.score || 0));
     
     this.logger.success(`Evaluated ${evaluation.candidates.length} candidates`);
     
@@ -2703,7 +2227,7 @@ Use web search now to find these sites. Output ONLY the JSON.`;
       this.logger.log('─── Top 3 Candidates ───');
       evaluation.candidates.slice(0, 3).forEach((c, i) => {
         this.logger.log(`  ${i + 1}. ${c.title}`);
-        this.logger.log(`     Score: ${c.score}/100, Confidence: ${(c.confidence * 100).toFixed(0)}%`);
+        this.logger.log(`     Score: ${c.score}/100, Confidence: ${((c.confidence || 0) * 100).toFixed(0)}%`);
         this.logger.log(`     URL: ${c.url}`);
         this.logger.log(`     Reasoning: ${c.reasoning?.slice(0, 100)}...`);
       });
@@ -2801,7 +2325,12 @@ class AutoRecipe {
     
     this.logger = new Logger(this.debug);
     this.evidence = new EvidenceCollector(this.logger);
-    this.copilot = new CopilotAgent(this.logger, this.debug);
+    
+    // New agent-based architecture
+    this.orchestrator = new AgentOrchestrator(this.logger, this.debug);
+    this.authorAgent = null;
+    this.fixerAgent = null;
+    
     this.builder = new RecipeBuilder(this.logger);
     this.testGen = new TestGenerator(this.logger);
     this.engine = new EngineRunner(this.logger);
@@ -2812,16 +2341,31 @@ class AutoRecipe {
     
     try {
       await this.evidence.initialize();
-      await this.copilot.initialize();
+      await this.orchestrator.initialize();
+      
+      // Initialize author agent (classification skipped - using 'generic' type)
+      this.authorAgent = new AuthorAgent(this.orchestrator);
+      await this.authorAgent.initialize();
 
-      // Phase 1: Probe the website (no classification needed)
+      // Phase 1: Probe site (classification skipped)
       const siteEvidence = await this.evidence.probe(this.url);
       this.logger.log(JSON.stringify(siteEvidence, null, 2));
 
-      // All generated recipes go to /generated folder with hostname-based naming
-      const domain = siteEvidence.hostname.replace(/\./g, '_');
-      const recipePath = join(GENERATED_DIR, `${domain}.json`);
-      const testPath = join(GENERATED_DIR, `${domain}.autorecipe.test.js`);
+      // Use 'generic' as default list_type (classification skipped)
+      const classification = {
+        list_type: 'generic',
+        confidence: 1.0,
+        rationale: 'Classification skipped - using generic type',
+        suggested_recipe_shortcut: siteEvidence.hostname.replace(/\./g, '_') + '_generic'
+      };
+      this.logger.info(`Using list_type: ${classification.list_type} (classification skipped)`);
+
+      const domain = siteEvidence.hostname.replace(/\./g, '');
+      
+      // Store in ./generated folder instead of category folder
+      const generatedDir = join(REPO_ROOT, 'generated');
+      const recipePath = join(generatedDir, `${domain}.json`);
+      const testPath = join(generatedDir, `${domain}.autorecipe.test.js`);
 
       // Check for existing files
       if (!this.force) {
@@ -2844,14 +2388,14 @@ class AutoRecipe {
             // Find a unique suffix
             let suffix = 2;
             let newDomain = `${domain}_${suffix}`;
-            let newRecipePath = join(GENERATED_DIR, `${newDomain}.json`);
+            let newRecipePath = join(generatedDir, `${newDomain}.json`);
             
             while (true) {
               try {
                 await access(newRecipePath);
                 suffix++;
                 newDomain = `${domain}_${suffix}`;
-                newRecipePath = join(GENERATED_DIR, `${newDomain}.json`);
+                newRecipePath = join(generatedDir, `${newDomain}.json`);
               } catch (e) {
                 if (e.code === 'ENOENT') break;
                 throw e;
@@ -2865,11 +2409,11 @@ class AutoRecipe {
               siteEvidence,
               newDomain,
               newRecipePath,
-              join(GENERATED_DIR, `${newDomain}.autorecipe.test.js`)
+              join(generatedDir, `${newDomain}.autorecipe.test.js`)
             );
           } else {
             this.logger.info('Cancelled.');
-            return { success: false, cancelled: true, usage: this.copilot.getUsage() };
+            return { success: false, cancelled: true, usage: this.orchestrator.getUsage() };
           }
         }
       }
@@ -2878,12 +2422,12 @@ class AutoRecipe {
       const result = await this.runWithPaths(siteEvidence, domain, recipePath, testPath);
       
       // Add usage stats to result
-      result.usage = this.copilot.getUsage();
+      result.usage = this.orchestrator.getUsage();
       return result;
 
     } finally {
       await this.evidence.close();
-      await this.copilot.close();
+      await this.orchestrator.close();
     }
   }
 
@@ -2939,12 +2483,13 @@ class AutoRecipe {
       this.logger.info(`Using discovered search URL: ${searchUrl}`);
     }
     
-    // Author autocomplete steps
-    const autocompleteResult = await this.copilot.authorAutocomplete(
-      { site: siteEvidence, search: searchEvidence },
-      testQuery,
-      { title: null, subtitle: null, url_regex: `https://${siteEvidence.hostname}` }
-    );
+    // Author autocomplete steps using AuthorAgent
+    const autocompleteResult = await this.authorAgent.generateAutocomplete({
+      site: siteEvidence, 
+      search: searchEvidence,
+      query: testQuery,
+      expected: { title: null, subtitle: null, url_regex: `https://${siteEvidence.hostname}` }
+    });
     
     // If the autocomplete steps use a different URL than what we discovered, update them
     if (autocompleteResult.autocomplete_steps?.[0]?.url && searchEvidence.discovered_search_url) {
@@ -3061,10 +2606,11 @@ class AutoRecipe {
     
     const detailEvidence = await this.evidence.probeDetailPage(detailUrl);
     
-    const urlResult = await this.copilot.authorUrl(
-      detailEvidence,
-      this.getRequiredFields(listType)
-    );
+    // Author url steps using AuthorAgent
+    const urlResult = await this.authorAgent.generateUrlSteps({
+      evidence: detailEvidence,
+      required_fields: this.getRequiredFields(classification.list_type)
+    });
 
     recipe.url_steps = urlResult.url_steps;
     await writeFile(recipePath, JSON.stringify(recipe, null, 2));
@@ -3384,8 +2930,14 @@ ${validationContext}
       
       let fix;
       try {
+        // Initialize fixer agent if not done yet
+        if (!this.fixerAgent) {
+          this.fixerAgent = new FixerAgent(this.orchestrator);
+          await this.fixerAgent.initialize();
+        }
+        
         if (i === 0) {
-          fix = await this.copilot.startFix(
+          fix = await this.fixerAgent.startFix(
             recipe, 
             stepType, 
             `Debug analysis:\n${JSON.stringify(debugContext.debugResult, null, 2)}`,
@@ -3393,11 +2945,10 @@ ${validationContext}
             debugContext.siteEvidence
           );
         } else {
-          fix = await this.copilot.continueFix(
+          fix = await this.fixerAgent.continueFix(
             recipe,
             `Debug analysis:\n${JSON.stringify(debugContext.debugResult, null, 2)}\n\n${errorContext}`,
-            null,
-            i + 1
+            null
           );
         }
       } catch (e) {
@@ -3454,7 +3005,10 @@ ${validationContext}
     }
 
     this.logger.error(`Repair loop exhausted after ${MAX_REPAIR_ITERATIONS} iterations`);
-    await this.copilot.endRepairSession();
+    // FixerAgent session is managed by orchestrator, no need to end manually
+    if (this.fixerAgent) {
+      this.fixerAgent.resetIteration();
+    }
     return { recipe, success: false };
   }
 
@@ -3598,11 +3152,16 @@ if (!args.url && !args.prompt) {
       console.log(chalk.bold.cyan('\n🔍 Discovery Mode: Finding sources for your prompt\n'));
       
       const logger = new Logger(args.debug || false);
-      const copilot = new CopilotAgent(logger, args.debug || false);
-      await copilot.initialize();
+      const orchestrator = new AgentOrchestrator(logger, args.debug || false);
+      await orchestrator.initialize();
       
-      const discovery = new SourceDiscovery(logger, copilot);
+      const discoveryAgent = new DiscoveryAgent(orchestrator);
+      await discoveryAgent.initialize();
+      
+      const discovery = new SourceDiscovery(logger, orchestrator, discoveryAgent);
       targetUrl = await discovery.discover(args.prompt);
+      
+      await orchestrator.close();
       
       console.log(chalk.green(`\n✓ Starting recipe generation for: ${targetUrl}\n`));
     }
@@ -3619,12 +3178,18 @@ if (!args.url && !args.prompt) {
     // Display usage stats
     if (result.usage) {
       console.log(chalk.cyan('\n📊 Copilot Usage:'));
-      console.log(`  Model: ${result.usage.model}`);
       console.log(`  Requests: ${result.usage.requests}`);
       if (result.usage.totalTokens > 0) {
         console.log(`  Prompt tokens: ${result.usage.totalPromptTokens.toLocaleString()}`);
         console.log(`  Completion tokens: ${result.usage.totalCompletionTokens.toLocaleString()}`);
         console.log(`  Total tokens: ${result.usage.totalTokens.toLocaleString()}`);
+      }
+      // Show per-agent breakdown
+      if (result.usage.byAgent && Object.keys(result.usage.byAgent).length > 0) {
+        console.log('  By agent:');
+        for (const [agent, stats] of Object.entries(result.usage.byAgent)) {
+          console.log(`    ${agent}: ${stats.requests} requests, ${stats.totalTokens.toLocaleString()} tokens (${stats.model})`);
+        }
       }
     }
     
