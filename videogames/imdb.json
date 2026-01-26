@@ -147,7 +147,7 @@
           "Content-Type": "application/json",
           "x-imdb-client-name": "imdb-web-next-localized"
         },
-        "body": "{\"query\":\"query Title($id: ID!) { title(id: $id) { id titleText { text } releaseYear { year } plot { plotText { plainText } } ratingsSummary { aggregateRating } primaryImage { url } } }\",\"variables\":{\"id\":\"$ID\"}}"
+        "body": "{\"query\":\"query Title($id: ID!) { title(id: $id) { id titleText { text } releaseYear { year } plot { plotText { plainText } } ratingsSummary { aggregateRating voteCount } primaryImage { url } genres { genres { text } } } }\",\"variables\":{\"id\":\"$ID\"}}"
       },
       "description": "Get videogame details using IMDB GraphQL API"
     },
@@ -214,6 +214,17 @@
         "show": true
       },
       "description": "Extract cover image"
+    },
+    {
+      "command": "json_store_text",
+      "locator": "data.title.genres.genres.[0].text",
+      "input": "$JSON",
+      "output": {
+        "name": "GENRE",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract first genre"
     }
   ]
 }
