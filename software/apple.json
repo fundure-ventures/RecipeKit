@@ -5,7 +5,6 @@
   "title": "Apple Software",
   "description": "Load software from Apple",
   "urls": [
-    "https://itunes.apple.com/search?media=software",
     "https://apps.apple.com",
     "apps.apple.com"
   ],
