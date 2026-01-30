@@ -32,7 +32,7 @@ import chalk from 'chalk';
 import puppeteer from 'puppeteer';
 
 // Copilot SDK import
-import { CopilotClient } from '@github/copilot-sdk';
+import { CopilotClient, defineTool } from '@github/copilot-sdk';
 
 /**
  * Prompt user for input via readline
@@ -72,6 +72,131 @@ const DEFAULT_HEADERS = {
   'Accept-Language': 'en-UK,en',
   'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.113 Safari/537.36'
 };
+
+// Generated recipes folder
+const GENERATED_DIR = resolve(REPO_ROOT, 'generated');
+
+/**
+ * Load a prompt file from the prompts directory
+ */
+async function loadPromptFile(name) {
+  const path = join(PROMPTS_DIR, `${name}.md`);
+  return await readFile(path, 'utf-8');
+}
+
+/**
+ * Tool Definitions for Copilot SDK
+ * These tools are registered with the session and can be called by Copilot
+ */
+
+// Tool: Generate URL extraction steps for detail pages
+const generateUrlStepsTool = defineTool('generate_url_steps', {
+  description: 'Generate url_steps for extracting data from a detail page. Analyzes page evidence and creates RecipeKit extraction steps.',
+  parameters: {
+    type: 'object',
+    properties: {
+      evidence: {
+        type: 'object',
+        description: 'Page evidence from probing the detail page (includes HTML structure, meta tags, JSON-LD, etc.)'
+      },
+      required_fields: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'Fields to extract (e.g., TITLE, DESCRIPTION, COVER, RATING)'
+      }
+    },
+    required: ['evidence', 'required_fields']
+  },
+  handler: async (args, invocation) => {
+    // Tool handler - returns the generated steps
+    // The actual generation happens via sendAndWait in the CopilotAgent
+    return {
+      tool: 'generate_url_steps',
+      evidence: args.evidence,
+      required_fields: args.required_fields
+    };
+  }
+});
+
+// Tool: Generate autocomplete/search extraction steps
+const generateAutocompleteStepsTool = defineTool('generate_autocomplete_steps', {
+  description: 'Generate autocomplete_steps for extracting search results from a website. Creates looped extraction steps for multiple results.',
+  parameters: {
+    type: 'object',
+    properties: {
+      evidence: {
+        type: 'object',
+        description: 'Search page evidence including result_container, results array with selectors'
+      },
+      query: {
+        type: 'string',
+        description: 'The search query that was used to test'
+      },
+      expected_count: {
+        type: 'number',
+        description: 'Expected number of results to extract (default: 5)'
+      }
+    },
+    required: ['evidence']
+  },
+  handler: async (args, invocation) => {
+    return {
+      tool: 'generate_autocomplete_steps',
+      evidence: args.evidence,
+      query: args.query || '',
+      expected_count: args.expected_count || 5
+    };
+  }
+});
+
+// Tool: Fix broken recipe steps
+const fixRecipeTool = defineTool('fix_recipe', {
+  description: 'Repair broken RecipeKit recipe steps based on test failures. Analyzes errors and evidence to generate patches or rewrites.',
+  parameters: {
+    type: 'object',
+    properties: {
+      recipe: {
+        type: 'object',
+        description: 'Current recipe JSON that needs fixing'
+      },
+      step_type: {
+        type: 'string',
+        enum: ['autocomplete_steps', 'url_steps'],
+        description: 'Which steps failed'
+      },
+      test_error: {
+        type: 'string',
+        description: 'Test failure output/assertion errors'
+      },
+      engine_error: {
+        type: 'string',
+        description: 'Engine error if any (selector not found, timeout, etc.)'
+      },
+      evidence: {
+        type: 'object',
+        description: 'Fresh evidence from re-probing the page'
+      }
+    },
+    required: ['recipe', 'step_type', 'evidence']
+  },
+  handler: async (args, invocation) => {
+    return {
+      tool: 'fix_recipe',
+      recipe: args.recipe,
+      step_type: args.step_type,
+      test_error: args.test_error || '',
+      engine_error: args.engine_error || '',
+      evidence: args.evidence
+    };
+  }
+});
+
+// Array of all tools to register with the session
+const COPILOT_TOOLS = [
+  generateUrlStepsTool,
+  generateAutocompleteStepsTool,
+  fixRecipeTool
+];
 
 class Logger {
   constructor(debug = false) {
@@ -371,6 +496,19 @@ class EvidenceCollector {
           searchEvidence.api = apiDiscovery;
           searchEvidence.search_type = 'api';
           this.logger.success(`Discovered autocomplete API: ${apiDiscovery.url_pattern}`);
+        }
+      }
+
+      // CRITICAL: Analyze DOM structure to find consecutive parent for loop selectors
+      // This helps the LLM generate correct :nth-child($i) patterns
+      if (searchEvidence.result_count > 0) {
+        const domStructure = await this.findConsecutiveParent(page, searchEvidence.result_container);
+        searchEvidence.dom_structure = domStructure;
+        
+        if (domStructure.found) {
+          this.logger.info(`Found consecutive parent: ${domStructure.loopBase}`);
+        } else {
+          this.logger.warn('Could not identify consecutive parent for loop selectors');
         }
       }
 
@@ -985,6 +1123,151 @@ class EvidenceCollector {
     });
   }
 
+  /**
+   * Analyze DOM structure to find consecutive parent container for loop selectors
+   * This is critical for generating working :nth-child($i) patterns
+   */
+  async findConsecutiveParent(page, containerHint = null) {
+    return await page.evaluate((hint) => {
+      // Common container patterns to try
+      const containerSelectors = hint ? [hint] : [
+        '.product-grid', '.products', '.search-results', '.results',
+        '.tiles-region', '.items', '.listing',
+        '[class*="grid"]', '[class*="list"]', '[class*="results"]',
+        'main ul', 'main ol', '.content ul'
+      ];
+      
+      // Find the best container with consecutive children
+      for (const sel of containerSelectors) {
+        const container = document.querySelector(sel);
+        if (!container || container.children.length < 3) continue;
+        
+        // Analyze children to find consecutive pattern
+        const children = Array.from(container.children);
+        const childPatterns = {};
+        
+        for (let i = 0; i < children.length; i++) {
+          const child = children[i];
+          const tag = child.tagName.toLowerCase();
+          const firstClass = child.classList[0] || '';
+          const pattern = firstClass ? `${tag}.${firstClass}` : tag;
+          
+          if (!childPatterns[pattern]) {
+            childPatterns[pattern] = { count: 0, indices: [], hasContent: false };
+          }
+          childPatterns[pattern].count++;
+          childPatterns[pattern].indices.push(i + 1); // 1-indexed for nth-child
+          
+          // Check if this child has meaningful content (links, images)
+          if (child.querySelector('a[href]') || child.querySelector('img')) {
+            childPatterns[pattern].hasContent = true;
+          }
+        }
+        
+        // Find the pattern that appears most frequently AND has content
+        let bestPattern = null;
+        let bestCount = 0;
+        
+        for (const [pattern, info] of Object.entries(childPatterns)) {
+          if (info.count >= 3 && info.hasContent && info.count > bestCount) {
+            // Check if indices are consecutive
+            const isConsecutive = info.indices.length > 1 && 
+              info.indices.every((idx, i) => i === 0 || idx === info.indices[i - 1] + 1);
+            
+            if (isConsecutive || info.count === children.length) {
+              bestPattern = pattern;
+              bestCount = info.count;
+            }
+          }
+        }
+        
+        if (bestPattern) {
+          // Get the first matching child to analyze its structure
+          const sampleChild = children.find(c => {
+            const tag = c.tagName.toLowerCase();
+            const cls = c.classList[0] || '';
+            return (cls ? `${tag}.${cls}` : tag) === bestPattern;
+          });
+          
+          // Find selectors for common fields within the child
+          const fieldSelectors = {};
+          if (sampleChild) {
+            // Title
+            const titleEl = sampleChild.querySelector('h1, h2, h3, h4, a[class*="title"], [class*="title"], [class*="name"]');
+            if (titleEl) {
+              const tag = titleEl.tagName.toLowerCase();
+              const cls = titleEl.classList[0];
+              fieldSelectors.title = cls ? `${tag}.${cls}` : tag;
+            }
+            
+            // URL
+            const linkEl = sampleChild.querySelector('a[href]');
+            if (linkEl) {
+              fieldSelectors.url = 'a';
+              fieldSelectors.url_attr = 'href';
+            }
+            
+            // Image
+            const imgEl = sampleChild.querySelector('img[src], img[data-src]');
+            if (imgEl) {
+              const cls = imgEl.classList[0];
+              fieldSelectors.cover = cls ? `img.${cls}` : 'img';
+              fieldSelectors.cover_attr = imgEl.src ? 'src' : 'data-src';
+            }
+            
+            // Price/subtitle
+            const priceEl = sampleChild.querySelector('[class*="price"], [class*="sales"], .value, [class*="subtitle"]');
+            if (priceEl) {
+              const tag = priceEl.tagName.toLowerCase();
+              const cls = priceEl.classList[0];
+              fieldSelectors.subtitle = cls ? `${tag}.${cls}` : tag;
+            }
+          }
+          
+          return {
+            found: true,
+            container: sel,
+            consecutiveChild: bestPattern,
+            childCount: bestCount,
+            loopBase: `${sel} > ${bestPattern}:nth-child($i)`,
+            fieldSelectors,
+            recommendation: `Use "${sel} > ${bestPattern}:nth-child($i)" as the base for all loop selectors`
+          };
+        }
+      }
+      
+      return {
+        found: false,
+        recommendation: 'Could not find consecutive parent. Manual analysis needed.'
+      };
+    }, containerHint);
+  }
+
+  /**
+   * Validate that a loop selector pattern works (finds multiple items)
+   */
+  async validateLoopSelector(page, selectorPattern, expectedCount = 5) {
+    const results = [];
+    
+    for (let i = 1; i <= expectedCount; i++) {
+      const sel = selectorPattern.replace(/\$i/g, String(i));
+      const found = await page.$(sel);
+      const text = found ? await page.evaluate(el => el.textContent?.trim().slice(0, 50), found) : null;
+      results.push({ index: i, found: !!found, text });
+    }
+    
+    const foundCount = results.filter(r => r.found).length;
+    
+    return {
+      pattern: selectorPattern,
+      testedCount: expectedCount,
+      foundCount,
+      successRate: foundCount / expectedCount,
+      isValid: foundCount >= 3, // At least 3 must work
+      results
+    };
+  }
+
   async analyzeAutocompleteDropdown(page) {
     return await page.evaluate(() => {
       // Find autocomplete/suggestion items
@@ -1447,8 +1730,20 @@ class CopilotAgent {
     this.logger.step(`Initializing Copilot SDK with model: ${this.model}...`);
     this.client = new CopilotClient();
     await this.client.start();
-    this.session = await this.client.createSession({ model: this.model });
-    this.logger.success(`Copilot SDK initialized with ${this.model}`);
+    
+    // Create session with tools registered
+    this.session = await this.client.createSession({ 
+      model: this.model,
+      streaming: true,
+      tools: COPILOT_TOOLS
+    });
+    
+    // Set up event listener for usage tracking
+    this.session.on((event) => {
+      this.trackUsage(event);
+    });
+    
+    this.logger.success(`Copilot SDK initialized with ${this.model} and ${COPILOT_TOOLS.length} tools`);
   }
 
   // Track usage from session events
@@ -1491,30 +1786,17 @@ class CopilotAgent {
     return await readFile(path, 'utf-8');
   }
 
-  async sendPrompt(promptName, context, useSession = null) {
-    if (!this.session) {
-      throw new Error('Copilot SDK not initialized');
-    }
-
-    const targetSession = useSession || this.session;
-    const systemPrompt = await this.loadPrompt(promptName);
+  /**
+   * Build a comprehensive prompt with instructions and context
+   */
+  buildPrompt(systemPrompt, context, includeReferences = true) {
+    let prompt = '';
     
-    // Load reference documentation for context
-    let engineReference = '';
-    let debugStrategy = '';
-    try {
-      engineReference = await this.loadPrompt('engine-reference');
-    } catch (e) {
-      // Engine reference is optional
-    }
-    try {
-      debugStrategy = await this.loadPrompt('debug-strategy');
-    } catch (e) {
-      // Debug strategy is optional
+    if (includeReferences && this.engineReference) {
+      prompt += `## RecipeKit Engine Reference\n\n${this.engineReference}\n\n---\n\n`;
     }
     
-    // Build a comprehensive prompt with full documentation
-    const fullPrompt = `${engineReference ? `## RecipeKit Engine Reference\n\n${engineReference}\n\n---\n\n` : ''}${debugStrategy ? `## Debugging Strategy Reference\n\n${debugStrategy}\n\n---\n\n` : ''}${systemPrompt}
+    prompt += `${systemPrompt}
 
 ## Context
 
@@ -1532,75 +1814,17 @@ Before outputting JSON:
 
 Output ONLY valid JSON. No explanations before or after.`;
     
-    this.logger.log(`Sending prompt: ${promptName}`);
-    
-    // Collect response content and wait for completion
-    let responseContent = '';
-    let eventCount = 0;
-    
-    // Set up event listener and completion promise BEFORE sending
-    const done = new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        reject(new Error('Copilot response timeout after 120 seconds'));
-      }, 120000);
-      
-      const unsubscribe = targetSession.on((event) => {
-        eventCount++;
-        // Track usage stats
-        this.trackUsage(event);
-        
-        // Log events in debug mode
-        if (this.debugMode) {
-          this.logger.log(`Event ${eventCount}: type=${event.type}`);
-        }
-        
-        // Handle streaming message chunks
-        if (event.type === 'assistant.message_delta' && event.data?.deltaContent) {
-          responseContent += event.data.deltaContent;
-        }
-        // Handle final message
-        if (event.type === 'assistant.message' && event.data?.content) {
-          responseContent = event.data.content; // Final message replaces accumulated content
-        }
-        // Handle legacy content field
-        if (event.type === 'assistant.message_delta' && event.data?.content) {
-          responseContent += event.data.content;
-        }
-        // Session finished processing
-        if (event.type === 'session.idle') {
-          clearTimeout(timeout);
-          unsubscribe();
-          resolve();
-        }
-        // Handle errors
-        if (event.type === 'error') {
-          clearTimeout(timeout);
-          unsubscribe();
-          reject(new Error(event.data?.message || 'Unknown Copilot error'));
-        }
-      });
-    });
-    
-    // Send the message
-    const messageId = await targetSession.send({ prompt: fullPrompt });
-    this.logger.log(`Message sent: ${messageId}, waiting for response...`);
-    
-    // Wait for completion
-    await done;
-    this.logger.log(`Response complete, received ${eventCount} events`);
-    
-    // Debug: log what we got back
+    return prompt;
+  }
+
+  /**
+   * Extract JSON from response content (handles markdown code blocks)
+   */
+  extractJSON(responseContent) {
     if (!responseContent) {
-      this.logger.error('Copilot returned empty response');
-    } else {
-      this.logger.log(`Response length: ${responseContent.length} chars`);
-      this.logger.log(`Response preview: ${responseContent.slice(0, 500).replace(/\n/g, '\\n')}...`);
+      throw new Error('Empty response from Copilot');
     }
-    
-    // Track this request
-    this.trackRequest();
-    
-    // Try to extract JSON from the response
+
     const jsonMatch = responseContent.match(/```json\n?([\s\S]*?)\n?```/) || 
                       responseContent.match(/```\n?([\s\S]*?)\n?```/) ||
                       responseContent.match(/(\{[\s\S]*\})/);
@@ -1617,6 +1841,92 @@ Output ONLY valid JSON. No explanations before or after.`;
     }
     
     throw new Error(`No JSON found in Copilot response. Response was: ${responseContent.slice(0, 200) || '(empty)'}`);
+  }
+
+  /**
+   * Send prompt and wait for response using sendAndWait()
+   * This is the new simplified method using the SDK properly
+   */
+  async sendPromptAndWait(promptName, context) {
+    if (!this.session) {
+      throw new Error('Copilot SDK not initialized');
+    }
+
+    // Load prompts on first use
+    if (!this.engineReference) {
+      try {
+        this.engineReference = await this.loadPrompt('engine-reference');
+      } catch (e) {
+        this.engineReference = '';
+      }
+    }
+
+    const systemPrompt = await this.loadPrompt(promptName);
+    const fullPrompt = this.buildPrompt(systemPrompt, context);
+    
+    this.logger.log(`Sending prompt: ${promptName}`);
+    this.trackRequest();
+    
+    // Use sendAndWait with 180 second timeout (LLM can be slow for complex prompts)
+    const response = await this.session.sendAndWait({ prompt: fullPrompt }, 180000);
+    
+    if (!response?.data?.content) {
+      throw new Error('Copilot returned empty response');
+    }
+    
+    this.logger.log(`Response length: ${response.data.content.length} chars`);
+    
+    return this.extractJSON(response.data.content);
+  }
+
+  // Keep old sendPrompt for backward compatibility during transition
+  async sendPrompt(promptName, context, useSession = null) {
+    // Delegate to new method for main session
+    if (!useSession || useSession === this.session) {
+      return await this.sendPromptAndWait(promptName, context);
+    }
+    
+    // For repair session, use the old approach with manual event handling
+    const targetSession = useSession;
+    const systemPrompt = await this.loadPrompt(promptName);
+    const fullPrompt = this.buildPrompt(systemPrompt, context);
+    
+    this.logger.log(`Sending prompt to repair session: ${promptName}`);
+    
+    let responseContent = '';
+    
+    const done = new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('Copilot response timeout after 120 seconds'));
+      }, 120000);
+      
+      const unsubscribe = targetSession.on((event) => {
+        this.trackUsage(event);
+        
+        if (event.type === 'assistant.message_delta' && event.data?.deltaContent) {
+          responseContent += event.data.deltaContent;
+        }
+        if (event.type === 'assistant.message' && event.data?.content) {
+          responseContent = event.data.content;
+        }
+        if (event.type === 'session.idle') {
+          clearTimeout(timeout);
+          unsubscribe();
+          resolve();
+        }
+        if (event.type === 'error') {
+          clearTimeout(timeout);
+          unsubscribe();
+          reject(new Error(event.data?.message || 'Unknown Copilot error'));
+        }
+      });
+    });
+    
+    await targetSession.send({ prompt: fullPrompt });
+    await done;
+    
+    this.trackRequest();
+    return this.extractJSON(responseContent);
   }
 
   /**
@@ -1680,89 +1990,79 @@ Output ONLY valid JSON. No explanations before or after.`;
     }
   }
 
-  async classify(evidence) {
-    return await this.sendPrompt('classify', { evidence });
-  }
+  // REMOVED: classify() - no longer needed, all recipes go to /generated
 
+  /**
+   * Generate URL extraction steps using sendAndWait
+   */
   async authorUrl(evidence, requiredFields) {
-    const result = await this.sendPrompt('author-url', { evidence, required_fields: requiredFields });
+    this.logger.step('Generating url_steps...');
+    
+    const result = await this.sendPromptAndWait('author-url', { 
+      evidence, 
+      required_fields: requiredFields 
+    });
     
     // Validate that Copilot returned actual url_steps
     if (!result?.url_steps || !Array.isArray(result.url_steps) || result.url_steps.length === 0) {
       throw new Error('Copilot returned invalid url_steps');
     }
     
+    this.logger.success(`Generated ${result.url_steps.length} url_steps`);
     return result;
   }
 
+  /**
+   * Generate autocomplete extraction steps using sendAndWait
+   */
   async authorAutocomplete(evidence, query, expected) {
-    const result = await this.sendPrompt('author-autocomplete', { evidence, query, expected });
+    this.logger.step('Generating autocomplete_steps...');
+    
+    const result = await this.sendPromptAndWait('author-autocomplete', { 
+      evidence, 
+      query, 
+      expected 
+    });
     
     // Validate that Copilot returned actual autocomplete_steps
     if (!result?.autocomplete_steps || !Array.isArray(result.autocomplete_steps) || result.autocomplete_steps.length === 0) {
       throw new Error('Copilot returned invalid autocomplete_steps');
     }
     
+    this.logger.success(`Generated ${result.autocomplete_steps.length} autocomplete_steps`);
     return result;
   }
 
   /**
    * Start a fix session - sends initial context and first error to repair session
+   * Uses sendAndWait for cleaner handling
    */
   async startFix(recipe, stepType, testError, engineError, evidence) {
+    this.logger.step('Starting fix session...');
+    
     try {
       await this.startRepairSession();
       
       const systemPrompt = await this.loadPrompt('fixer');
-      const initialContext = `${systemPrompt}
-
-## Initial Context
-
-### Recipe (current state)
-\`\`\`json
-${JSON.stringify(recipe, null, 2)}
-\`\`\`
-
-### Step Type Being Fixed
-\`${stepType}\`
-
-### Evidence from Page
-\`\`\`json
-${JSON.stringify(evidence, null, 2)}
-\`\`\`
-
-### Test Error Output
-\`\`\`
-${testError || 'No test output'}
-\`\`\`
-
-### Engine Error (if any)
-\`\`\`
-${engineError || 'Engine ran successfully'}
-\`\`\`
-
-Please analyze the errors and provide a fix. Remember to output only valid JSON.`;
-
-      this.logger.log('Starting fix session with initial context...');
+      const context = {
+        recipe,
+        step_type: stepType,
+        test_error: testError || 'No test output',
+        engine_error: engineError || 'Engine ran successfully',
+        evidence
+      };
       
-      const messageId = await this.repairSession.send({ prompt: initialContext });
-      const messages = await this.repairSession.getMessages();
+      const fullPrompt = this.buildPrompt(systemPrompt, context);
       
-      let responseContent = '';
-      for (const msg of messages) {
-        if (msg.type === 'assistant.message' && msg.data?.content) {
-          responseContent = msg.data.content;
-        }
+      // Use sendAndWait on repair session with 180s timeout
+      const response = await this.repairSession.sendAndWait({ prompt: fullPrompt }, 180000);
+      
+      if (!response?.data?.content) {
+        throw new Error('Empty response from fixer');
       }
       
-      const jsonMatch = responseContent.match(/```json\n?([\s\S]*?)\n?```/) || 
-                        responseContent.match(/\{[\s\S]*\}/);
-      
-      if (jsonMatch) {
-        return JSON.parse(jsonMatch[1] || jsonMatch[0]);
-      }
-      
-      throw new Error('No JSON found in Copilot response');
+      this.trackRequest();
+      return this.extractJSON(response.data.content);
     } catch (e) {
       throw new Error(`Fixer failed: ${e.message}`);
     }
@@ -1776,6 +2076,8 @@ Please analyze the errors and provide a fix. Remember to output only valid JSON.
     if (!this.repairSession) {
       throw new Error('No active repair session');
     }
+
+    this.logger.step(`Fix iteration ${iteration}...`);
 
     const followUp = `## Iteration ${iteration} - Still Failing
 
@@ -1804,7 +2106,15 @@ Please try a different approach. Consider:
 
 Provide another fix as JSON only.`;
 
-    return await this.sendRepairFollowUp(followUp);
+    // Use 180s timeout for repair responses
+    const response = await this.repairSession.sendAndWait({ prompt: followUp }, 180000);
+    
+    if (!response?.data?.content) {
+      throw new Error('Empty response from fixer');
+    }
+    
+    this.trackRequest();
+    return this.extractJSON(response.data.content);
   }
 }
 
@@ -2504,20 +2814,14 @@ class AutoRecipe {
       await this.evidence.initialize();
       await this.copilot.initialize();
 
-      // Phase 1: Probe and classify
+      // Phase 1: Probe the website (no classification needed)
       const siteEvidence = await this.evidence.probe(this.url);
       this.logger.log(JSON.stringify(siteEvidence, null, 2));
 
-      const classification = await this.copilot.classify(siteEvidence);
-      this.logger.info(`Classified as: ${classification.list_type} (confidence: ${classification.confidence})`);
-
-      if (!ALLOWED_LIST_TYPES.includes(classification.list_type)) {
-        throw new Error(`Invalid list_type: ${classification.list_type}`);
-      }
-
-      const domain = siteEvidence.hostname.replace(/\./g, '');
-      const recipePath = join(REPO_ROOT, classification.list_type, `${domain}.json`);
-      const testPath = join(REPO_ROOT, classification.list_type, `${domain}.autorecipe.test.js`);
+      // All generated recipes go to /generated folder with hostname-based naming
+      const domain = siteEvidence.hostname.replace(/\./g, '_');
+      const recipePath = join(GENERATED_DIR, `${domain}.json`);
+      const testPath = join(GENERATED_DIR, `${domain}.autorecipe.test.js`);
 
       // Check for existing files
       if (!this.force) {
@@ -2540,14 +2844,14 @@ class AutoRecipe {
             // Find a unique suffix
             let suffix = 2;
             let newDomain = `${domain}_${suffix}`;
-            let newRecipePath = join(REPO_ROOT, classification.list_type, `${newDomain}.json`);
+            let newRecipePath = join(GENERATED_DIR, `${newDomain}.json`);
             
             while (true) {
               try {
                 await access(newRecipePath);
                 suffix++;
                 newDomain = `${domain}_${suffix}`;
-                newRecipePath = join(REPO_ROOT, classification.list_type, `${newDomain}.json`);
+                newRecipePath = join(GENERATED_DIR, `${newDomain}.json`);
               } catch (e) {
                 if (e.code === 'ENOENT') break;
                 throw e;
@@ -2559,10 +2863,9 @@ class AutoRecipe {
             this.logger.info(`Creating new recipe as: ${newDomain}.json`);
             return await this.runWithPaths(
               siteEvidence,
-              classification,
               newDomain,
               newRecipePath,
-              join(REPO_ROOT, classification.list_type, `${newDomain}.autorecipe.test.js`)
+              join(GENERATED_DIR, `${newDomain}.autorecipe.test.js`)
             );
           } else {
             this.logger.info('Cancelled.');
@@ -2572,7 +2875,7 @@ class AutoRecipe {
       }
 
       // Continue with recipe generation using determined paths
-      const result = await this.runWithPaths(siteEvidence, classification, domain, recipePath, testPath);
+      const result = await this.runWithPaths(siteEvidence, domain, recipePath, testPath);
       
       // Add usage stats to result
       result.usage = this.copilot.getUsage();
@@ -2586,8 +2889,13 @@ class AutoRecipe {
 
   /**
    * Run the recipe generation with specific paths (called by run() after path resolution)
+   * No classification needed - all recipes use 'generic' list_type in /generated
    */
-  async runWithPaths(siteEvidence, classification, domain, recipePath, testPath) {
+  async runWithPaths(siteEvidence, domain, recipePath, testPath) {
+    // Use 'generic' as default list_type for all generated recipes
+    const listType = 'generic';
+    const recipeShortcut = domain;
+    
     // Phase 2: Autocomplete generation
     this.logger.info('Phase 2: Generating autocomplete_steps...');
     
@@ -2615,25 +2923,8 @@ class AutoRecipe {
       searchUrl = `${baseUrl}/search?q=$INPUT`;
     }
 
-    // Pick a test query based on list_type
-    const testQueries = {
-      movies: 'Matrix',
-      tv_shows: 'Friends',
-      books: 'Harry Potter',
-      anime: 'Death Note',
-      manga: 'One Piece',
-      beers: 'IPA',
-      wines: 'Merlot',
-      albums: 'Abbey Road',
-      songs: 'Bohemian Rhapsody',
-      videogames: 'Zelda',
-      software: 'Calculator',
-      podcasts: 'Serial',
-      boardgames: 'Catan',
-      recipes: 'Pasta',
-      generic: 'test'
-    };
-    const testQuery = testQueries[classification.list_type] || 'test';
+    // Use a generic test query for all sites
+    const testQuery = 'test';
 
     // Probe search results
     const searchEvidence = await this.evidence.probeSearchResults(searchUrl, testQuery);
@@ -2660,11 +2951,31 @@ class AutoRecipe {
       autocompleteResult.autocomplete_steps[0].url = searchEvidence.discovered_search_url;
     }
 
+    // VALIDATION: Check if the generated loop selectors actually work
+    // If dom_structure was found, validate that the LLM used the correct pattern
+    if (searchEvidence.dom_structure?.found) {
+      const expectedBase = searchEvidence.dom_structure.loopBase;
+      const titleStep = autocompleteResult.autocomplete_steps?.find(s => s.output?.name?.startsWith('TITLE'));
+      
+      if (titleStep?.locator && !titleStep.locator.includes(searchEvidence.dom_structure.consecutiveChild)) {
+        this.logger.warn(`LLM may have used wrong selector pattern. Expected to include: ${searchEvidence.dom_structure.consecutiveChild}`);
+        this.logger.warn(`Got: ${titleStep.locator}`);
+        this.logger.info(`Suggested base: ${expectedBase}`);
+        
+        // Include this info in the repair loop context
+        autocompleteResult._selectorWarning = {
+          expected: expectedBase,
+          got: titleStep.locator,
+          fieldSelectors: searchEvidence.dom_structure.fieldSelectors
+        };
+      }
+    }
+
     // Build initial recipe
     let recipe = this.builder.buildSkeleton(
       siteEvidence.hostname,
-      classification.list_type,
-      classification.suggested_recipe_shortcut,
+      listType,
+      recipeShortcut,
       autocompleteResult.autocomplete_steps
     );
 
@@ -2720,7 +3031,7 @@ class AutoRecipe {
       this.logger.info('Phase 4: Generating test file (for debugging)...');
       const testContent = this.testGen.generate(
         recipePath,
-        classification.list_type,
+        listType,
         domain,
         testQuery,
         { TITLE: 'Test', SUBTITLE: '' },
@@ -2752,7 +3063,7 @@ class AutoRecipe {
     
     const urlResult = await this.copilot.authorUrl(
       detailEvidence,
-      this.getRequiredFields(classification.list_type)
+      this.getRequiredFields(listType)
     );
 
     recipe.url_steps = urlResult.url_steps;
@@ -2782,7 +3093,7 @@ class AutoRecipe {
     this.logger.info('Phase 4: Generating test file...');
     const testContent = this.testGen.generate(
       recipePath,
-      classification.list_type,
+      listType,
       domain,
       testQuery,
       { TITLE: stableResult.TITLE, SUBTITLE: stableResult.SUBTITLE },

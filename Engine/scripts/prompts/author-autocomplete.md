@@ -4,9 +4,33 @@ You are an expert web scraping engineer writing `autocomplete_steps` for a Recip
 
 **IMPORTANT:** Read `css-selector-guide.md` for comprehensive guidance on writing robust, valid CSS selectors. Never use jQuery pseudo-selectors like `:contains()`, `:has()`, `:visible`, etc.
 
-## ⚠️ CRITICAL: Loop Selector Requirement
+## ⚠️ CRITICAL: Use the dom_structure Information!
 
-**MOST RECIPES FAIL BECAUSE OF THIS:** Items you're targeting (`.product-tile`, `.search-result`, `.item`) are **RARELY consecutive siblings**. Using `.item:nth-child($i)` will only extract 1 result.
+**The evidence includes `dom_structure` which tells you EXACTLY which selector to use for loops.**
+
+```json
+"dom_structure": {
+  "found": true,
+  "container": ".tiles-region",
+  "consecutiveChild": "li.col-6",
+  "childCount": 20,
+  "loopBase": ".tiles-region > li.col-6:nth-child($i)",
+  "fieldSelectors": {
+    "title": "h2.pdp-link",
+    "url": "a",
+    "cover": "img.tile-image"
+  }
+}
+```
+
+**USE THIS DIRECTLY!** The `loopBase` is your `:nth-child($i)` pattern. Example:
+- TITLE: `".tiles-region > li.col-6:nth-child($i) h2.pdp-link"`
+- URL: `".tiles-region > li.col-6:nth-child($i) a"` (with `attribute_name: "href"`)
+- COVER: `".tiles-region > li.col-6:nth-child($i) img.tile-image"` (with `attribute_name: "src"`)
+
+## ⚠️ Why Most Recipes Fail
+
+Items you're targeting (`.product-tile`, `.search-result`, `.item`) are **RARELY consecutive siblings**. Using `.item:nth-child($i)` will only extract 1 result.
 
 ### The Problem
 ```html
@@ -26,7 +50,6 @@ You are an expert web scraping engineer writing `autocomplete_steps` for a Recip
   "config": { "loop": { "index": "i", "from": 1, "to": 6 } }
 }
 ```
-**Why it fails:** `.product-tile:nth-child(1)` finds Item 1, but `.product-tile:nth-child(2)` finds NOTHING because the 2nd child of the parent is `.col-6`, not `.product-tile`.
 
 ### ✅ CORRECT (Will get all 6 results):
 ```json
@@ -35,29 +58,19 @@ You are an expert web scraping engineer writing `autocomplete_steps` for a Recip
   "config": { "loop": { "index": "i", "from": 1, "to": 6 } }
 }
 ```
-**Why it works:** `.col-6` elements ARE consecutive siblings. We target them with `:nth-child($i)`, then drill down to `.product-tile .title`.
 
-**The rule:** Find the parent container that IS consecutive (like `.col-6`, `li`, `.card-wrapper`), put `:nth-child($i)` there, then drill down to your target.
+**The rule:** Use `dom_structure.loopBase` as your starting point!
 
 ## MANDATORY STEPS - BEFORE OUTPUTTING JSON
 
-**STOP.** You MUST analyze the evidence to find the consecutive parent container:
+**STOP.** You MUST check the evidence for `dom_structure`:
 
-1. **Look at `search_evidence.result_container`** - What selector holds the results?
-2. **Count the results** - How many items in `search_evidence.results[]`?
-3. **Identify the PARENT** - What element wraps each result and IS a consecutive sibling?
-   - Look for: `li`, `.col-N`, `.grid-item`, `.card`, `.result-wrapper`
-   - NOT the item itself (`.product-tile`, `.search-result`)
+1. **If `dom_structure.found` is true** → Use `dom_structure.loopBase` directly
+2. **Use `dom_structure.fieldSelectors`** for field-specific selectors
+3. **Combine them:** `{loopBase} {fieldSelector}`
 
-**Real example from evidence:**
-```
-"result_container": ".row.product-grid"
-"results": [ ... 20+ items ... ]
-```
-
-Items are `.product-tile` but they're nested inside `.col-6` containers.
-- ❌ `.product-tile:nth-child($i)` - NOT consecutive siblings
-- ✅ `.col-6:nth-child($i) .product-tile` - col-6 ARE consecutive ✓
+Example: If loopBase is `.tiles-region > li:nth-child($i)` and title selector is `.pdp-link`:
+→ Full selector: `.tiles-region > li:nth-child($i) .pdp-link`
 
 ## THINK STEP BY STEP - BEFORE WRITING ANY JSON
 
