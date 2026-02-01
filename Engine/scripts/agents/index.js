@@ -2,7 +2,7 @@
  * Agents module - Specialized Copilot agents for RecipeKit
  * 
  * Usage:
- *   import { AgentOrchestrator, ClassifyAgent, AuthorAgent, FixerAgent, DiscoveryAgent, MODELS } from './agents/index.js';
+ *   import { AgentOrchestrator, ClassifyAgent, AuthorAgent, FixerAgent, DiscoveryAgent, QueryTestAgent, MODELS } from './agents/index.js';
  *   
  *   const orchestrator = new AgentOrchestrator(logger, debugMode);
  *   await orchestrator.initialize();
@@ -18,3 +18,4 @@ export { ClassifyAgent } from './ClassifyAgent.js';
 export { AuthorAgent } from './AuthorAgent.js';
 export { FixerAgent } from './FixerAgent.js';
 export { DiscoveryAgent } from './DiscoveryAgent.js';
+export { QueryTestAgent } from './QueryTestAgent.js';

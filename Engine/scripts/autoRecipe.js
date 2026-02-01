@@ -37,6 +37,7 @@ import {
   AuthorAgent, 
   FixerAgent, 
   DiscoveryAgent,
+  QueryTestAgent,
   MODELS 
 } from './agents/index.js';
 
@@ -88,120 +89,6 @@ async function loadPromptFile(name) {
   const path = join(PROMPTS_DIR, `${name}.md`);
   return await readFile(path, 'utf-8');
 }
-
-/**
- * Tool Definitions for Copilot SDK
- * These tools are registered with the session and can be called by Copilot
- */
-
-// Tool: Generate URL extraction steps for detail pages
-const generateUrlStepsTool = defineTool('generate_url_steps', {
-  description: 'Generate url_steps for extracting data from a detail page. Analyzes page evidence and creates RecipeKit extraction steps.',
-  parameters: {
-    type: 'object',
-    properties: {
-      evidence: {
-        type: 'object',
-        description: 'Page evidence from probing the detail page (includes HTML structure, meta tags, JSON-LD, etc.)'
-      },
-      required_fields: {
-        type: 'array',
-        items: { type: 'string' },
-        description: 'Fields to extract (e.g., TITLE, DESCRIPTION, COVER, RATING)'
-      }
-    },
-    required: ['evidence', 'required_fields']
-  },
-  handler: async (args, invocation) => {
-    // Tool handler - returns the generated steps
-    // The actual generation happens via sendAndWait in the CopilotAgent
-    return {
-      tool: 'generate_url_steps',
-      evidence: args.evidence,
-      required_fields: args.required_fields
-    };
-  }
-});
-
-// Tool: Generate autocomplete/search extraction steps
-const generateAutocompleteStepsTool = defineTool('generate_autocomplete_steps', {
-  description: 'Generate autocomplete_steps for extracting search results from a website. Creates looped extraction steps for multiple results.',
-  parameters: {
-    type: 'object',
-    properties: {
-      evidence: {
-        type: 'object',
-        description: 'Search page evidence including result_container, results array with selectors'
-      },
-      query: {
-        type: 'string',
-        description: 'The search query that was used to test'
-      },
-      expected_count: {
-        type: 'number',
-        description: 'Expected number of results to extract (default: 5)'
-      }
-    },
-    required: ['evidence']
-  },
-  handler: async (args, invocation) => {
-    return {
-      tool: 'generate_autocomplete_steps',
-      evidence: args.evidence,
-      query: args.query || '',
-      expected_count: args.expected_count || 5
-    };
-  }
-});
-
-// Tool: Fix broken recipe steps
-const fixRecipeTool = defineTool('fix_recipe', {
-  description: 'Repair broken RecipeKit recipe steps based on test failures. Analyzes errors and evidence to generate patches or rewrites.',
-  parameters: {
-    type: 'object',
-    properties: {
-      recipe: {
-        type: 'object',
-        description: 'Current recipe JSON that needs fixing'
-      },
-      step_type: {
-        type: 'string',
-        enum: ['autocomplete_steps', 'url_steps'],
-        description: 'Which steps failed'
-      },
-      test_error: {
-        type: 'string',
-        description: 'Test failure output/assertion errors'
-      },
-      engine_error: {
-        type: 'string',
-        description: 'Engine error if any (selector not found, timeout, etc.)'
-      },
-      evidence: {
-        type: 'object',
-        description: 'Fresh evidence from re-probing the page'
-      }
-    },
-    required: ['recipe', 'step_type', 'evidence']
-  },
-  handler: async (args, invocation) => {
-    return {
-      tool: 'fix_recipe',
-      recipe: args.recipe,
-      step_type: args.step_type,
-      test_error: args.test_error || '',
-      engine_error: args.engine_error || '',
-      evidence: args.evidence
-    };
-  }
-});
-
-// Array of all tools to register with the session
-const COPILOT_TOOLS = [
-  generateUrlStepsTool,
-  generateAutocompleteStepsTool,
-  fixRecipeTool
-];
 
 class Logger {
   constructor(debug = false) {
@@ -507,7 +394,12 @@ class EvidenceCollector {
       // CRITICAL: Analyze DOM structure to find consecutive parent for loop selectors
       // This helps the LLM generate correct :nth-child($i) patterns
       if (searchEvidence.result_count > 0) {
-        const domStructure = await this.findConsecutiveParent(page, searchEvidence.result_container);
+        // Extract result links from analyzed items to pass to findConsecutiveParent
+        const resultLinks = searchEvidence.results
+          .map(r => r.link_href)
+          .filter(Boolean);
+        
+        const domStructure = await this.findConsecutiveParent(page, resultLinks);
         searchEvidence.dom_structure = domStructure;
         
         if (domStructure.found) {
@@ -1013,7 +905,7 @@ class EvidenceCollector {
           const [tag, className] = bestParent.split('.');
           const selector = className ? `${tag.toLowerCase()}.${className}` : tag.toLowerCase();
           resultItems = Array.from(document.querySelectorAll(selector)).slice(0, 10);
-          resultContainer = selector + ' (inferred from link parent patterns)';
+          resultContainer = selector; // Store clean selector without comments
         }
       }
 
@@ -1129,123 +1021,214 @@ class EvidenceCollector {
   }
 
   /**
-   * Analyze DOM structure to find consecutive parent container for loop selectors
-   * This is critical for generating working :nth-child($i) patterns
+   * Analyze DOM structure to find consecutive parent container for loop selectors.
+   * This works by finding result links and tracing back to their common ancestor.
+   * No hardcoded class names - purely dynamic analysis based on page content.
    */
-  async findConsecutiveParent(page, containerHint = null) {
-    return await page.evaluate((hint) => {
-      // Common container patterns to try
-      const containerSelectors = hint ? [hint] : [
-        '.product-grid', '.products', '.search-results', '.results',
-        '.tiles-region', '.items', '.listing',
-        '[class*="grid"]', '[class*="list"]', '[class*="results"]',
-        'main ul', 'main ol', '.content ul'
-      ];
+  async findConsecutiveParent(page, resultLinks = []) {
+    return await page.evaluate((links) => {
+      // Helper: get a minimal unique selector for an element
+      function getSelector(el) {
+        if (!el || el === document.body) return null;
+        const tag = el.tagName.toLowerCase();
+        if (el.id) return `#${el.id}`;
+        const classes = Array.from(el.classList).filter(c => !c.match(/\d{4,}/)); // skip hash classes
+        if (classes.length > 0) return `${tag}.${classes[0]}`;
+        return tag;
+      }
       
-      // Find the best container with consecutive children
-      for (const sel of containerSelectors) {
-        const container = document.querySelector(sel);
-        if (!container || container.children.length < 3) continue;
+      // Helper: get path from element to root as array of elements
+      function getAncestorPath(el) {
+        const path = [];
+        let current = el;
+        while (current && current !== document.body) {
+          path.push(current);
+          current = current.parentElement;
+        }
+        return path;
+      }
+      
+      // Helper: find index of element among siblings
+      function getSiblingIndex(el) {
+        if (!el.parentElement) return -1;
+        return Array.from(el.parentElement.children).indexOf(el) + 1; // 1-indexed
+      }
+      
+      // Step 1: Find actual result links on the page
+      // If links provided, use those; otherwise find links with similar URL patterns
+      let resultAnchors = [];
+      
+      if (links && links.length > 0) {
+        // Find anchors matching provided URLs
+        for (const href of links.slice(0, 10)) {
+          const anchor = document.querySelector(`a[href="${href}"], a[href$="${href.split('/').pop()}"]`);
+          if (anchor) resultAnchors.push(anchor);
+        }
+      }
+      
+      // Fallback: find groups of links with similar URL patterns (likely results)
+      if (resultAnchors.length < 3) {
+        const allLinks = Array.from(document.querySelectorAll('a[href]'));
+        const linksByPattern = {};
         
-        // Analyze children to find consecutive pattern
-        const children = Array.from(container.children);
-        const childPatterns = {};
-        
-        for (let i = 0; i < children.length; i++) {
-          const child = children[i];
-          const tag = child.tagName.toLowerCase();
-          const firstClass = child.classList[0] || '';
-          const pattern = firstClass ? `${tag}.${firstClass}` : tag;
+        for (const a of allLinks) {
+          const href = a.getAttribute('href') || '';
+          // Skip navigation/utility links
+          if (href.startsWith('#') || href.includes('login') || href.includes('cart') || 
+              href.includes('account') || href === '/' || href.length < 5) continue;
           
-          if (!childPatterns[pattern]) {
-            childPatterns[pattern] = { count: 0, indices: [], hasContent: false };
-          }
-          childPatterns[pattern].count++;
-          childPatterns[pattern].indices.push(i + 1); // 1-indexed for nth-child
+          // Group by URL structure (path depth and pattern)
+          const parts = href.replace(/^https?:\/\/[^/]+/, '').split('/').filter(Boolean);
+          if (parts.length < 1) continue;
           
-          // Check if this child has meaningful content (links, images)
-          if (child.querySelector('a[href]') || child.querySelector('img')) {
-            childPatterns[pattern].hasContent = true;
-          }
+          const pattern = parts.slice(0, -1).join('/') || 'root';
+          if (!linksByPattern[pattern]) linksByPattern[pattern] = [];
+          linksByPattern[pattern].push(a);
         }
         
-        // Find the pattern that appears most frequently AND has content
+        // Find the pattern with most links (likely results)
         let bestPattern = null;
         let bestCount = 0;
-        
-        for (const [pattern, info] of Object.entries(childPatterns)) {
-          if (info.count >= 3 && info.hasContent && info.count > bestCount) {
-            // Check if indices are consecutive
-            const isConsecutive = info.indices.length > 1 && 
-              info.indices.every((idx, i) => i === 0 || idx === info.indices[i - 1] + 1);
-            
-            if (isConsecutive || info.count === children.length) {
-              bestPattern = pattern;
-              bestCount = info.count;
-            }
+        for (const [pattern, anchors] of Object.entries(linksByPattern)) {
+          if (anchors.length > bestCount && anchors.length >= 3) {
+            bestPattern = pattern;
+            bestCount = anchors.length;
           }
         }
         
         if (bestPattern) {
-          // Get the first matching child to analyze its structure
-          const sampleChild = children.find(c => {
-            const tag = c.tagName.toLowerCase();
-            const cls = c.classList[0] || '';
-            return (cls ? `${tag}.${cls}` : tag) === bestPattern;
-          });
-          
-          // Find selectors for common fields within the child
-          const fieldSelectors = {};
-          if (sampleChild) {
-            // Title
-            const titleEl = sampleChild.querySelector('h1, h2, h3, h4, a[class*="title"], [class*="title"], [class*="name"]');
-            if (titleEl) {
-              const tag = titleEl.tagName.toLowerCase();
-              const cls = titleEl.classList[0];
-              fieldSelectors.title = cls ? `${tag}.${cls}` : tag;
-            }
-            
-            // URL
-            const linkEl = sampleChild.querySelector('a[href]');
-            if (linkEl) {
-              fieldSelectors.url = 'a';
-              fieldSelectors.url_attr = 'href';
-            }
-            
-            // Image
-            const imgEl = sampleChild.querySelector('img[src], img[data-src]');
-            if (imgEl) {
-              const cls = imgEl.classList[0];
-              fieldSelectors.cover = cls ? `img.${cls}` : 'img';
-              fieldSelectors.cover_attr = imgEl.src ? 'src' : 'data-src';
-            }
-            
-            // Price/subtitle
-            const priceEl = sampleChild.querySelector('[class*="price"], [class*="sales"], .value, [class*="subtitle"]');
-            if (priceEl) {
-              const tag = priceEl.tagName.toLowerCase();
-              const cls = priceEl.classList[0];
-              fieldSelectors.subtitle = cls ? `${tag}.${cls}` : tag;
-            }
-          }
-          
-          return {
-            found: true,
-            container: sel,
-            consecutiveChild: bestPattern,
-            childCount: bestCount,
-            loopBase: `${sel} > ${bestPattern}:nth-child($i)`,
-            fieldSelectors,
-            recommendation: `Use "${sel} > ${bestPattern}:nth-child($i)" as the base for all loop selectors`
-          };
+          resultAnchors = linksByPattern[bestPattern].slice(0, 10);
         }
       }
       
+      if (resultAnchors.length < 3) {
+        return {
+          found: false,
+          reason: 'Could not identify enough result links to analyze',
+          linksFound: resultAnchors.length
+        };
+      }
+      
+      // Step 2: Find the common ancestor of all result links
+      const paths = resultAnchors.map(a => getAncestorPath(a));
+      
+      // Find the deepest common ancestor
+      let commonAncestor = null;
+      const minPathLength = Math.min(...paths.map(p => p.length));
+      
+      for (let depth = 0; depth < minPathLength; depth++) {
+        const ancestorsAtDepth = paths.map(p => p[p.length - 1 - depth]);
+        const allSame = ancestorsAtDepth.every(a => a === ancestorsAtDepth[0]);
+        if (allSame) {
+          commonAncestor = ancestorsAtDepth[0];
+        } else {
+          break;
+        }
+      }
+      
+      if (!commonAncestor) {
+        return {
+          found: false,
+          reason: 'Result links have no common ancestor'
+        };
+      }
+      
+      // Step 3: Find the direct children of common ancestor that contain results
+      const resultContainers = [];
+      for (const anchor of resultAnchors) {
+        let current = anchor;
+        while (current.parentElement && current.parentElement !== commonAncestor) {
+          current = current.parentElement;
+        }
+        if (current.parentElement === commonAncestor && !resultContainers.includes(current)) {
+          resultContainers.push(current);
+        }
+      }
+      
+      // Step 4: Analyze the container structure
+      const containerSelector = getSelector(commonAncestor);
+      const allChildren = Array.from(commonAncestor.children);
+      
+      // Get indices of result containers
+      const resultIndices = resultContainers.map(c => getSiblingIndex(c));
+      
+      // Check if indices are consecutive
+      const sortedIndices = [...resultIndices].sort((a, b) => a - b);
+      const isConsecutive = sortedIndices.every((idx, i) => 
+        i === 0 || idx === sortedIndices[i - 1] + 1
+      );
+      
+      // Determine the child pattern (tag + optional class)
+      const childTags = resultContainers.map(c => c.tagName.toLowerCase());
+      const uniqueTags = [...new Set(childTags)];
+      
+      let childSelector;
+      if (uniqueTags.length === 1) {
+        // All same tag - check if they share a class
+        const sharedClasses = resultContainers.reduce((shared, el) => {
+          const classes = Array.from(el.classList).filter(c => !c.match(/\d{4,}/));
+          if (shared === null) return classes;
+          return shared.filter(c => classes.includes(c));
+        }, null) || [];
+        
+        childSelector = sharedClasses.length > 0 
+          ? `${uniqueTags[0]}.${sharedClasses[0]}`
+          : uniqueTags[0];
+      } else {
+        // Mixed tags - use :nth-child on container
+        childSelector = '*';
+      }
+      
+      // Step 5: Analyze a sample result container to find field selectors
+      const sampleContainer = resultContainers[0];
+      const fieldSelectors = {};
+      
+      // Find title (first heading or prominent text)
+      const titleEl = sampleContainer.querySelector('h1, h2, h3, h4, h5, h6') ||
+                      sampleContainer.querySelector('[class*="title" i], [class*="name" i]') ||
+                      sampleContainer.querySelector('a');
+      if (titleEl) {
+        fieldSelectors.title = getSelector(titleEl) || titleEl.tagName.toLowerCase();
+      }
+      
+      // Find URL (the result link)
+      const linkEl = sampleContainer.querySelector('a[href]');
+      if (linkEl) {
+        fieldSelectors.url = 'a';
+        fieldSelectors.url_attr = 'href';
+      }
+      
+      // Find image
+      const imgEl = sampleContainer.querySelector('img[src], img[data-src], img[data-lazy-src]');
+      if (imgEl) {
+        fieldSelectors.cover = getSelector(imgEl) || 'img';
+        fieldSelectors.cover_attr = imgEl.getAttribute('src') ? 'src' : 
+                                    imgEl.getAttribute('data-src') ? 'data-src' : 'data-lazy-src';
+      }
+      
+      // Build the loop base selector
+      const loopBase = isConsecutive
+        ? `${containerSelector} > ${childSelector}:nth-child($i)`
+        : `${containerSelector} > ${childSelector}:nth-of-type($i)`;
+      
       return {
-        found: false,
-        recommendation: 'Could not find consecutive parent. Manual analysis needed.'
+        found: true,
+        container: containerSelector,
+        consecutiveChild: childSelector,
+        childCount: resultContainers.length,
+        totalChildren: allChildren.length,
+        resultIndices: sortedIndices,
+        isConsecutive,
+        loopBase,
+        fieldSelectors,
+        sampleHtml: sampleContainer.outerHTML.slice(0, 500),
+        recommendation: isConsecutive
+          ? `Results are consecutive children. Use "${loopBase}" as base selector.`
+          : `Results are NOT consecutive (indices: ${sortedIndices.join(', ')}). ` +
+            `Container has ${allChildren.length} children but only ${resultContainers.length} are results. ` +
+            `Use nth-of-type if all results share same tag, otherwise filter by class.`
       };
-    }, containerHint);
+    }, resultLinks);
   }
 
   /**
@@ -2343,9 +2326,12 @@ class AutoRecipe {
       await this.evidence.initialize();
       await this.orchestrator.initialize();
       
-      // Initialize author agent (classification skipped - using 'generic' type)
+      // Initialize agents
       this.authorAgent = new AuthorAgent(this.orchestrator);
       await this.authorAgent.initialize();
+      
+      this.queryTestAgent = new QueryTestAgent(this.orchestrator);
+      await this.queryTestAgent.initialize();
 
       // Phase 1: Probe site (classification skipped)
       const siteEvidence = await this.evidence.probe(this.url);
@@ -2467,8 +2453,20 @@ class AutoRecipe {
       searchUrl = `${baseUrl}/search?q=$INPUT`;
     }
 
-    // Use a generic test query for all sites
-    const testQuery = 'test';
+    // Infer optimal test query based on site content
+    this.logger.step('Inferring optimal test query...');
+    let testQuery = 'test'; // fallback
+    try {
+      const queryResult = await this.queryTestAgent.inferTestQuery(siteEvidence);
+      testQuery = queryResult.query;
+      this.logger.success(`Using test query: "${testQuery}" (${queryResult.detected_content_type})`);
+      this.logger.log(`Reasoning: ${queryResult.reasoning}`);
+      if (queryResult.alternatives?.length > 0) {
+        this.logger.log(`Alternatives: ${queryResult.alternatives.join(', ')}`);
+      }
+    } catch (e) {
+      this.logger.warn(`Failed to infer test query, using fallback "test": ${e.message}`);
+    }
 
     // Probe search results
     const searchEvidence = await this.evidence.probeSearchResults(searchUrl, testQuery);
@@ -2609,7 +2607,7 @@ class AutoRecipe {
     // Author url steps using AuthorAgent
     const urlResult = await this.authorAgent.generateUrlSteps({
       evidence: detailEvidence,
-      required_fields: this.getRequiredFields(classification.list_type)
+      required_fields: this.getRequiredFields(listType)
     });
 
     recipe.url_steps = urlResult.url_steps;
@@ -2777,16 +2775,28 @@ class AutoRecipe {
         // Use comprehensive validation for autocomplete
         const hostname = siteEvidence?.hostname || new URL(input).hostname;
         const validation = this.validateAutocompleteResults(engineResult.data?.results || [], hostname);
-        hasValidResults = validation.valid.length > 0;
+        
+        // Require at least 3 valid results out of 10, or 30% success rate
+        const totalResults = engineResult.data?.results?.length || 0;
+        const validCount = validation.valid.length;
+        const minRequired = Math.max(3, Math.floor(totalResults * 0.3));
+        
+        hasValidResults = validCount >= minRequired;
         validationIssues = validation.issues;
         
-        if (!hasValidResults && validation.issues.length > 0) {
-          this.logger.warn('Autocomplete validation failed:');
-          for (const issue of validation.issues.slice(0, 5)) {
-            this.logger.warn(`  - ${issue}`);
+        if (!hasValidResults) {
+          if (validCount > 0 && validCount < minRequired) {
+            this.logger.warn(`Only ${validCount}/${totalResults} results are valid (need at least ${minRequired})`);
+            this.logger.warn('This usually means the selector pattern is wrong - only some nth-child indices match');
           }
-          if (validation.issues.length > 5) {
-            this.logger.warn(`  ... and ${validation.issues.length - 5} more issues`);
+          if (validation.issues.length > 0) {
+            this.logger.warn('Autocomplete validation issues:');
+            for (const issue of validation.issues.slice(0, 5)) {
+              this.logger.warn(`  - ${issue}`);
+            }
+            if (validation.issues.length > 5) {
+              this.logger.warn(`  ... and ${validation.issues.length - 5} more issues`);
+            }
           }
         }
       } else if (engineResult.success && engineResult.data?.results) {
