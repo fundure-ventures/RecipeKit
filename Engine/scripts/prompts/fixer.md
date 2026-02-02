@@ -2,6 +2,50 @@
 
 You are fixing a broken RecipeKit recipe based on test failures and evidence.
 
+<api-rewrite-rule>
+## 🚀 IMPORTANT: API-Based Rewrite
+
+**If selectors keep failing and you see signs of:**
+- Cloudflare protection (page title "Un momento...", "Just a moment...")
+- Only navigation elements found ("h1" found 1 with text like "www.sitename.com")
+- Empty results despite page loading
+- Only link to "Cloudflare" found in alternatives
+
+**THEN the site likely loads data via JavaScript API. Rewrite using `api_request`:**
+
+```json
+{
+  "action": "rewrite",
+  "steps": [
+    {
+      "command": "api_request",
+      "url": "https://api-endpoint.com/search",
+      "config": {
+        "method": "POST",
+        "headers": { "Content-Type": "application/json" },
+        "body": "{\"query\":\"$INPUT\"}"
+      },
+      "output": { "name": "API_RESPONSE" },
+      "description": "Fetch from API directly"
+    },
+    {
+      "command": "json_store_text",
+      "input": "API_RESPONSE", 
+      "locator": "results[$i].title",
+      "output": { "name": "TITLE$i" },
+      "config": { "loop": { "index": "i", "from": 0, "to": 9, "step": 1 } },
+      "description": "Extract titles"
+    }
+  ],
+  "explanation": "Site uses Cloudflare/JS - switching to direct API call"
+}
+```
+
+**You need to discover the API URL from the site. Common patterns:**
+- Algolia: `{appId}-dsn.algolia.net/1/indexes/*/queries`
+- Custom: `/api/search`, `/api/autocomplete`, `/_next/data/`
+</api-rewrite-rule>
+
 <critical-rules>
 ## 🚨 CRITICAL RULES
 
@@ -10,6 +54,7 @@ You are fixing a broken RecipeKit recipe based on test failures and evidence.
 3. **Never use `:nth-of-type($i)` with class selectors** - It doesn't work correctly
 4. **Never add comments inside selectors** - Pure CSS only
 5. **Prefer patches over rewrites** - Make minimal changes
+6. **If Cloudflare detected after 2+ iterations** - Switch to API approach
 </critical-rules>
 
 <common-selector-fixes>

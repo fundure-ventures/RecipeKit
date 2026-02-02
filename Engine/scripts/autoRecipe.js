@@ -41,6 +41,9 @@ import {
   MODELS 
 } from './agents/index.js';
 
+// Semantic validation import
+import { validateSemanticMatch, validateMultiQuery } from '../src/validation.js';
+
 /**
  * Prompt user for input via readline
  */
@@ -313,6 +316,64 @@ class EvidenceCollector {
     
     await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
     
+    // Capture API calls during page load (for sites that load via JS API)
+    const capturedApiCalls = [];
+    const capturedRequests = new Map();
+    
+    await page.setRequestInterception(true);
+    
+    page.on('request', request => {
+      const url = request.url();
+      const method = request.method();
+      
+      // Store request details for POST APIs
+      if (method === 'POST' || request.resourceType() === 'xhr' || request.resourceType() === 'fetch') {
+        capturedRequests.set(url, {
+          method: method,
+          headers: request.headers(),
+          postData: request.postData()
+        });
+      }
+      request.continue();
+    });
+    
+    page.on('response', async (response) => {
+      try {
+        const url = response.url();
+        const contentType = response.headers()['content-type'] || '';
+        
+        // Capture JSON responses that could be search APIs
+        if ((contentType.includes('json') || url.endsWith('.json')) && response.status() === 200) {
+          try {
+            const text = await response.text();
+            const json = JSON.parse(text);
+            const requestInfo = capturedRequests.get(url) || { method: 'GET', headers: {}, postData: null };
+            
+            // Check if this looks like Algolia, Elasticsearch, or other search API
+            const isSearchApi = 
+              url.includes('algolia') || url.includes('typesense') || url.includes('elasticsearch') ||
+              url.includes('search') || url.includes('autocomplete') || url.includes('query') ||
+              (requestInfo.postData && requestInfo.postData.includes(query));
+            
+            if (isSearchApi) {
+              capturedApiCalls.push({
+                url: url,
+                method: requestInfo.method,
+                headers: requestInfo.headers,
+                postData: requestInfo.postData,
+                data: json
+              });
+              this.logger.log(`Captured search API: ${requestInfo.method} ${url.slice(0, 80)}...`);
+            }
+          } catch (e) {
+            // Not valid JSON, ignore
+          }
+        }
+      } catch (e) {
+        // Response might be unavailable, ignore
+      }
+    });
+    
     try {
       // Strategy 1: Try the searchUrl directly (URL-based search)
       const url = searchUrl.replace('$INPUT', encodeURIComponent(query));
@@ -326,6 +387,16 @@ class EvidenceCollector {
       
       let searchEvidence = await this.analyzeSearchResults(page);
       searchEvidence.search_url = url;
+      
+      // If we captured API calls during load, add them to evidence
+      if (capturedApiCalls.length > 0) {
+        const apiInfo = await this.analyzeCapturedApiCalls(capturedApiCalls, query);
+        if (apiInfo) {
+          searchEvidence.api = apiInfo;
+          searchEvidence.search_type = 'api_intercepted';
+          this.logger.success(`Intercepted search API on page load: ${apiInfo.url_pattern}`);
+        }
+      }
       
       // Strategy 2: If URL-based search found no results, try form submission
       if (searchEvidence.result_count === 0) {
@@ -563,6 +634,72 @@ class EvidenceCollector {
     return bestApi;
   }
   
+  /**
+   * Analyzes captured API calls from page load to find the search API
+   * @param {Array} capturedCalls - Array of captured API call objects
+   * @param {string} query - The search query used
+   * @returns {Object|null} API info if found
+   */
+  async analyzeCapturedApiCalls(capturedCalls, query) {
+    // Prioritize by API type
+    const priorityOrder = [
+      (call) => call.url.includes('algolia'),
+      (call) => call.url.includes('typesense'),
+      (call) => call.url.includes('elasticsearch'),
+      (call) => call.method === 'POST' && call.postData,
+      (call) => call.url.includes('search'),
+    ];
+    
+    // Sort captured calls by priority
+    capturedCalls.sort((a, b) => {
+      const aPriority = priorityOrder.findIndex(fn => fn(a));
+      const bPriority = priorityOrder.findIndex(fn => fn(b));
+      return (aPriority === -1 ? 999 : aPriority) - (bPriority === -1 ? 999 : bPriority);
+    });
+    
+    for (const call of capturedCalls) {
+      const analysis = this.analyzeAPIResponse(call.data, query);
+      
+      if (analysis.isAutocomplete) {
+        // Create URL pattern by replacing the query
+        let urlPattern = call.url;
+        if (call.method === 'POST' && call.postData) {
+          // For POST, keep URL as-is, query is in body
+          urlPattern = call.url;
+        } else {
+          urlPattern = call.url
+            .replace(encodeURIComponent(query), '$INPUT')
+            .replace(query, '$INPUT');
+        }
+        
+        // Create body pattern for POST requests
+        let bodyPattern = null;
+        if (call.postData) {
+          bodyPattern = call.postData
+            .replace(new RegExp(query, 'gi'), '$INPUT')
+            .replace(new RegExp(encodeURIComponent(query), 'gi'), '$INPUT');
+        }
+        
+        return {
+          url: call.url,
+          url_pattern: urlPattern,
+          method: call.method || 'GET',
+          headers: call.headers || {},
+          postData: call.postData,
+          body_pattern: bodyPattern,
+          response_structure: analysis.structure,
+          sample_data: analysis.sampleItem,
+          items_path: analysis.itemsPath,
+          title_path: analysis.titlePath,
+          url_path: analysis.urlPath,
+          image_path: analysis.imagePath
+        };
+      }
+    }
+    
+    return null;
+  }
+
   /**
    * Analyzes a JSON API response to determine if it's an autocomplete response
    * and extracts the structure for recipe generation
@@ -1694,6 +1831,122 @@ class EvidenceCollector {
       return a.count - b.count; // Prefer fewer matches (more specific)
     }).slice(0, 5);
   }
+
+  /**
+   * Navigate to URL and capture API responses for search results
+   * Returns API data with results array and metadata
+   */
+  async captureApiOnLoad(url, query) {
+    // Use a fresh incognito context to avoid any state issues
+    const context = await this.browser.createBrowserContext();
+    const page = await context.newPage();
+    
+    let capturedData = null;
+    let resolveCapture;
+    let responseCount = 0;
+    
+    // Create promise that will be resolved when API is captured
+    const capturePromise = new Promise((resolve) => {
+      resolveCapture = resolve;
+    });
+    
+    // Enable request interception to capture all network activity
+    await page.setRequestInterception(true);
+    
+    // Continue all requests
+    page.on('request', request => {
+      request.continue();
+    });
+    
+    // Set up response listener BEFORE navigation
+    page.on('response', async (response) => {
+      responseCount++;
+      
+      // Skip if already resolved
+      if (capturedData) return;
+      
+      const responseUrl = response.url();
+      const status = response.status();
+      
+      // Only process successful responses from Algolia (be specific)
+      if (status !== 200) return;
+      
+      // Check for Algolia specifically
+      const isAlgolia = responseUrl.includes('algolia');
+      if (!isAlgolia) return;
+      
+      this.logger.log(`    Algolia response detected: ${responseUrl.slice(0, 60)}...`);
+      
+      try {
+        // Get response text
+        const text = await response.text();
+        this.logger.log(`    Response length: ${text.length}, starts with {: ${text.startsWith('{')}`);
+        
+        if (!text.startsWith('{')) return;
+        
+        const data = JSON.parse(text);
+        
+        // Algolia structure
+        if (data.results?.[0]?.hits && Array.isArray(data.results[0].hits)) {
+          const results = data.results[0].hits;
+          this.logger.log(`    Found Algolia response with ${results.length} hits`);
+          
+          // Verify results contain relevant data
+          if (results.length > 0) {
+            const sample = results[0];
+            const hasTitle = sample.title || sample.name || sample.naslov || sample.headline;
+            
+            if (hasTitle) {
+              capturedData = {
+                results,
+                jsonPathHint: 'results[0].hits[$i]',
+                urlPattern: 'algolia',
+                fullResponse: data,
+                apiUrl: responseUrl
+              };
+              this.logger.success(`    Captured ${results.length} results from Algolia API!`);
+              resolveCapture(capturedData);
+            }
+          }
+        }
+      } catch (e) {
+        // Not valid JSON or parsing error
+        this.logger.log(`    Response parse error: ${e.message}`);
+      }
+    });
+    
+    try {
+      await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+      
+      // Navigate and wait for initial load
+      this.logger.log(`    Navigating to ${url.slice(0, 60)}...`);
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 20000 });
+      
+      // Wait for network to settle (API calls happen after DOM ready)
+      await new Promise(r => setTimeout(r, 8000));
+      
+      this.logger.log(`    Total responses seen: ${responseCount}`);
+      
+      // Race between capture and timeout
+      const result = await Promise.race([
+        capturePromise,
+        new Promise(resolve => setTimeout(() => {
+          if (!capturedData) {
+            this.logger.log(`    API capture timeout - no Algolia responses found`);
+          }
+          resolve(null);
+        }, 5000))
+      ]);
+      
+      return result;
+    } catch (error) {
+      this.logger.log(`captureApiOnLoad error: ${error.message}`);
+      return null;
+    } finally {
+      await page.close();
+      await context.close();
+    }
+  }
 }
 class RecipeBuilder {
   constructor(logger) {
@@ -2448,7 +2701,7 @@ class AutoRecipe {
         searchUrl = `${searchUrl}${separator}${paramName}=$INPUT`;
       }
     } else {
-      // Try common patterns
+      // Try common patterns - we'll try multiple during probing
       const baseUrl = `https://${siteEvidence.hostname}`;
       searchUrl = `${baseUrl}/search?q=$INPUT`;
     }
@@ -2468,8 +2721,32 @@ class AutoRecipe {
       this.logger.warn(`Failed to infer test query, using fallback "test": ${e.message}`);
     }
 
-    // Probe search results
-    const searchEvidence = await this.evidence.probeSearchResults(searchUrl, testQuery);
+    // Try multiple search URL patterns if the default doesn't work
+    const baseUrl = `https://${siteEvidence.hostname}`;
+    const searchUrlPatterns = [
+      searchUrl,
+      `${baseUrl}/search?query=$INPUT`,
+      `${baseUrl}/search/?query=$INPUT`,
+      `${baseUrl}/search?search=$INPUT`,
+      `${baseUrl}/?s=$INPUT`,
+      `${baseUrl}/search/$INPUT`,
+    ];
+    
+    let searchEvidence = null;
+    for (const pattern of searchUrlPatterns) {
+      this.logger.info(`Trying search URL pattern: ${pattern.replace('$INPUT', testQuery)}`);
+      searchEvidence = await this.evidence.probeSearchResults(pattern, testQuery);
+      
+      // If we found results via DOM or API, use this pattern
+      if (searchEvidence.result_count > 0 || searchEvidence.api) {
+        searchUrl = pattern;
+        break;
+      }
+    }
+    
+    if (!searchEvidence) {
+      searchEvidence = { result_count: 0 };
+    }
     
     // Debug: Check if API was discovered
     this.logger.log(`searchEvidence.api: ${searchEvidence.api ? 'FOUND' : 'null'}`);
@@ -2552,6 +2829,87 @@ class AutoRecipe {
         for (const warn of validResults.warnings) {
           this.logger.warn(`  ${warn}`);
         }
+      }
+      
+      // Semantic validation: check if results actually match the query
+      const semanticCheck = validateSemanticMatch(autocompleteResults, testQuery, 0.3);
+      if (!semanticCheck.valid) {
+        this.logger.warn(`⚠ Semantic mismatch: ${semanticCheck.reason}`);
+        this.logger.warn(`  Results don't match query "${testQuery}" - might be a false positive`);
+        
+        // Show non-matching samples
+        const nonMatching = semanticCheck.details.filter(d => !d.matched).slice(0, 3);
+        for (const nm of nonMatching) {
+          this.logger.warn(`  Non-matching: "${nm.title}"`);
+        }
+        
+        // Try a second query to confirm false positive
+        const testQueries = ['Chanel', 'Dior', 'Versace', 'Gucci'].filter(q => q.toLowerCase() !== testQuery.toLowerCase());
+        const secondQuery = testQueries[0];
+        
+        this.logger.info(`→ Verifying with second query "${secondQuery}"...`);
+        const secondTest = await this.engine.run(recipePath, 'autocomplete', secondQuery);
+        const secondResults = secondTest.data?.results || [];
+        
+        // Check if second query returns same results (definite false positive)
+        const firstTitles = new Set(autocompleteResults.map(r => r.TITLE).filter(Boolean));
+        const secondTitles = new Set(secondResults.map(r => r.TITLE).filter(Boolean));
+        const overlap = [...firstTitles].filter(t => secondTitles.has(t));
+        
+        if (overlap.length > firstTitles.size * 0.7) {
+          this.logger.error(`❌ FALSE POSITIVE DETECTED: Both "${testQuery}" and "${secondQuery}" return same results`);
+          this.logger.error(`  Recipe is returning static content, not search results`);
+          
+          // Try API interception as fallback
+          this.logger.info(`→ Attempting API interception for JavaScript-powered search...`);
+          
+          const apiRecipe = await this.tryApiInterception(siteEvidence, testQuery, secondQuery, recipePath, listType, domain);
+          
+          if (apiRecipe) {
+            // API interception worked! Update recipe and continue
+            this.logger.success(`✓ API interception successful! Switching to API-based recipe.`);
+            recipe = apiRecipe;
+            await writeFile(recipePath, JSON.stringify(recipe, null, 2));
+            
+            // Re-run validation with new recipe
+            const apiTest = await this.engine.run(recipePath, 'autocomplete', testQuery);
+            const apiResults = apiTest.data?.results || [];
+            const apiValidation = this.validateAutocompleteResults(apiResults, siteEvidence.hostname);
+            
+            if (apiValidation.valid.length > 0) {
+              // Update validResults for subsequent code
+              validResults.valid = apiValidation.valid;
+              autocompleteResults.splice(0, autocompleteResults.length, ...apiResults);
+              this.logger.success(`✓ API recipe working: ${apiValidation.valid.length} valid results`);
+            } else {
+              this.logger.warn(`API recipe returned results but validation failed`);
+            }
+          } else {
+            // API interception also failed
+            this.logger.warn('API interception failed - site may require manual recipe authoring.');
+            
+            // Cannot proceed - recipe is broken
+            this.logger.info('Phase 4: Generating test file (for debugging)...');
+            const testContent = this.testGen.generate(
+              recipePath,
+              listType,
+              domain,
+              testQuery,
+              { TITLE: 'Test', SUBTITLE: '' },
+              this.url,
+              {}
+            );
+            await writeFile(testPath, testContent);
+            this.logger.success(`Wrote test: ${testPath}`);
+            
+            this.logger.warn('Recipe created but returns static content instead of search results. Manual review needed.');
+            return { success: false, recipePath, testPath, falsePositive: true };
+          }
+        } else {
+          this.logger.success(`✓ Second query returns different results - semantic mismatch may be coincidental`);
+        }
+      } else {
+        this.logger.success(`✓ Semantic match: ${semanticCheck.matchCount}/${semanticCheck.totalCount} results contain "${testQuery}"`);
       }
     } else {
       this.logger.error('autocomplete_steps not working - no valid results');
@@ -2660,6 +3018,145 @@ class AutoRecipe {
       }
       return { success: false, recipePath, testPath };
     }
+  }
+
+  /**
+   * Try API interception to create a working recipe
+   * Used when DOM-based approach returns static content (false positive)
+   */
+  async tryApiInterception(siteEvidence, testQuery, secondQuery, recipePath, listType, domain) {
+    const hostname = siteEvidence.hostname;
+    const baseUrl = `https://www.${hostname.replace(/^www\./, '')}`;
+    
+    // Common search URL patterns to try
+    const searchPatterns = [
+      `${baseUrl}/search/?query=${encodeURIComponent(testQuery)}`,
+      `${baseUrl}/search?query=${encodeURIComponent(testQuery)}`,
+      `${baseUrl}/search?q=${encodeURIComponent(testQuery)}`,
+      `${baseUrl}/?s=${encodeURIComponent(testQuery)}`,
+      `${baseUrl}/search/${encodeURIComponent(testQuery)}`,
+    ];
+    
+    this.logger.info(`  Probing ${searchPatterns.length} search URL patterns for API calls...`);
+    
+    for (const searchUrl of searchPatterns) {
+      this.logger.info(`  Trying: ${searchUrl.slice(0, 60)}...`);
+      
+      try {
+        // Navigate to search URL and capture API responses
+        const apiData = await this.evidence.captureApiOnLoad(searchUrl, testQuery);
+        
+        if (apiData && apiData.results && apiData.results.length > 0) {
+          this.logger.success(`  ✓ Captured ${apiData.results.length} results from API!`);
+          this.logger.log(`    API URL pattern: ${apiData.urlPattern}`);
+          this.logger.log(`    JSON path hint: ${apiData.jsonPathHint}`);
+          
+          // Verify API returns different results for different queries
+          const secondApiData = await this.evidence.captureApiOnLoad(
+            searchUrl.replace(encodeURIComponent(testQuery), encodeURIComponent(secondQuery)),
+            secondQuery
+          );
+          
+          if (secondApiData && secondApiData.results) {
+            const firstTitles = new Set(apiData.results.map(r => r.title || r.name || r.naslov || '').filter(Boolean));
+            const secondTitles = new Set(secondApiData.results.map(r => r.title || r.name || r.naslov || '').filter(Boolean));
+            const overlap = [...firstTitles].filter(t => secondTitles.has(t));
+            
+            if (overlap.length < firstTitles.size * 0.5) {
+              this.logger.success(`  ✓ API returns different results for different queries!`);
+              
+              // Build API-based recipe
+              return this.buildApiRecipe(siteEvidence, apiData, searchUrl, listType, domain);
+            } else {
+              this.logger.warn(`  API also returns same results - may be a recommendation API`);
+            }
+          }
+        }
+      } catch (error) {
+        this.logger.log(`  Failed: ${error.message}`);
+      }
+    }
+    
+    // No working API pattern found
+    return null;
+  }
+
+  /**
+   * Build a recipe using capture_api_on_load
+   */
+  buildApiRecipe(siteEvidence, apiData, searchUrl, listType, domain) {
+    const hostname = siteEvidence.hostname;
+    const baseUrl = `https://www.${hostname.replace(/^www\./, '')}`;
+    
+    // Determine JSON path prefix based on API response structure
+    // For Algolia: results[0].hits[$i]
+    let pathPrefix = apiData.jsonPathHint || 'results[0].hits[$i]';
+    
+    // Analyze the first result to determine field names
+    const sample = apiData.results[0];
+    const titleField = sample.naslov ? 'naslov' : (sample.title ? 'title' : (sample.name ? 'name' : 'title'));
+    const subtitleField = sample.dizajner ? 'dizajner' : (sample.designer ? 'designer' : (sample.brand ? 'brand' : 'subtitle'));
+    const urlField = sample.url?.EN ? 'url.EN[0]' : (sample.url ? 'url' : (sample.href ? 'href' : 'link'));
+    const imageField = sample.thumbnail ? 'thumbnail' : (sample.slika ? 'slika' : (sample.image ? 'image' : 'cover'));
+    
+    // Build the recipe
+    const recipe = {
+      recipe_shortcut: domain,
+      list_type: listType,
+      engine_version: ENGINE_VERSION,
+      title: siteEvidence.title?.split(' - ')[0]?.split(' | ')[0] || hostname,
+      description: `Retrieve ${listType} from ${hostname}`,
+      urls: [
+        `https://${hostname}`,
+        baseUrl
+      ],
+      headers: DEFAULT_HEADERS,
+      autocomplete_steps: [
+        {
+          command: 'capture_api_on_load',
+          url: searchUrl.replace(/=[^&]+/, '=$INPUT'),
+          url_pattern: apiData.urlPattern || 'algolia',
+          output: { name: 'API_RESPONSE' },
+          config: { js: true, timeout: 10000 },
+          description: 'Load search page and capture API response'
+        },
+        {
+          command: 'json_store_text',
+          input: 'API_RESPONSE',
+          locator: `${pathPrefix}.${titleField}`,
+          output: { name: 'TITLE$i' },
+          config: { loop: { index: 'i', from: 0, to: 9, step: 1 } },
+          description: 'Extract titles from API response'
+        },
+        {
+          command: 'json_store_text',
+          input: 'API_RESPONSE',
+          locator: `${pathPrefix}.${subtitleField}`,
+          output: { name: 'SUBTITLE$i' },
+          config: { loop: { index: 'i', from: 0, to: 9, step: 1 } },
+          description: 'Extract subtitles from API response'
+        },
+        {
+          command: 'json_store_text',
+          input: 'API_RESPONSE',
+          locator: `${pathPrefix}.${urlField}`,
+          output: { name: 'URL$i' },
+          config: { loop: { index: 'i', from: 0, to: 9, step: 1 } },
+          description: 'Extract URLs from API response'
+        },
+        {
+          command: 'json_store_text',
+          input: 'API_RESPONSE',
+          locator: `${pathPrefix}.${imageField}`,
+          output: { name: 'COVER$i' },
+          config: { loop: { index: 'i', from: 0, to: 9, step: 1 } },
+          description: 'Extract images from API response'
+        }
+      ],
+      url_steps: null
+    };
+    
+    return recipe;
   }
 
   /**
