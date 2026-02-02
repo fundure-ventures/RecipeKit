@@ -1,7 +1,7 @@
 {
   "recipe_shortcut": "imdb_movies",
   "list_type": "movies",
-  "engine_version": 5,
+  "engine_version": 24,
   "title": "IMDB Movies",
   "description": "A recipe to get a list of movies",
   "urls": [
@@ -15,117 +15,126 @@
   "autocomplete_steps": null,
   "url_steps": [
     {
-      "command": "load",
-      "url": "$INPUT",
-      "description": "Load the url of the movie"
-    },
-    {
-      "command": "store_url",
-      "output": {
-        "name": "URL"
-      },
-      "description": "Saves the URL of the detail"
-    },
-    {
-      "command": "store_attribute",
-      "locator": "meta[property='og:title']",
-      "attribute_name": "content",
-      "output": {
-        "name": "TITLE"
-      },
-      "description": "Takes the title of the movie including the year"
-    },
-    {
       "command": "regex",
-      "input": "$TITLE",
-      "expression": "\\([^\\)]*?(\\d{4})[^\\)]*?\\)",
+      "input": "$INPUT",
+      "expression": "(tt\\d+)",
+      "output": {
+        "name": "ID"
+      },
+      "description": "Extract IMDB ID from URL"
+    },
+    {
+      "command": "api_request",
+      "url": "https://caching.graphql.imdb.com/",
+      "output": {
+        "name": "JSON"
+      },
+      "config": {
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json",
+          "x-imdb-client-name": "imdb-web-next-localized"
+        },
+        "body": "{\"query\":\"query Title($id: ID!) { title(id: $id) { id titleText { text } releaseYear { year } plot { plotText { plainText } } ratingsSummary { aggregateRating } primaryImage { url } genres { genres { text } } runtime { displayableProperty { value { plainText } } } credits(first: 1, filter: {categories: [\\\"director\\\"]}) { edges { node { name { nameText { text } } } } } } }\",\"variables\":{\"id\":\"$ID\"}}"
+      },
+      "description": "Get movie details using IMDB GraphQL API"
+    },
+    {
+      "command": "json_store_text",
+      "locator": "data.title.titleText.text",
+      "input": "$JSON",
+      "output": {
+        "name": "TITLE",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract title"
+    },
+    {
+      "command": "json_store_text",
+      "locator": "data.title.releaseYear.year",
+      "input": "$JSON",
+      "output": {
+        "name": "YEAR"
+      },
+      "description": "Extract year"
+    },
+    {
+      "command": "store",
+      "input": "$YEAR",
       "output": {
         "name": "DATE",
         "type": "date",
         "format": "YYYY",
         "show": true
       },
-      "description": "Applies a regular expression to get just the year of the date"
+      "description": "Convert year to DATE"
     },
     {
-      "command": "regex",
-      "input": "$TITLE",
-      "expression": "[^\\(]*",
-      "output": {
-        "name": "TITLE",
-        "type": "string",
-        "show": true
-      },
-      "description": "Applies a regular expression to get just the title of the movie before the year"
-    },
-    {
-      "command": "store_attribute",
-      "locator": "meta[name='description']",
-      "attribute_name": "content",
+      "command": "json_store_text",
+      "locator": "data.title.plot.plotText.plainText",
+      "input": "$JSON",
       "output": {
         "name": "DESCRIPTION",
         "type": "string",
         "show": true
       },
-      "description": "Saves temporary the actors, director and description"
+      "description": "Extract description"
     },
     {
-      "command": "store_text",
-      "locator": "div[data-testid*=hero-rating-bar__aggregate-rating__score]",
-      "output": {
-        "name": "RATING",
-        "type": "string"
-      },
-      "description": "Saves the rating of the movie"
-    },
-    {
-      "command": "regex",
-      "input": "$RATING",
-      "expression": "([0-9,\\.]+)",
+      "command": "json_store_text",
+      "locator": "data.title.ratingsSummary.aggregateRating",
+      "input": "$JSON",
       "output": {
         "name": "RATING",
         "type": "float",
         "show": true
       },
-      "description": "Applies a regular expression to get part of the rating"
+      "description": "Extract rating"
     },
     {
-      "command": "store_text",
-      "locator": "section > div > div > ul.title-pc-list > li[data-testid*=title-pc-principal-credit]:nth-child(1) > div > ul >li",
+      "command": "json_store_text",
+      "locator": "data.title.credits.edges.[0].node.name.nameText.text",
+      "input": "$JSON",
       "output": {
         "name": "AUTHOR",
         "type": "string",
         "show": true
       },
-      "description": "Saves the director of the movie"
+      "description": "Extract director"
     },
     {
-      "command": "store_attribute",
-      "locator": "meta[property='og:image']",
-      "attribute_name": "content",
-      "output": {
-        "name": "COVER"
-      },
-      "description": "Saves the image"
-    },
-    {
-      "command": "regex",
-      "input": "$COVER",
-      "expression": ".+?images.+?[\\.]",
-      "output": {
-        "name": "COVER"
-      },
-      "description": "Applies a regular expression to get part of the cover"
-    },
-    {
-      "command": "store",
-      "input": "$COVER._V1_.jpg",
+      "command": "json_store_text",
+      "locator": "data.title.primaryImage.url",
+      "input": "$JSON",
       "output": {
         "name": "COVER",
         "type": "string",
         "show": true
       },
-      "description": "Add high res param to the cover"
+      "description": "Extract cover image"
+    },
+    {
+      "command": "json_store_text",
+      "locator": "data.title.genres.genres.[0].text",
+      "input": "$JSON",
+      "output": {
+        "name": "GENRE",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract first genre"
+    },
+    {
+      "command": "json_store_text",
+      "locator": "data.title.runtime.displayableProperty.value.plainText",
+      "input": "$JSON",
+      "output": {
+        "name": "DURATION",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract duration in formatted form"
     }
   ]
 }
