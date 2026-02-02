@@ -1,0 +1,252 @@
+{
+  "recipe_shortcut": "imdbgraphql_movies",
+  "list_type": "movies",
+  "engine_version": 24,
+  "title": "IMDB GraphQL Movies",
+  "description": "A recipe to get a list of movies with autocomplete via IMDB GraphQL API",
+  "urls": [
+    "https://m.imdb.com/title/",
+    "https://m.imdb.com/"
+  ],
+  "headers": {
+    "Accept-Language": "en-UK,en",
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.113 Safari/537.36"
+  },
+  "autocomplete_steps": [
+    {
+      "command": "api_request",
+      "url": "https://caching.graphql.imdb.com/",
+      "output": {
+        "name": "JSON"
+      },
+      "config": {
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json",
+          "x-imdb-client-name": "imdb-web-next-localized"
+        },
+        "body": "{\"query\":\"query MainSearch($term: String!) { mainSearch(first: 6, options: {searchTerm: $term, isExactMatch: false, type: TITLE, titleSearchOptions: {type: MOVIE}}) { edges { node { entity { ... on Title { id titleText { text } releaseYear { year } primaryImage { url } } } } } } }\",\"variables\":{\"term\":\"$INPUT\"}}"
+      },
+      "description": "Search movies using IMDB GraphQL API"
+    },
+    {
+      "command": "json_store_text",
+      "locator": "data.mainSearch.edges.[$i].node.entity.primaryImage.url",
+      "input": "$JSON",
+      "output": {
+        "name": "COVER$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 0,
+          "to": 5,
+          "step": 1
+        }
+      }
+    },
+    {
+      "command": "json_store_text",
+      "locator": "data.mainSearch.edges.[$i].node.entity.titleText.text",
+      "input": "$JSON",
+      "output": {
+        "name": "TITLE$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 0,
+          "to": 5,
+          "step": 1
+        }
+      }
+    },
+    {
+      "command": "json_store_text",
+      "locator": "data.mainSearch.edges.[$i].node.entity.releaseYear.year",
+      "input": "$JSON",
+      "output": {
+        "name": "YEAR$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 0,
+          "to": 5,
+          "step": 1
+        }
+      }
+    },
+    {
+      "command": "store",
+      "input": "$YEAR$i",
+      "output": {
+        "name": "SUBTITLE$i"
+      },
+      "description": "Convert year to string for SUBTITLE",
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 0,
+          "to": 5,
+          "step": 1
+        }
+      }
+    },
+    {
+      "command": "json_store_text",
+      "locator": "data.mainSearch.edges.[$i].node.entity.id",
+      "input": "$JSON",
+      "output": {
+        "name": "ID$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 0,
+          "to": 5,
+          "step": 1
+        }
+      }
+    },
+    {
+      "command": "store",
+      "input": "https://m.imdb.com/title/$ID$i/",
+      "output": {
+        "name": "URL$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 0,
+          "to": 5,
+          "step": 1
+        }
+      }
+    }
+  ],
+  "url_steps": [
+    {
+      "command": "regex",
+      "input": "$INPUT",
+      "expression": "(tt\\d+)",
+      "output": {
+        "name": "ID"
+      },
+      "description": "Extract IMDB ID from URL"
+    },
+    {
+      "command": "api_request",
+      "url": "https://caching.graphql.imdb.com/",
+      "output": {
+        "name": "JSON"
+      },
+      "config": {
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json",
+          "x-imdb-client-name": "imdb-web-next-localized"
+        },
+        "body": "{\"query\":\"query Title($id: ID!) { title(id: $id) { id titleText { text } releaseYear { year } plot { plotText { plainText } } ratingsSummary { aggregateRating } primaryImage { url } genres { genres { text } } runtime { displayableProperty { value { plainText } } } credits(first: 1, filter: {categories: [\\\"director\\\"]}) { edges { node { name { nameText { text } } } } } } }\",\"variables\":{\"id\":\"$ID\"}}"
+      },
+      "description": "Get movie details using IMDB GraphQL API"
+    },
+    {
+      "command": "json_store_text",
+      "locator": "data.title.titleText.text",
+      "input": "$JSON",
+      "output": {
+        "name": "TITLE",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract title"
+    },
+    {
+      "command": "json_store_text",
+      "locator": "data.title.releaseYear.year",
+      "input": "$JSON",
+      "output": {
+        "name": "YEAR"
+      },
+      "description": "Extract year"
+    },
+    {
+      "command": "store",
+      "input": "$YEAR",
+      "output": {
+        "name": "DATE",
+        "type": "date",
+        "format": "YYYY",
+        "show": true
+      },
+      "description": "Convert year to DATE"
+    },
+    {
+      "command": "json_store_text",
+      "locator": "data.title.plot.plotText.plainText",
+      "input": "$JSON",
+      "output": {
+        "name": "DESCRIPTION",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract description"
+    },
+    {
+      "command": "json_store_text",
+      "locator": "data.title.ratingsSummary.aggregateRating",
+      "input": "$JSON",
+      "output": {
+        "name": "RATING",
+        "type": "float",
+        "show": true
+      },
+      "description": "Extract rating"
+    },
+    {
+      "command": "json_store_text",
+      "locator": "data.title.credits.edges.[0].node.name.nameText.text",
+      "input": "$JSON",
+      "output": {
+        "name": "AUTHOR",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract director"
+    },
+    {
+      "command": "json_store_text",
+      "locator": "data.title.primaryImage.url",
+      "input": "$JSON",
+      "output": {
+        "name": "COVER",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract cover image"
+    },
+    {
+      "command": "json_store_text",
+      "locator": "data.title.genres.genres.[0].text",
+      "input": "$JSON",
+      "output": {
+        "name": "GENRE",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract first genre"
+    },
+    {
+      "command": "json_store_text",
+      "locator": "data.title.runtime.displayableProperty.value.plainText",
+      "input": "$JSON",
+      "output": {
+        "name": "DURATION",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract duration in formatted form"
+    }
+  ]
+}
