@@ -1,7 +1,7 @@
 {
   "recipe_shortcut": "tmdb_tv_shows",
   "list_type": "tv_shows",
-  "engine_version": 22,
+  "engine_version": 25,
   "title": "TMDB TV Shows",
   "description": "A recipe to get a list of tv shows",
   "urls": [
@@ -283,7 +283,7 @@
     {
       "command": "regex",
       "input": "$URL",
-      "expression": "^[^?]+(?=\?|$)",
+      "expression": "^[^?]+(?=\\?|$)",
       "output": {
         "name": "CLEAN_URL",
         "type": "string",
@@ -315,6 +315,16 @@
       "description": "Load the seasons page (enable js + timeout for dynamic blocks)."
     },
     {
+      "command": "store_count",
+      "locator": "div.season_wrapper",
+      "output": {
+        "name": "NUMBER_OF_SEASONS",
+        "type": "int",
+        "show": false
+      },
+      "description": "Counts the number of season wrappers to use as loop bound."
+    },
+    {
       "command": "store_text",
       "locator": "div.season_wrapper:nth-of-type($i) h2 a",
       "output": {
@@ -323,7 +333,7 @@
         "show": true
       },
       "config": {
-        "loop": { "index": "i", "from": 1, "to": 30, "step": 1 }
+        "loop": { "index": "i", "from": 1, "to": "$NUMBER_OF_SEASONS", "step": 1 }
       },
       "description": "Stores each season title (Season 1, Season 2, Specials, etc)."
     },
@@ -334,7 +344,7 @@
         "name": "SEASON_META_RAW$i"
       },
       "config": {
-        "loop": { "index": "i", "from": 1, "to": 30, "step": 1 }
+        "loop": { "index": "i", "from": 1, "to": "$NUMBER_OF_SEASONS", "step": 1 }
       },
       "description": "Stores the first meta line inside each season card (contains episode count)."
     },
@@ -348,7 +358,7 @@
         "show": true
       },
       "config": {
-        "loop": { "index": "i", "from": 1, "to": 30, "step": 1 }
+        "loop": { "index": "i", "from": 1, "to": "$NUMBER_OF_SEASONS", "step": 1 }
       },
       "description": "Extracts the year from '64% 2025 • 7 episodios'."
     },
@@ -362,7 +372,7 @@
         "show": true
       },
       "config": {
-        "loop": { "index": "i", "from": 1, "to": 30, "step": 1 }
+        "loop": { "index": "i", "from": 1, "to": "$NUMBER_OF_SEASONS", "step": 1 }
       },
       "description": "Extracts the number right after the dot/bullet, regardless of the following word."
     }

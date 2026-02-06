@@ -1,7 +1,7 @@
 {
   "recipe_shortcut": "imdb_movies",
   "list_type": "movies",
-  "engine_version": 24,
+  "engine_version": 25,
   "title": "IMDB Movies",
   "description": "A recipe to get a list of movies",
   "urls": [

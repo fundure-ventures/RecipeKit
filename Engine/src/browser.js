@@ -61,4 +61,9 @@ export class BrowserManager {
     async querySelector(selector) {
         return await this.page.$(selector);
     }
+
+    async countElements(selector) {
+        const elements = await this.page.$$(selector);
+        return elements.length;
+    }
 }

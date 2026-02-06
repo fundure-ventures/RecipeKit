@@ -124,6 +124,13 @@ class Engine {
           const outputName = step.output.name;
           if (result.hasOwnProperty(outputName)) {
             filteredResult[outputName] = result[outputName];
+          } else if (outputName.includes('$')) {
+            const pattern = new RegExp('^' + outputName.replace(/\$[a-zA-Z]+/g, '\\d+') + '$');
+            for (const key of Object.keys(result)) {
+              if (pattern.test(key)) {
+                filteredResult[key] = result[key];
+              }
+            }
           }
         }
       }

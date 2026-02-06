@@ -17,6 +17,7 @@ export class StepExecutor {
         url_encode: this.executeUrlEncodeStep,
         store_url: this.executeStoreUrlStep,
         replace: this.executeReplaceStep,
+        store_count: this.executeStoreCountStep,
       };
     }
   
@@ -60,10 +61,13 @@ export class StepExecutor {
       }
 
       if (isLoop) {
-        Log.debug(`Loop: from ${step.config.loop.from} to ${step.config.loop.to} (step: ${step.config.loop.step})`);
-        for (let i = step.config.loop.from; i <= step.config.loop.to; i += step.config.loop.step) {
+        const loopFrom = parseInt(this.RecipeEngine.replaceVariablesinString(String(step.config.loop.from)), 10);
+        const loopTo = parseInt(this.RecipeEngine.replaceVariablesinString(String(step.config.loop.to)), 10);
+        const loopStep = parseInt(this.RecipeEngine.replaceVariablesinString(String(step.config.loop.step)), 10);
+        Log.debug(`Loop: from ${loopFrom} to ${loopTo} (step: ${loopStep})`);
+        for (let i = loopFrom; i <= loopTo; i += loopStep) {
           // Store loop index
-          this.RecipeEngine.set(step.config.loop.index, i)
+          this.RecipeEngine.set(step.config.loop.index, i);
           outputKey = this.RecipeEngine.replaceVariablesinString(step?.output?.name);
           Log.debug(`  Loop iteration ${i}: output key = ${outputKey}`);
 
@@ -314,6 +318,16 @@ export class StepExecutor {
       const regex = new RegExp(escapedFind, 'g');
       const output = input.replace(regex, step.replace);
       return output;
+    }
+
+    async executeStoreCountStep(step) {
+      if (!step.locator) {
+        Log.error('executeStoreCountStep: Missing required step properties (locator)');
+        return '';
+      }
+      const locator = this.RecipeEngine.replaceVariablesinString(step.locator);
+      const count = await this.BrowserManager.countElements(locator);
+      return String(count);
     }
 
 }
