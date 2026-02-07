@@ -67,9 +67,15 @@ export function buildApiSteps(descriptor) {
   const { pathPrefix, fields } = descriptor;
   const steps = [];
 
-  // Build the api_request step using the discovered API URL.
-  // Replace the actual query with $INPUT so the engine substitutes at runtime.
-  const apiUrl = descriptor.searchUrl.replace(/=[^&]+/, '=$INPUT');
+  // Use the actual API URL discovered during interception, not the search page URL.
+  // Fall back to searchUrl only if no API endpoint was captured.
+  const rawApiUrl = descriptor.apiUrl || descriptor.searchUrl;
+
+  // For POST APIs (e.g. Algolia), the URL may not contain the query at all.
+  // Only substitute $INPUT in the URL if it has query params.
+  const apiUrl = rawApiUrl.includes('?')
+    ? rawApiUrl.replace(/=[^&]+/, '=$INPUT')
+    : rawApiUrl;
 
   const apiStep = {
     command: 'api_request',
@@ -82,11 +88,45 @@ export function buildApiSteps(descriptor) {
   };
 
   // Add headers/body from discovery if available
-  if (Object.keys(descriptor.headers).length > 0) {
-    apiStep.config.headers = descriptor.headers;
+  // Filter out volatile/session-specific headers that won't work at runtime
+  if (descriptor.headers && typeof descriptor.headers === 'object') {
+    const safeHeaders = {};
+    const skipHeaders = ['cookie', 'referer', 'origin', 'content-length',
+      'accept-encoding', 'sec-', 'user-agent', 'host'];
+    for (const [key, value] of Object.entries(descriptor.headers)) {
+      const lowerKey = key.toLowerCase();
+      if (!skipHeaders.some(skip => lowerKey.startsWith(skip))) {
+        safeHeaders[key] = value;
+      }
+    }
+    if (Object.keys(safeHeaders).length > 0) {
+      apiStep.config.headers = safeHeaders;
+    }
   }
+
+  // For POST body, replace the captured query with $INPUT
   if (descriptor.postData) {
-    apiStep.config.body = descriptor.postData;
+    let body = descriptor.postData;
+    // Try to find and replace the query value in the body
+    // This handles Algolia-style {"requests":[{"params":"query=cacharel..."}]}
+    // and simple {"query":"cacharel"} patterns
+    if (descriptor.searchUrl) {
+      // Extract query from the search URL to know what to replace
+      const urlObj = tryParseUrl(descriptor.searchUrl);
+      if (urlObj) {
+        for (const val of urlObj.searchParams.values()) {
+          if (val && val.length > 1 && body.includes(val)) {
+            body = body.split(val).join('$INPUT');
+          }
+        }
+      }
+    }
+    // Also replace URL-encoded query if present
+    if (body.includes('$INPUT') === false) {
+      // Fallback: replace any "query":"<value>" pattern
+      body = body.replace(/"query"\s*:\s*"[^"]*"/, '"query":"$INPUT"');
+    }
+    apiStep.config.body = body;
   }
 
   steps.push(apiStep);
@@ -111,4 +151,8 @@ export function buildApiSteps(descriptor) {
   }
 
   return steps;
+}
+
+function tryParseUrl(str) {
+  try { return new URL(str); } catch { return null; }
 }
