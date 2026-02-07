@@ -10,7 +10,7 @@
  * intercept and capture the response.
  */
 
-import { Log } from '../src/logger.js';
+import { Log } from '../../src/logger.js';
 
 /**
  * Wait for a search API response after triggering search on the page

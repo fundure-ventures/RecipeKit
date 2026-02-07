@@ -1,6 +1,6 @@
-# API Interception Commands
+# API-Based Recipes (AutoRecipe Tooling)
 
-These commands help extract data from sites that load content via JavaScript APIs (Algolia, Elasticsearch, etc.) instead of server-rendered HTML.
+This document describes how autoRecipe discovers and generates API-based recipes. These tools run at **recipe-generation time** via Puppeteer; the generated recipes use only standard engine commands (`api_request`, `json_store_text`).
 
 ## The Problem
 
@@ -17,119 +17,56 @@ DOM scraping fails because:
 
 ## The Solution
 
-Intercept the API response that the site makes itself during page navigation.
+AutoRecipe discovers the API at generation time using Puppeteer interception, then produces standard `api_request` recipe steps that work without browser-context commands.
 
-## Commands
+## AutoRecipe Discovery Tools
 
-### `capture_api_on_load`
+### EvidenceCollector API Methods
 
-**Best for:** Sites where the search URL triggers an API call automatically.
+These are used during recipe generation (not at recipe runtime):
 
-Load a URL and capture any API responses made during page navigation.
+- **`captureApiOnLoad(url, query)`** — Navigate to a search URL and capture JSON API responses made during page load. Supports Algolia, Typesense, Elasticsearch, and generic JSON APIs.
+- **`discoverSearchAPI(url, query)`** — Navigate to a site, find the search input, type a query, and intercept network requests to discover search API endpoints with full request details (method, headers, postData).
+- **`discoverAutocompleteAPI(page, query)`** — Similar to discoverSearchAPI but operates on an already-loaded page.
 
-```json
-{
-  "command": "capture_api_on_load",
-  "url": "https://example.com/search?q=$INPUT",
-  "config": {
-    "api_patterns": ["algolia", "search", "api"],
-    "timeout": 15000
-  },
-  "output": {
-    "name": "API_RESPONSE"
-  }
-}
+### intercept-api.js CLI
+
+Manually discover what APIs a site uses:
+
+```bash
+bun Engine/cli/intercept-api.js "https://site.com/search?q=test" --wait 10000
 ```
 
-**Config options:**
-- `api_patterns`: Array of URL substrings to identify API calls (default: algolia, elasticsearch, etc.)
-- `timeout`: Page load timeout in ms (default: 15000)
+This shows:
+- All API calls made during page load
+- Request method, headers, body
+- Response structure
+- Algolia-specific details (appId, index, query)
 
-### `trigger_search_api`
+### apiTools.js Module
 
-**Best for:** Sites that require typing in a search box to trigger the API.
+Converts discovery results into recipe steps:
 
-Load a page, find the search input, type the query, and capture the resulting API response.
+- **`normalizeApiDescriptor(apiData, searchUrl)`** — Takes raw EvidenceCollector output and returns a normalized descriptor with detected field names.
+- **`buildApiSteps(descriptor)`** — Generates `api_request` + `json_store_text` recipe steps from a normalized descriptor.
 
-```json
-{
-  "command": "load",
-  "url": "https://example.com/search",
-  "config": { "js": true }
-},
-{
-  "command": "trigger_search_api",
-  "config": {
-    "query": "$INPUT",
-    "search_input_selector": "input[type='search']",
-    "api_patterns": ["algolia"],
-    "timeout": 10000
-  },
-  "output": {
-    "name": "API_RESPONSE"
-  }
-}
-```
+## Generated Recipe Pattern
 
-### `browser_api_request`
-
-**Best for:** Direct API calls that need browser session context.
-
-Execute a fetch() request inside the browser context (inherits cookies, session).
-
-```json
-{
-  "command": "load",
-  "url": "https://example.com/page",
-  "config": { "js": true }
-},
-{
-  "command": "browser_api_request",
-  "url": "https://api.example.com/search?q=$INPUT",
-  "config": {
-    "method": "POST",
-    "headers": { "Content-Type": "application/json" },
-    "body": "{\"query\": \"$INPUT\"}"
-  },
-  "output": {
-    "name": "API_RESPONSE"
-  }
-}
-```
-
-**Note:** May still fail with strict CORS policies. Use `capture_api_on_load` instead.
-
-## Extracting Data from JSON
-
-After capturing the API response, use `json_store_text` to extract fields:
-
-```json
-{
-  "command": "json_store_text",
-  "input": "API_RESPONSE",
-  "locator": "results[0].hits[$i].title",
-  "output": { "name": "TITLE$i" },
-  "config": {
-    "loop": { "index": "i", "from": 0, "to": 9, "step": 1 }
-  }
-}
-```
-
-The `locator` uses lodash `_.get()` path syntax:
-- `results[0].hits[$i]` - Array access with loop variable
-- `data.nested.field` - Nested object access
-- `items[$i].name` - Array items with loop
-
-## Example: Algolia-Powered Site
+AutoRecipe produces recipes using only standard engine commands:
 
 ```json
 {
   "autocomplete_steps": [
     {
-      "command": "capture_api_on_load",
-      "url": "https://site.com/search?query=$INPUT",
-      "config": { "api_patterns": ["algolia"] },
-      "output": { "name": "API_RESPONSE" }
+      "command": "api_request",
+      "url": "https://api.example.com/search?q=$INPUT",
+      "config": {
+        "method": "POST",
+        "headers": { "Content-Type": "application/json" },
+        "body": "{\"query\": \"$INPUT\"}"
+      },
+      "output": { "name": "API_RESPONSE" },
+      "description": "Fetch search results from API"
     },
     {
       "command": "json_store_text",
@@ -149,25 +86,31 @@ The `locator` uses lodash `_.get()` path syntax:
 }
 ```
 
-## Discovering API Structure
+## Extracting Data from JSON
 
-Use the `intercept-api.js` CLI tool to discover what APIs a site uses:
+After fetching the API response, use `json_store_text` to extract fields:
 
-```bash
-bun Engine/cli/intercept-api.js "https://site.com/search?q=test" --wait 10000
+```json
+{
+  "command": "json_store_text",
+  "input": "API_RESPONSE",
+  "locator": "results[0].hits[$i].title",
+  "output": { "name": "TITLE$i" },
+  "config": {
+    "loop": { "index": "i", "from": 0, "to": 9, "step": 1 }
+  }
+}
 ```
 
-This shows:
-- All API calls made during page load
-- Request method, headers, body
-- Response structure
-- Algolia-specific details (appId, index, query)
+The `locator` uses lodash `_.get()` path syntax:
+- `results[0].hits[$i]` - Array access with loop variable
+- `data.nested.field` - Nested object access
+- `items[$i].name` - Array items with loop
 
 ## When to Use Each Approach
 
-| Scenario | Command |
-|----------|---------|
-| Search URL triggers API automatically | `capture_api_on_load` |
-| Need to type in search box | `trigger_search_api` |
-| Direct API call with session | `browser_api_request` |
-| Server-rendered HTML | Regular DOM scraping |
+| Scenario | Approach |
+|----------|----------|
+| Site has discoverable search API | `api_request` (discovered via autoRecipe tools) |
+| Server-rendered HTML | Regular DOM scraping (`store_text`, `store_attribute`) |
+| API needs complex auth/CORS bypass | Use `intercept-api.js` to discover, then craft `api_request` manually |

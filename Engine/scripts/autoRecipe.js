@@ -42,7 +42,10 @@ import {
 } from './agents/index.js';
 
 // Semantic validation import
-import { validateSemanticMatch, validateMultiQuery } from '../src/validation.js';
+import { validateSemanticMatch, validateMultiQuery } from './autoRecipe/validation.js';
+
+// API tools for building api_request-based recipes
+import { normalizeApiDescriptor, buildApiSteps } from './autoRecipe/apiTools.js';
 
 /**
  * Prompt user for input via readline
@@ -3082,24 +3085,15 @@ class AutoRecipe {
   }
 
   /**
-   * Build a recipe using capture_api_on_load
+   * Build a recipe using api_request steps from discovered API
    */
   buildApiRecipe(siteEvidence, apiData, searchUrl, listType, domain) {
     const hostname = siteEvidence.hostname;
     const baseUrl = `https://www.${hostname.replace(/^www\./, '')}`;
     
-    // Determine JSON path prefix based on API response structure
-    // For Algolia: results[0].hits[$i]
-    let pathPrefix = apiData.jsonPathHint || 'results[0].hits[$i]';
+    const descriptor = normalizeApiDescriptor(apiData, searchUrl);
+    const autocomplete_steps = buildApiSteps(descriptor);
     
-    // Analyze the first result to determine field names
-    const sample = apiData.results[0];
-    const titleField = sample.naslov ? 'naslov' : (sample.title ? 'title' : (sample.name ? 'name' : 'title'));
-    const subtitleField = sample.dizajner ? 'dizajner' : (sample.designer ? 'designer' : (sample.brand ? 'brand' : 'subtitle'));
-    const urlField = sample.url?.EN ? 'url.EN[0]' : (sample.url ? 'url' : (sample.href ? 'href' : 'link'));
-    const imageField = sample.thumbnail ? 'thumbnail' : (sample.slika ? 'slika' : (sample.image ? 'image' : 'cover'));
-    
-    // Build the recipe
     const recipe = {
       recipe_shortcut: domain,
       list_type: listType,
@@ -3111,48 +3105,7 @@ class AutoRecipe {
         baseUrl
       ],
       headers: DEFAULT_HEADERS,
-      autocomplete_steps: [
-        {
-          command: 'capture_api_on_load',
-          url: searchUrl.replace(/=[^&]+/, '=$INPUT'),
-          url_pattern: apiData.urlPattern || 'algolia',
-          output: { name: 'API_RESPONSE' },
-          config: { js: true, timeout: 10000 },
-          description: 'Load search page and capture API response'
-        },
-        {
-          command: 'json_store_text',
-          input: 'API_RESPONSE',
-          locator: `${pathPrefix}.${titleField}`,
-          output: { name: 'TITLE$i' },
-          config: { loop: { index: 'i', from: 0, to: 9, step: 1 } },
-          description: 'Extract titles from API response'
-        },
-        {
-          command: 'json_store_text',
-          input: 'API_RESPONSE',
-          locator: `${pathPrefix}.${subtitleField}`,
-          output: { name: 'SUBTITLE$i' },
-          config: { loop: { index: 'i', from: 0, to: 9, step: 1 } },
-          description: 'Extract subtitles from API response'
-        },
-        {
-          command: 'json_store_text',
-          input: 'API_RESPONSE',
-          locator: `${pathPrefix}.${urlField}`,
-          output: { name: 'URL$i' },
-          config: { loop: { index: 'i', from: 0, to: 9, step: 1 } },
-          description: 'Extract URLs from API response'
-        },
-        {
-          command: 'json_store_text',
-          input: 'API_RESPONSE',
-          locator: `${pathPrefix}.${imageField}`,
-          output: { name: 'COVER$i' },
-          config: { loop: { index: 'i', from: 0, to: 9, step: 1 } },
-          description: 'Extract images from API response'
-        }
-      ],
+      autocomplete_steps,
       url_steps: null
     };
     

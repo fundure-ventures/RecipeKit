@@ -577,3 +577,18 @@ bun Engine/engine.js --recipe path/to/recipe.json --type autocomplete --input "t
   "output": { "name": "RATING", "type": "float", "show": true }
 }
 ```
+
+## AutoRecipe API Discovery Tools
+
+When authoring recipes for sites that use JavaScript-powered search (Algolia, Elasticsearch, Typesense, etc.), use these autoRecipe tools to discover the API and build `api_request`-based recipes:
+
+### Discovery (generation-time only, not in recipes)
+- **`EvidenceCollector.captureApiOnLoad(url, query)`** — Navigate to a search URL and capture JSON API responses during page load.
+- **`EvidenceCollector.discoverSearchAPI(url, query)`** — Type a query in the site's search box and intercept the resulting API call with full request details.
+- **`intercept-api.js` CLI** — `bun Engine/cli/intercept-api.js "<url>" --wait 10000` to manually discover APIs.
+
+### Recipe generation
+- **`normalizeApiDescriptor(apiData, searchUrl)`** — Normalize discovery results into a standard descriptor.
+- **`buildApiSteps(descriptor)`** — Generate `api_request` + `json_store_text` steps from the descriptor.
+
+**Important:** Generated recipes must use only standard engine commands (`api_request`, `json_store_text`). Do NOT use `capture_api_on_load`, `browser_api_request`, or `trigger_search_api` — these are not supported by the engine.

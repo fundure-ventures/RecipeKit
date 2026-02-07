@@ -16,7 +16,7 @@
 import { readFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
 import { RecipeEngine } from '../src/engine.js';
-import { validateResults, validateSemanticMatch, validateMultiQuery } from '../src/validation.js';
+import { validateResults, validateSemanticMatch, validateMultiQuery } from '../scripts/autoRecipe/validation.js';
 
 // ANSI colors
 const colors = {
@@ -81,7 +81,7 @@ async function runDiagnostics(recipePath, options = {}) {
   if (recipe.autocomplete_steps) {
     const stepTypes = recipe.autocomplete_steps.map(s => s.command);
     const hasLoad = stepTypes.includes('load');
-    const hasApiRequest = stepTypes.includes('api_request') || stepTypes.includes('browser_api_request');
+    const hasApiRequest = stepTypes.includes('api_request');
     const hasDomScraping = stepTypes.some(t => ['store_text', 'store_attribute'].includes(t));
     
     log(`\n  Step commands: ${[...new Set(stepTypes)].join(', ')}`, colors.dim);
@@ -129,7 +129,7 @@ async function runDiagnostics(recipePath, options = {}) {
     log('Recipe returned no results. Possible causes:', colors.yellow);
     log('  1. Selectors don\'t match page structure');
     log('  2. Page requires JavaScript but js:true not set');
-    log('  3. API request blocked (403) - try browser_api_request');
+    log('  3. API request blocked (403) - use intercept-api.js to discover working API');
     log('  4. Search URL pattern incorrect');
     log('  5. Site has anti-bot protection (Cloudflare)');
     return;
@@ -230,7 +230,7 @@ async function runDiagnostics(recipePath, options = {}) {
     }
     if (!semantic.valid) {
       log('  • Results don\'t match query - verify search URL or API params');
-      log('  • If using DOM scraping on API-heavy site, try browser_api_request');
+      log('  • If using DOM scraping on API-heavy site, try api_request with intercept-api.js discovery');
     }
   }
   
