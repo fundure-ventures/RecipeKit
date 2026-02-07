@@ -74,22 +74,19 @@ export function buildApiSteps(descriptor) {
   const apiStep = {
     command: 'api_request',
     url: apiUrl,
+    config: {
+      method: descriptor.method || 'GET'
+    },
     output: { name: 'API_RESPONSE' },
     description: 'Fetch search results from API'
   };
 
-  // Add config if we have method/headers/body from discovery
-  if (descriptor.method !== 'GET' || descriptor.postData || Object.keys(descriptor.headers).length > 0) {
-    apiStep.config = {};
-    if (descriptor.method && descriptor.method !== 'GET') {
-      apiStep.config.method = descriptor.method;
-    }
-    if (Object.keys(descriptor.headers).length > 0) {
-      apiStep.config.headers = descriptor.headers;
-    }
-    if (descriptor.postData) {
-      apiStep.config.body = descriptor.postData;
-    }
+  // Add headers/body from discovery if available
+  if (Object.keys(descriptor.headers).length > 0) {
+    apiStep.config.headers = descriptor.headers;
+  }
+  if (descriptor.postData) {
+    apiStep.config.body = descriptor.postData;
   }
 
   steps.push(apiStep);
