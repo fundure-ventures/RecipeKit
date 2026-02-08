@@ -1,0 +1,162 @@
+{
+  "recipe_shortcut": "fragranticacom",
+  "list_type": "generic",
+  "engine_version": 20,
+  "title": "Perfumes and Colognes Magazine, Perfume Reviews and Online Community\u2014Fragrantica.com",
+  "description": "Retrieve generic from fragrantica.com",
+  "urls": [
+    "https://fragrantica.com",
+    "https://www.fragrantica.com"
+  ],
+  "headers": {
+    "Accept-Language": "en-UK,en",
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.113 Safari/537.36"
+  },
+  "autocomplete_steps": [
+    {
+      "command": "api_request",
+      "url": "https://fgvi612dfz-dsn.algolia.net/1/indexes/*/queries?x-algolia-agent=Algolia%20for%20JavaScript%20(4.24.0)%3B%20Browser%20(lite)&x-algolia-api-key=YzY3Mzc1MTBkMzc2NDgxZmE3MDIyYWFiNmM4ODQ3NDhiNGFjZjYyYmUwYTU1NzdmOGNhOTQzMjU3Y2U5MzZjM3ZhbGlkVW50aWw9MTc3MjIzNjg3Mg%3D%3D&x-algolia-application-id=FGVI612DFZ",
+      "config": {
+        "method": "POST",
+        "headers": {
+          "content-type": "application/x-www-form-urlencoded"
+        },
+        "body": "{\"requests\":[{\"indexName\":\"fragrantica_perfumes\",\"params\":\"query=$INPUT&hitsPerPage=10\"}]}"
+      },
+      "output": {
+        "name": "API_RESPONSE"
+      },
+      "description": "Fetch search results from API"
+    },
+    {
+      "command": "json_store_text",
+      "input": "API_RESPONSE",
+      "locator": "results[0].hits[$i].naslov",
+      "output": {
+        "name": "TITLE$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 0,
+          "to": 9,
+          "step": 1
+        }
+      },
+      "description": "Extract titles from API response"
+    },
+    {
+      "command": "json_store_text",
+      "input": "API_RESPONSE",
+      "locator": "results[0].hits[$i].dizajner",
+      "output": {
+        "name": "SUBTITLE$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 0,
+          "to": 9,
+          "step": 1
+        }
+      },
+      "description": "Extract subtitles from API response"
+    },
+    {
+      "command": "json_store_text",
+      "input": "API_RESPONSE",
+      "locator": "results[0].hits[$i].url.EN[0]",
+      "output": {
+        "name": "URL$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 0,
+          "to": 9,
+          "step": 1
+        }
+      },
+      "description": "Extract URLs from API response"
+    },
+    {
+      "command": "json_store_text",
+      "input": "API_RESPONSE",
+      "locator": "results[0].hits[$i].thumbnail",
+      "output": {
+        "name": "COVER$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 0,
+          "to": 9,
+          "step": 1
+        }
+      },
+      "description": "Extract images from API response"
+    }
+  ],
+  "url_steps": [
+    {
+      "command": "load",
+      "url": "$INPUT",
+      "config": {
+        "js": true,
+        "timeout": 10000
+      },
+      "description": "Load detail page"
+    },
+    {
+      "command": "store_url",
+      "output": {
+        "name": "URL"
+      },
+      "description": "Save URL"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "meta[property='og:title']",
+      "attribute_name": "content",
+      "output": {
+        "name": "TITLE",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract title from og:title"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "meta[property='og:description']",
+      "attribute_name": "content",
+      "output": {
+        "name": "DESCRIPTION",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract description from og:description"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "link[rel='icon']",
+      "attribute_name": "href",
+      "output": {
+        "name": "FAVICON",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract favicon"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "meta[property='og:image']",
+      "attribute_name": "content",
+      "output": {
+        "name": "COVER",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract cover image from og:image"
+    }
+  ]
+}

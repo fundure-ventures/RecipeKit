@@ -71,11 +71,30 @@ export function buildApiSteps(descriptor) {
   // Fall back to searchUrl only if no API endpoint was captured.
   const rawApiUrl = descriptor.apiUrl || descriptor.searchUrl;
 
-  // For POST APIs (e.g. Algolia), the URL may not contain the query at all.
-  // Only substitute $INPUT in the URL if it has query params.
-  const apiUrl = rawApiUrl.includes('?')
-    ? rawApiUrl.replace(/=[^&]+/, '=$INPUT')
-    : rawApiUrl;
+  // For POST APIs (e.g. Algolia), the query lives in the body, NOT the URL params.
+  // URL params are typically API keys/config — do NOT substitute $INPUT into them.
+  // Only substitute $INPUT in the URL for GET requests that lack a POST body.
+  let apiUrl = rawApiUrl;
+  if (descriptor.method === 'GET' || !descriptor.postData) {
+    if (rawApiUrl.includes('?') && descriptor.searchUrl) {
+      // Find which URL param actually contains the search query
+      const searchUrlObj = tryParseUrl(descriptor.searchUrl);
+      if (searchUrlObj) {
+        const apiUrlObj = tryParseUrl(rawApiUrl);
+        if (apiUrlObj) {
+          for (const [key, val] of apiUrlObj.searchParams.entries()) {
+            // Match the query value from the search page URL
+            for (const searchVal of searchUrlObj.searchParams.values()) {
+              if (searchVal && searchVal.length > 1 && val.includes(searchVal)) {
+                apiUrlObj.searchParams.set(key, '$INPUT');
+              }
+            }
+          }
+          apiUrl = apiUrlObj.toString();
+        }
+      }
+    }
+  }
 
   const apiStep = {
     command: 'api_request',
