@@ -172,6 +172,90 @@ export function buildApiSteps(descriptor) {
   return steps;
 }
 
+/**
+ * Build autocomplete_steps directly from searchEvidence.api
+ * (from probeSearchResults/discoverSearchAPI).
+ *
+ * This bypasses the LLM author for the api_request step, ensuring POST
+ * method, headers, and body are used exactly as captured.
+ *
+ * @param {Object} api - searchEvidence.api object
+ * @returns {Object[]} Array of recipe step objects
+ */
+export function buildApiStepsFromEvidence(api) {
+  if (!api) return [];
+
+  const steps = [];
+
+  const apiStep = {
+    command: 'api_request',
+    url: api.url_pattern || api.url,
+    config: {
+      method: api.method || 'GET'
+    },
+    output: { name: 'API_RESPONSE' },
+    description: 'Fetch search results from API'
+  };
+
+  // Add safe headers
+  if (api.headers && typeof api.headers === 'object') {
+    const safeHeaders = {};
+    const skipHeaders = ['cookie', 'referer', 'origin', 'content-length',
+      'accept-encoding', 'sec-', 'user-agent', 'host'];
+    for (const [key, value] of Object.entries(api.headers)) {
+      const lowerKey = key.toLowerCase();
+      if (!skipHeaders.some(skip => lowerKey.startsWith(skip))) {
+        safeHeaders[key] = value;
+      }
+    }
+    if (Object.keys(safeHeaders).length > 0) {
+      apiStep.config.headers = safeHeaders;
+    }
+  }
+
+  // Use body_pattern (already has $INPUT) or postData
+  if (api.body_pattern) {
+    apiStep.config.body = api.body_pattern;
+  } else if (api.postData) {
+    apiStep.config.body = api.postData;
+  }
+
+  steps.push(apiStep);
+
+  // Build json_store_text steps from evidence paths
+  const itemsPath = api.items_path || 'results[0].hits[$i]';
+  const fields = [
+    { path: api.title_path || 'title', name: 'TITLE$i', desc: 'Extract titles from API response' },
+    { path: api.url_path || 'url', name: 'URL$i', desc: 'Extract URLs from API response' },
+    { path: api.image_path || 'image', name: 'COVER$i', desc: 'Extract images from API response' },
+  ];
+
+  // Add subtitle if sample_data has one
+  if (api.sample_data) {
+    const subtitleKey = api.sample_data.designer || api.sample_data.dizajner
+      ? (api.sample_data.dizajner ? 'dizajner' : 'designer')
+      : (api.sample_data.brand ? 'brand'
+        : (api.sample_data.subtitle ? 'subtitle'
+          : (api.sample_data.author ? 'author' : null)));
+    if (subtitleKey) {
+      fields.splice(1, 0, { path: subtitleKey, name: 'SUBTITLE$i', desc: 'Extract subtitles from API response' });
+    }
+  }
+
+  for (const { path, name, desc } of fields) {
+    steps.push({
+      command: 'json_store_text',
+      input: 'API_RESPONSE',
+      locator: `${itemsPath}.${path}`,
+      output: { name },
+      config: { loop: { index: 'i', from: 0, to: 9, step: 1 } },
+      description: desc
+    });
+  }
+
+  return steps;
+}
+
 function tryParseUrl(str) {
   try { return new URL(str); } catch { return null; }
 }

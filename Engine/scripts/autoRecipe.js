@@ -45,7 +45,7 @@ import {
 import { validateSemanticMatch, validateMultiQuery } from './autoRecipe/validation.js';
 
 // API tools for building api_request-based recipes
-import { normalizeApiDescriptor, buildApiSteps } from './autoRecipe/apiTools.js';
+import { normalizeApiDescriptor, buildApiSteps, buildApiStepsFromEvidence } from './autoRecipe/apiTools.js';
 
 /**
  * Prompt user for input via readline
@@ -2762,12 +2762,30 @@ class AutoRecipe {
     }
     
     // Author autocomplete steps using AuthorAgent
-    const autocompleteResult = await this.authorAgent.generateAutocomplete({
-      site: siteEvidence, 
-      search: searchEvidence,
-      query: testQuery,
-      expected: { title: null, subtitle: null, url_regex: `https://${siteEvidence.hostname}` }
-    });
+    // For API-based recipes, build steps programmatically (LLMs often get POST/body wrong)
+    let autocompleteResult;
+    if (searchEvidence.api) {
+      this.logger.info('API evidence found — building api_request steps programmatically');
+      const apiSteps = buildApiStepsFromEvidence(searchEvidence.api);
+      if (apiSteps.length > 0) {
+        autocompleteResult = {
+          autocomplete_steps: apiSteps,
+          assumptions: ['Built programmatically from intercepted API evidence'],
+          known_fragility: [],
+          extra_probes_needed: []
+        };
+        this.logger.success(`Built ${apiSteps.length} steps from API evidence (${searchEvidence.api.method} ${searchEvidence.api.url_pattern?.slice(0, 60)})`);
+      }
+    }
+
+    if (!autocompleteResult) {
+      autocompleteResult = await this.authorAgent.generateAutocomplete({
+        site: siteEvidence, 
+        search: searchEvidence,
+        query: testQuery,
+        expected: { title: null, subtitle: null, url_regex: `https://${siteEvidence.hostname}` }
+      });
+    }
     
     // If the autocomplete steps use a different URL than what we discovered, update them
     if (autocompleteResult.autocomplete_steps?.[0]?.url && searchEvidence.discovered_search_url) {

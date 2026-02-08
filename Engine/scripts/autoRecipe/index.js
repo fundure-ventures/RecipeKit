@@ -13,4 +13,4 @@ export * from './config.js';
 export { validateSelector, promptUser, loadPromptFile } from './helpers.js';
 export { validateResults, validateSemanticMatch, validateMultiQuery } from './validation.js';
 export { triggerSearchAndCapture } from './searchCapture.js';
-export { normalizeApiDescriptor, buildApiSteps } from './apiTools.js';
+export { normalizeApiDescriptor, buildApiSteps, buildApiStepsFromEvidence } from './apiTools.js';
