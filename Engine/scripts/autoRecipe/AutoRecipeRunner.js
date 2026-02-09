@@ -633,6 +633,12 @@ export class AutoRecipeRunner {
           }
         }
 
+        // Detect variable collision: doubled domain (e.g. "https://site.comhttps://site.com0")
+        const domainMatches = r.URL.match(/https?:\/\//g);
+        if (domainMatches && domainMatches.length > 1) {
+          resultIssues.push(`URL contains doubled domain (variable collision bug): "${r.URL.slice(0, 80)}" — loop indices must stay single-digit (max "to": 9)`);
+        }
+
         if (/\$[A-Z_]+\$?i?\b/.test(r.URL)) {
           resultIssues.push(`URL contains unreplaced variable: "${r.URL}"`);
         }

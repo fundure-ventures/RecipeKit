@@ -71,7 +71,7 @@ If the API is Algolia (url contains "algolia"), use this pattern:
 
 1. **ALWAYS use `dom_structure.loopBase` from evidence** - It tells you the EXACT selector pattern
 2. **ALWAYS use `:nth-child($i)` on CONSECUTIVE SIBLINGS** - Never on nested items
-3. **ALWAYS use `"to": 10`** in loop config - Non-negotiable
+3. **ALWAYS use `"to": 9`** in loop config for DOM scraping (1-indexed) - Non-negotiable. Never use `"to": 10` or higher — double-digit indices cause variable collision bugs.
 4. **NEVER use `:nth-of-type($i)` on class selectors** - It doesn't work as expected
 5. **NEVER add comments or explanations inside selectors** - Pure CSS only
 </critical-rules>
@@ -130,10 +130,28 @@ Before writing JSON, verify:
 - [ ] I am using `dom_structure.loopBase` as my base selector
 - [ ] My `:nth-child($i)` is on the `consecutiveChild`, NOT on nested items
 - [ ] I am NOT using `:nth-of-type($i)` with class selectors
-- [ ] All loop configs use `"to": 10`
+- [ ] All DOM loop configs use `"from": 1, "to": 9` (single-digit indices only)
+- [ ] All API loop configs use `"from": 0, "to": 9`
 - [ ] Every step with `$i` has `config.loop`
 - [ ] URLs are made absolute if evidence shows relative hrefs
 </checklist>
+
+<variable-collision-warning>
+## ⚠️ VARIABLE COLLISION: Never Use Double-Digit Indices
+
+The engine replaces `$URL1` using simple regex — it will ALSO match inside `$URL10`, corrupting values.
+
+**Example of the bug:**
+- Loop index `i=10`, string `"https://site.com$URL$i"`
+- Engine replaces `$i` → `"https://site.com$URL10"`
+- Engine replaces `$URL1` (from iteration 1) → `"https://site.comhttps://site.com/page0"`
+
+**Rules:**
+- DOM loops: `"from": 1, "to": 9` (max 9 results, single-digit indices)
+- API loops: `"from": 0, "to": 9` (max 10 results, single-digit indices)
+- **NEVER** use `"to": 10` or higher
+- The `store` command for making URLs absolute (`"input": "https://site.com$URL$i"`) is safe ONLY with single-digit indices
+</variable-collision-warning>
 
 <common-mistakes>
 ## Why Recipes Fail: The Consecutive Sibling Problem
@@ -178,7 +196,7 @@ Return **ONLY** valid JSON. No markdown, no explanations.
       "command": "store_text",
       "locator": ".container > .item:nth-child($i) .title",
       "output": { "name": "TITLE$i" },
-      "config": { "loop": { "index": "i", "from": 1, "to": 10, "step": 1 } },
+      "config": { "loop": { "index": "i", "from": 1, "to": 9, "step": 1 } },
       "description": "Extract titles"
     },
     {
@@ -186,7 +204,7 @@ Return **ONLY** valid JSON. No markdown, no explanations.
       "locator": ".container > .item:nth-child($i) a",
       "attribute_name": "href",
       "output": { "name": "URL$i" },
-      "config": { "loop": { "index": "i", "from": 1, "to": 10, "step": 1 } },
+      "config": { "loop": { "index": "i", "from": 1, "to": 9, "step": 1 } },
       "description": "Extract URLs"
     },
     {
@@ -194,7 +212,7 @@ Return **ONLY** valid JSON. No markdown, no explanations.
       "locator": ".container > .item:nth-child($i) img",
       "attribute_name": "src",
       "output": { "name": "COVER$i" },
-      "config": { "loop": { "index": "i", "from": 1, "to": 10, "step": 1 } },
+      "config": { "loop": { "index": "i", "from": 1, "to": 9, "step": 1 } },
       "description": "Extract covers"
     }
   ],
@@ -225,17 +243,17 @@ For each result (using `$i`):
 
 ### store_text
 ```json
-{ "command": "store_text", "locator": ".item:nth-child($i) .title", "output": { "name": "TITLE$i" }, "config": { "loop": { "index": "i", "from": 1, "to": 10, "step": 1 } } }
+{ "command": "store_text", "locator": ".item:nth-child($i) .title", "output": { "name": "TITLE$i" }, "config": { "loop": { "index": "i", "from": 1, "to": 9, "step": 1 } } }
 ```
 
 ### store_attribute
 ```json
-{ "command": "store_attribute", "locator": ".item:nth-child($i) a", "attribute_name": "href", "output": { "name": "URL$i" }, "config": { "loop": { "index": "i", "from": 1, "to": 10, "step": 1 } } }
+{ "command": "store_attribute", "locator": ".item:nth-child($i) a", "attribute_name": "href", "output": { "name": "URL$i" }, "config": { "loop": { "index": "i", "from": 1, "to": 9, "step": 1 } } }
 ```
 
 ### store (for making URLs absolute)
 ```json
-{ "command": "store", "input": "https://site.com$URL$i", "output": { "name": "URL$i" }, "config": { "loop": { "index": "i", "from": 1, "to": 10, "step": 1 } } }
+{ "command": "store", "input": "https://site.com$URL$i", "output": { "name": "URL$i" }, "config": { "loop": { "index": "i", "from": 1, "to": 9, "step": 1 } } }
 ```
 </commands-reference>
 
@@ -245,5 +263,6 @@ For each result (using `$i`):
 1. **USE `dom_structure.loopBase`** - It's already computed for you
 2. **`:nth-child($i)` goes on consecutive siblings** - Check `consecutiveChild` in evidence
 3. **Never use `:nth-of-type($i)` with classes** - Use `:nth-child($i)` instead
-4. **Always `"to": 10`** - Engine handles fewer results gracefully
+4. **Always `"to": 9` for DOM, `"to": 9` for API** - Stay in single-digit indices to avoid variable collision
+5. **Never go above `"to": 9`** - The engine's variable replacement uses simple regex: `$URL1` matches inside `$URL10`, corrupting values
 </final-reminder>

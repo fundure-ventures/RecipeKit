@@ -769,6 +769,19 @@ class EvidenceCollector {
               lowerKey.includes('photo') || lowerKey.includes('avatar') || lowerKey.includes('poster'))) {
             fields.image = fullPath;
           }
+        } else if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'string') {
+          // Handle arrays of strings (e.g., url: { EN: ["/path/..."] })
+          const arrayPath = `${fullPath}[0]`;
+          if (!fields.url && (lowerKey.includes('url') || lowerKey.includes('href') ||
+              lowerKey.includes('link') || lowerKey === 'uri' || lowerKey === 'path' ||
+              lowerKey === 'slug' || lowerKey === 'permalink')) {
+            fields.url = arrayPath;
+          }
+          if (!fields.image && (lowerKey.includes('image') || lowerKey.includes('img') ||
+              lowerKey.includes('cover') || lowerKey.includes('thumb') || lowerKey.includes('picture') ||
+              lowerKey.includes('photo') || lowerKey.includes('avatar') || lowerKey.includes('poster'))) {
+            fields.image = arrayPath;
+          }
         } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
           // Recurse into nested objects
           const nested = findFieldPaths(value, fullPath);
@@ -835,7 +848,7 @@ class EvidenceCollector {
    */
   getNestedValue(obj, path) {
     if (!path) return obj;
-    return path.split('.').reduce((o, k) => (o || {})[k], obj);
+    return path.replace(/\[(\d+)\]/g, '.$1').split('.').reduce((o, k) => (o || {})[k], obj);
   }
 
   async analyzeSearchResults(page) {
@@ -3177,6 +3190,12 @@ class AutoRecipe {
         // Check for unreplaced variables in URL
         if (/\$[A-Z_]+\$?i?\b/.test(r.URL)) {
           resultIssues.push(`URL contains unreplaced variable: "${r.URL}"`);
+        }
+
+        // Detect variable collision: doubled domain (e.g. "https://site.comhttps://site.com0")
+        const domainMatches = r.URL.match(/https?:\/\//g);
+        if (domainMatches && domainMatches.length > 1) {
+          resultIssues.push(`URL contains doubled domain (variable collision bug): "${r.URL.slice(0, 80)}" — loop indices must stay single-digit (max "to": 9)`);
         }
       }
       

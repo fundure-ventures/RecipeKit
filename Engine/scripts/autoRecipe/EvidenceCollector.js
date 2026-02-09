@@ -1276,6 +1276,19 @@ export class EvidenceCollector {
               lowerKey.includes('photo') || lowerKey.includes('avatar') || lowerKey.includes('poster'))) {
             fields.image = fullPath;
           }
+        } else if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'string') {
+          // Handle arrays of strings (e.g., url: { EN: ["/path/..."] })
+          const arrayPath = `${fullPath}[0]`;
+          if (!fields.url && (lowerKey.includes('url') || lowerKey.includes('href') ||
+              lowerKey.includes('link') || lowerKey === 'uri' || lowerKey === 'path' ||
+              lowerKey === 'slug' || lowerKey === 'permalink')) {
+            fields.url = arrayPath;
+          }
+          if (!fields.image && (lowerKey.includes('image') || lowerKey.includes('img') ||
+              lowerKey.includes('cover') || lowerKey.includes('thumb') || lowerKey.includes('picture') ||
+              lowerKey.includes('photo') || lowerKey.includes('avatar') || lowerKey.includes('poster'))) {
+            fields.image = arrayPath;
+          }
         } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
           const nested = findFieldPaths(value, fullPath);
           if (!fields.title && nested.title) fields.title = nested.title;
@@ -1333,7 +1346,7 @@ export class EvidenceCollector {
 
   getNestedValue(obj, path) {
     if (!path) return obj;
-    return path.split('.').reduce((o, k) => (o || {})[k], obj);
+    return path.replace(/\[(\d+)\]/g, '.$1').split('.').reduce((o, k) => (o || {})[k], obj);
   }
 
   async analyzeSearchResults(page) {
