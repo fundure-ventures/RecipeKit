@@ -62,12 +62,15 @@ export class RecipeEngine {
       return str;
     }
     
-    // Replace all occurrences of each variable using global regex
-    return Object.keys(this.variables).reduce((result, variable) => {
-      const regex = new RegExp(`\\$${variable.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g');
-      const value = this.get(variable);
-      return result.replace(regex, value);
-    }, str);
+    // Sort variables by length descending to prevent partial matches
+    // (e.g., $URL1 matching inside $URL10)
+    return Object.keys(this.variables)
+      .sort((a, b) => b.length - a.length)
+      .reduce((result, variable) => {
+        const regex = new RegExp(`\\$${variable.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g');
+        const value = this.get(variable);
+        return result.replace(regex, value);
+      }, str);
   } 
 
   async initialize() {
