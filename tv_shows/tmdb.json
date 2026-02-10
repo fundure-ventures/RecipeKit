@@ -169,6 +169,16 @@
       "description": "Saves the description"
     },
     {
+      "command": "store_text",
+      "locator": "#original_header .genres a",
+      "output": {
+        "name": "GENRE",
+        "type": "string",
+        "show": true
+      },
+      "description": "Saves the genre of the TV show"
+    },
+    {
       "command": "store_attribute",
       "locator": "div.provider img",
       "attribute_name": "alt",
