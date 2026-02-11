@@ -2,7 +2,7 @@
   "recipe_shortcut": "fragranticacom",
   "list_type": "generic",
   "engine_version": 20,
-  "title": "Perfumes and Colognes Magazine, Perfume Reviews and Online Community\u2014Fragrantica.com",
+  "title": "Perfumes and Colognes Magazine, Perfume Reviews and Online Community—Fragrantica.com",
   "description": "Retrieve generic from fragrantica.com",
   "urls": [
     "https://fragrantica.com",
@@ -15,18 +15,20 @@
   "autocomplete_steps": [
     {
       "command": "api_request",
-      "url": "https://fgvi612dfz-dsn.algolia.net/1/indexes/*/queries?x-algolia-agent=Algolia%20for%20JavaScript%20(4.24.0)%3B%20Browser%20(lite)&x-algolia-api-key=YzY3Mzc1MTBkMzc2NDgxZmE3MDIyYWFiNmM4ODQ3NDhiNGFjZjYyYmUwYTU1NzdmOGNhOTQzMjU3Y2U5MzZjM3ZhbGlkVW50aWw9MTc3MjIzNjg3Mg%3D%3D&x-algolia-application-id=FGVI612DFZ",
+      "url": "https://fgvi612dfz-dsn.algolia.net/1/indexes/*/queries?x-algolia-agent=Algolia%20for%20JavaScript%20(4.25.3)%3B%20Browser%20(lite)%3B%20instantsearch.js%20(4.86.1)%3B%20Vue%20(3.5.27)%3B%20Vue%20InstantSearch%20(4.22.8)%3B%20JS%20Helper%20(3.27.0)&x-algolia-api-key=ZWIwYWQzYjYxMDYwMTE1MzZhMjk0NDJhNTU5ZTA1ZjAxZGUyNGYyNmExZDE4ZGYwODJkZmY3MGQ2MDRmMGY1OHZhbGlkVW50aWw9MTc3MjU3NTI0NA%3D%3D&x-algolia-application-id=FGVI612DFZ",
       "config": {
         "method": "POST",
         "headers": {
-          "content-type": "application/x-www-form-urlencoded"
+          "Content-Type": "application/x-www-form-urlencoded",
+          "Origin": "https://www.fragrantica.com",
+          "Referer": "https://www.fragrantica.com/"
         },
-        "body": "{\"requests\":[{\"indexName\":\"fragrantica_perfumes\",\"params\":\"query=$INPUT&hitsPerPage=10\"}]}"
+        "body": "{\"requests\":[{\"indexName\":\"fragrantica_perfumes\",\"params\":\"attributesToRetrieve=%5B%22naslov%22%2C%22dizajner%22%2C%22godina%22%2C%22url.EN%22%2C%22thumbnail%22%2C%22spol%22%2C%22num_reviews.EN%22%5D&facets=%5B%22collection%22%2C%22designer_meta.category%22%2C%22designer_meta.country%22%2C%22designer_meta.main_activity%22%2C%22designer_meta.parent_company%22%2C%22dizajner%22%2C%22godina%22%2C%22ingredients.EN%22%2C%22nosevi%22%2C%22osobine.EN%22%2C%22rating_rounded%22%2C%22spol%22%5D&highlightPostTag=__%2Fais-highlight__&highlightPreTag=__ais-highlight__&hitsPerPage=10&maxValuesPerFacet=100&page=0&query=$INPUT\"}]}"
       },
       "output": {
         "name": "API_RESPONSE"
       },
-      "description": "Fetch search results from API"
+      "description": "Fetch search results from Algolia API"
     },
     {
       "command": "json_store_text",
@@ -43,7 +45,7 @@
           "step": 1
         }
       },
-      "description": "Extract titles from API response"
+      "description": "Extract perfume titles"
     },
     {
       "command": "json_store_text",
@@ -60,7 +62,7 @@
           "step": 1
         }
       },
-      "description": "Extract subtitles from API response"
+      "description": "Extract designer names"
     },
     {
       "command": "json_store_text",
@@ -77,7 +79,7 @@
           "step": 1
         }
       },
-      "description": "Extract URLs from API response"
+      "description": "Extract perfume URLs"
     },
     {
       "command": "json_store_text",
@@ -94,7 +96,7 @@
           "step": 1
         }
       },
-      "description": "Extract images from API response"
+      "description": "Extract thumbnail images"
     }
   ],
   "url_steps": [
@@ -105,7 +107,7 @@
         "js": true,
         "timeout": 10000
       },
-      "description": "Load detail page"
+      "description": "Load perfume detail page"
     },
     {
       "command": "store_url",
@@ -141,11 +143,21 @@
       "locator": "link[rel='icon']",
       "attribute_name": "href",
       "output": {
+        "name": "FAVICON_RAW",
+        "type": "string",
+        "show": false
+      },
+      "description": "Extract favicon href"
+    },
+    {
+      "command": "store",
+      "input": "https://www.fragrantica.com$FAVICON_RAW",
+      "output": {
         "name": "FAVICON",
         "type": "string",
         "show": true
       },
-      "description": "Extract favicon"
+      "description": "Make favicon URL absolute"
     },
     {
       "command": "store_attribute",

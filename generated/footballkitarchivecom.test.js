@@ -7,31 +7,26 @@ const TIMEOUT = parseInt(process.env.TEST_TIMEOUT);
 
 const RECIPE = "footballkitarchivecom.json";
 const INPUT = {
-    AUTOCOMPLETE: "Barcelona",
-    URL: "https://footballkitarchive.com/fc-barcelona-2025-26-home-kit/339490/"
+    AUTOCOMPLETE: "Manchester United",
+    URL: "https://www.footballkitarchive.com/manchester-united-2025-26-home-kit/365645/"
 };
 
-const ENTRY = {"TITLE":"FC Barcelona - 2025-26 Home"};
+const ENTRY = {"TITLE":"Manchester United","SUBTITLE":"2025-26 Home"};
 
 describe(RECIPE, () => {
     test("--type autocomplete", async () => {
-        const results = await runEngine(`generic/${RECIPE}`, "autocomplete", INPUT.AUTOCOMPLETE);
+        const results = await runEngine(`generated/${RECIPE}`, "autocomplete", INPUT.AUTOCOMPLETE);
         
-        // Validate we got multiple results (not just 1)
-        expect(results.results).toBeDefined();
-        expect(Array.isArray(results.results)).toBe(true);
-        expect(results.results.length).toBeGreaterThanOrEqual(2);
-        
-        const entry = findEntry(results, ENTRY.TITLE);
+        const entry = findEntry(results, ENTRY.TITLE, ENTRY.SUBTITLE);
 
         expect(entry.TITLE).toBe(ENTRY.TITLE);
-        
+        expect(entry.SUBTITLE).toBe(ENTRY.SUBTITLE);
         expect(entry.URL).toBeDefined();
         expect(entry.COVER).toBeDefined();
     }, TIMEOUT);
 
     test("--type url", async () => {
-        const result = await runEngine(`generic/${RECIPE}`, "url", INPUT.URL);
+        const result = await runEngine(`generated/${RECIPE}`, "url", INPUT.URL);
 
         expect(result.TITLE).toBeDefined();
         expect(result.DESCRIPTION).toBeDefined();

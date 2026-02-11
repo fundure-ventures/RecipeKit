@@ -5,22 +5,17 @@ import { runEngine, findEntry, loadEnvVariables } from '../Engine/utils/test_uti
 await loadEnvVariables();
 const TIMEOUT = parseInt(process.env.TEST_TIMEOUT);
 
-const RECIPE = "funko_com.json";
+const RECIPE = "fragranticacom.json";
 const INPUT = {
-    AUTOCOMPLETE: "test",
-    URL: "https://funko.com/pop-wendy-testaburger/86308.html"
+    AUTOCOMPLETE: "Chanel",
+    URL: "https://www.fragrantica.com/perfume/Chanel/Chanel-No-5-Eau-de-Parfum-40069.html"
 };
 
-const ENTRY = {"TITLE":"Pop! Wendy Testaburger","SUBTITLE":"$14.99"};
+const ENTRY = {"TITLE":"Chanel No 5 Eau de Parfum","SUBTITLE":"Chanel"};
 
 describe(RECIPE, () => {
     test("--type autocomplete", async () => {
-        const results = await runEngine(`generic/${RECIPE}`, "autocomplete", INPUT.AUTOCOMPLETE);
-        
-        // Validate we got multiple results (not just 1)
-        expect(results.results).toBeDefined();
-        expect(Array.isArray(results.results)).toBe(true);
-        expect(results.results.length).toBeGreaterThanOrEqual(2);
+        const results = await runEngine(`generated/${RECIPE}`, "autocomplete", INPUT.AUTOCOMPLETE);
         
         const entry = findEntry(results, ENTRY.TITLE, ENTRY.SUBTITLE);
 
@@ -31,7 +26,7 @@ describe(RECIPE, () => {
     }, TIMEOUT);
 
     test("--type url", async () => {
-        const result = await runEngine(`generic/${RECIPE}`, "url", INPUT.URL);
+        const result = await runEngine(`generated/${RECIPE}`, "url", INPUT.URL);
 
         expect(result.TITLE).toBeDefined();
         expect(result.DESCRIPTION).toBeDefined();

@@ -18,62 +18,45 @@
       "url": "https://www.footballkitarchive.com/?q=$INPUT",
       "config": {
         "js": true,
-        "timeout": 10000,
-        "wait_for": ".kit-container"
+        "timeout": 5000
       },
-      "description": "Load search results and wait for kit containers"
+      "description": "Load search results page"
     },
     {
       "command": "store_text",
-      "locator": ".kit-container:nth-child($i) .kit-teamname",
-      "output": {
-        "name": "TEAM$i"
-      },
-      "config": {
-        "loop": {
-          "index": "i",
-          "from": 2,
-          "to": 11,
-          "step": 1
-        }
-      },
-      "description": "Extract team names using nth-child starting from 2"
-    },
-    {
-      "command": "store_text",
-      "locator": ".kit-container:nth-child($i) .kit-season",
-      "output": {
-        "name": "SEASON$i"
-      },
-      "config": {
-        "loop": {
-          "index": "i",
-          "from": 2,
-          "to": 11,
-          "step": 1
-        }
-      },
-      "description": "Extract season info using nth-child starting from 2"
-    },
-    {
-      "command": "store",
-      "input": "$TEAM$i - $SEASON$i",
+      "locator": ".kit-container .kit:nth-child($i) .kit-teamname",
       "output": {
         "name": "TITLE$i"
       },
       "config": {
         "loop": {
           "index": "i",
-          "from": 2,
-          "to": 11,
+          "from": 1,
+          "to": 9,
           "step": 1
         }
       },
-      "description": "Combine team and season into title"
+      "description": "Extract team names"
+    },
+    {
+      "command": "store_text",
+      "locator": ".kit-container .kit:nth-child($i) .kit-season",
+      "output": {
+        "name": "SUBTITLE$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 1,
+          "to": 9,
+          "step": 1
+        }
+      },
+      "description": "Extract kit season info"
     },
     {
       "command": "store_attribute",
-      "locator": ".kit-container:nth-child($i) a",
+      "locator": ".kit-container .kit:nth-child($i) a",
       "attribute_name": "href",
       "output": {
         "name": "URL$i"
@@ -81,16 +64,32 @@
       "config": {
         "loop": {
           "index": "i",
-          "from": 2,
-          "to": 11,
+          "from": 1,
+          "to": 9,
           "step": 1
         }
       },
-      "description": "Extract absolute URLs directly"
+      "description": "Extract kit URLs"
+    },
+    {
+      "command": "store",
+      "input": "https://www.footballkitarchive.com$URL$i",
+      "output": {
+        "name": "URL$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 1,
+          "to": 9,
+          "step": 1
+        }
+      },
+      "description": "Make URLs absolute"
     },
     {
       "command": "store_attribute",
-      "locator": ".kit-container:nth-child($i) img",
+      "locator": ".kit-container .kit:nth-child($i) img.lazyload",
       "attribute_name": "src",
       "output": {
         "name": "COVER$i"
@@ -98,12 +97,12 @@
       "config": {
         "loop": {
           "index": "i",
-          "from": 2,
-          "to": 11,
+          "from": 1,
+          "to": 9,
           "step": 1
         }
       },
-      "description": "Extract cover images"
+      "description": "Extract kit images"
     }
   ],
   "url_steps": [
@@ -115,6 +114,13 @@
         "timeout": 5000
       },
       "description": "Load kit detail page"
+    },
+    {
+      "command": "store_url",
+      "output": {
+        "name": "URL"
+      },
+      "description": "Save URL"
     },
     {
       "command": "store_text",
@@ -135,7 +141,7 @@
         "type": "string",
         "show": true
       },
-      "description": "Extract description from og:description meta"
+      "description": "Extract description from og:description"
     },
     {
       "command": "store_attribute",
@@ -157,7 +163,7 @@
         "type": "string",
         "show": true
       },
-      "description": "Extract cover image from og:image meta"
+      "description": "Extract cover image from og:image"
     }
   ]
 }

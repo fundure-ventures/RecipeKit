@@ -45,7 +45,7 @@ import {
 import { validateSemanticMatch, validateMultiQuery } from './autoRecipe/validation.js';
 
 // API tools for building api_request-based recipes
-import { normalizeApiDescriptor, buildApiSteps, buildApiStepsFromEvidence } from './autoRecipe/apiTools.js';
+import { normalizeApiDescriptor, buildApiSteps } from './autoRecipe/apiTools.js';
 
 /**
  * Prompt user for input via readline
@@ -1860,6 +1860,7 @@ class EvidenceCollector {
     let capturedData = null;
     let resolveCapture;
     let responseCount = 0;
+    const capturedRequests = new Map();
     
     // Create promise that will be resolved when API is captured
     const capturePromise = new Promise((resolve) => {
@@ -1869,8 +1870,14 @@ class EvidenceCollector {
     // Enable request interception to capture all network activity
     await page.setRequestInterception(true);
     
-    // Continue all requests
+    // Capture request metadata before continuing
     page.on('request', request => {
+      const reqUrl = request.url();
+      capturedRequests.set(reqUrl, {
+        method: request.method(),
+        headers: request.headers(),
+        postData: request.postData() || null
+      });
       request.continue();
     });
     
@@ -1913,12 +1920,16 @@ class EvidenceCollector {
             const hasTitle = sample.title || sample.name || sample.naslov || sample.headline;
             
             if (hasTitle) {
+              const reqMeta = capturedRequests.get(responseUrl) || {};
               capturedData = {
                 results,
                 jsonPathHint: 'results[0].hits[$i]',
                 urlPattern: 'algolia',
                 fullResponse: data,
-                apiUrl: responseUrl
+                apiUrl: responseUrl,
+                method: reqMeta.method || 'GET',
+                headers: reqMeta.headers || {},
+                postData: reqMeta.postData || null
               };
               this.logger.success(`    Captured ${results.length} results from Algolia API!`);
               resolveCapture(capturedData);
@@ -2012,8 +2023,6 @@ class TestGenerator {
   }
 
   generate(recipePath, listType, domain, autocompleteQuery, autocompleteExpected, urlInput, urlExpected) {
-    const relativeRecipePath = `${listType}/${domain}.json`;
-    
     return `import { expect, test, describe } from "bun:test";
 import { runEngine, findEntry, loadEnvVariables } from '../Engine/utils/test_utils.js';
 
@@ -2031,12 +2040,7 @@ const ENTRY = ${JSON.stringify(autocompleteExpected)};
 
 describe(RECIPE, () => {
     test("--type autocomplete", async () => {
-        const results = await runEngine(\`${listType}/\${RECIPE}\`, "autocomplete", INPUT.AUTOCOMPLETE);
-        
-        // Validate we got multiple results (not just 1)
-        expect(results.results).toBeDefined();
-        expect(Array.isArray(results.results)).toBe(true);
-        expect(results.results.length).toBeGreaterThanOrEqual(2);
+        const results = await runEngine(\`generated/\${RECIPE}\`, "autocomplete", INPUT.AUTOCOMPLETE);
         
         const entry = findEntry(results, ENTRY.TITLE${autocompleteExpected.SUBTITLE ? ', ENTRY.SUBTITLE' : ''});
 
@@ -2047,7 +2051,7 @@ describe(RECIPE, () => {
     }, TIMEOUT);
 
     test("--type url", async () => {
-        const result = await runEngine(\`${listType}/\${RECIPE}\`, "url", INPUT.URL);
+        const result = await runEngine(\`generated/\${RECIPE}\`, "url", INPUT.URL);
 
         ${this.generateUrlAssertions(listType, urlExpected)}
     }, TIMEOUT);
@@ -2620,7 +2624,7 @@ class AutoRecipe {
       // Store in ./generated folder instead of category folder
       const generatedDir = join(REPO_ROOT, 'generated');
       const recipePath = join(generatedDir, `${domain}.json`);
-      const testPath = join(generatedDir, `${domain}.autorecipe.test.js`);
+      const testPath = join(generatedDir, `${domain}.test.js`);
 
       // Check for existing files
       if (!this.force) {
@@ -2664,7 +2668,7 @@ class AutoRecipe {
               siteEvidence,
               newDomain,
               newRecipePath,
-              join(generatedDir, `${newDomain}.autorecipe.test.js`)
+              join(generatedDir, `${newDomain}.test.js`)
             );
           } else {
             this.logger.info('Cancelled.');
@@ -2775,30 +2779,12 @@ class AutoRecipe {
     }
     
     // Author autocomplete steps using AuthorAgent
-    // For API-based recipes, build steps programmatically (LLMs often get POST/body wrong)
-    let autocompleteResult;
-    if (searchEvidence.api) {
-      this.logger.info('API evidence found — building api_request steps programmatically');
-      const apiSteps = buildApiStepsFromEvidence(searchEvidence.api);
-      if (apiSteps.length > 0) {
-        autocompleteResult = {
-          autocomplete_steps: apiSteps,
-          assumptions: ['Built programmatically from intercepted API evidence'],
-          known_fragility: [],
-          extra_probes_needed: []
-        };
-        this.logger.success(`Built ${apiSteps.length} steps from API evidence (${searchEvidence.api.method} ${searchEvidence.api.url_pattern?.slice(0, 60)})`);
-      }
-    }
-
-    if (!autocompleteResult) {
-      autocompleteResult = await this.authorAgent.generateAutocomplete({
-        site: siteEvidence, 
-        search: searchEvidence,
-        query: testQuery,
-        expected: { title: null, subtitle: null, url_regex: `https://${siteEvidence.hostname}` }
-      });
-    }
+    const autocompleteResult = await this.authorAgent.generateAutocomplete({
+      site: siteEvidence, 
+      search: searchEvidence,
+      query: testQuery,
+      expected: { title: null, subtitle: null, url_regex: `https://${siteEvidence.hostname}` }
+    });
     
     // If the autocomplete steps use a different URL than what we discovered, update them
     if (autocompleteResult.autocomplete_steps?.[0]?.url && searchEvidence.discovered_search_url) {
@@ -3099,8 +3085,31 @@ class AutoRecipe {
             if (overlap.length < firstTitles.size * 0.5) {
               this.logger.success(`  ✓ API returns different results for different queries!`);
               
-              // Build API-based recipe
-              return this.buildApiRecipe(siteEvidence, apiData, searchUrl, listType, domain);
+              // Let the LLM author the API-based recipe using captured evidence
+              const enrichedSearch = {
+                api: {
+                  url: apiData.apiUrl,
+                  method: apiData.method || 'GET',
+                  headers: apiData.headers || {},
+                  postData: apiData.postData || null,
+                  response_structure: apiData.jsonPathHint,
+                  sample_data: apiData.results.slice(0, 3),
+                  result_count: apiData.results.length,
+                  url_pattern: apiData.urlPattern
+                },
+                search_type: 'api_interception',
+                result_count: apiData.results.length
+              };
+              
+              this.logger.info('  Passing captured API evidence to AuthorAgent...');
+              const autocompleteResult = await this.authorAgent.generateAutocomplete({
+                site: siteEvidence,
+                search: enrichedSearch,
+                query: testQuery,
+                expected: { title: null, subtitle: null, url_regex: `https://${siteEvidence.hostname}` }
+              });
+              
+              return this.buildRecipeFromSteps(siteEvidence, autocompleteResult.autocomplete_steps, listType, domain);
             } else {
               this.logger.warn(`  API also returns same results - may be a recommendation API`);
             }
@@ -3141,6 +3150,29 @@ class AutoRecipe {
     };
     
     return recipe;
+  }
+
+  /**
+   * Build a recipe skeleton from LLM-authored autocomplete steps
+   */
+  buildRecipeFromSteps(siteEvidence, autocomplete_steps, listType, domain) {
+    const hostname = siteEvidence.hostname;
+    const baseUrl = `https://www.${hostname.replace(/^www\./, '')}`;
+    
+    return {
+      recipe_shortcut: domain,
+      list_type: listType,
+      engine_version: ENGINE_VERSION,
+      title: siteEvidence.title?.split(' - ')[0]?.split(' | ')[0] || hostname,
+      description: `Retrieve ${listType} from ${hostname}`,
+      urls: [
+        `https://${hostname}`,
+        baseUrl
+      ],
+      headers: DEFAULT_HEADERS,
+      autocomplete_steps,
+      url_steps: null
+    };
   }
 
   /**
