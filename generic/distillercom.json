@@ -15,12 +15,12 @@
   "autocomplete_steps": [
     {
       "command": "load",
-      "url": "https://distiller.com/search?q=$INPUT",
+      "url": "https://distiller.com/search?term=$INPUT",
       "config": {
         "js": true,
         "timeout": 5000
       },
-      "description": "Load search results"
+      "description": "Load search results from Distiller"
     },
     {
       "command": "store_text",
@@ -76,6 +76,23 @@
       "locator": "ol.spirits > li:nth-child($i) div.image",
       "attribute_name": "style",
       "output": {
+        "name": "RAW_COVER$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 1,
+          "to": 9,
+          "step": 1
+        }
+      },
+      "description": "Extract raw style containing background-image"
+    },
+    {
+      "command": "regex",
+      "input": "$RAW_COVER$i",
+      "expression": "url\\(([^)]+)\\)",
+      "output": {
         "name": "COVER$i"
       },
       "config": {
@@ -86,8 +103,153 @@
           "step": 1
         }
       },
-      "description": "Extract spirit images from background-image style"
+      "description": "Extract image URL from CSS background-image"
+    },
+    {
+      "command": "store_text",
+      "locator": "ol.spirits > li:nth-child($i) div.category",
+      "output": {
+        "name": "SUBTITLE$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 1,
+          "to": 9,
+          "step": 1
+        }
+      },
+      "description": "Extract spirit category"
     }
   ],
-  "url_steps": null
+  "url_steps": [
+    {
+      "command": "load",
+      "url": "$INPUT",
+      "config": {
+        "js": true,
+        "timeout": 5000
+      },
+      "description": "Load spirit detail page"
+    },
+    {
+      "command": "store_url",
+      "output": {
+        "name": "URL"
+      },
+      "description": "Save the current URL"
+    },
+    {
+      "command": "store_text",
+      "locator": "h1[itemprop='name']",
+      "output": {
+        "name": "TITLE",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract spirit name"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "meta[property='og:description']",
+      "attribute_name": "content",
+      "output": {
+        "name": "DESCRIPTION",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract description from og:description"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "meta[property='og:image']",
+      "attribute_name": "content",
+      "output": {
+        "name": "COVER",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract cover image from og:image"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "link[rel='apple-touch-icon']",
+      "attribute_name": "href",
+      "output": {
+        "name": "RAW_FAVICON",
+        "type": "string"
+      },
+      "description": "Extract favicon"
+    },
+    {
+      "command": "store",
+      "input": "https://distiller.com$RAW_FAVICON",
+      "output": {
+        "name": "FAVICON",
+        "type": "string",
+        "show": true
+      },
+      "description": "Make favicon URL absolute"
+    },
+    {
+      "command": "store_text",
+      "locator": "span[itemprop='ratingValue']",
+      "output": {
+        "name": "RATING",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract community rating"
+    },
+    {
+      "command": "store_text",
+      "locator": "p.ultra-mini-headline.type",
+      "output": {
+        "name": "STYLE",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract spirit style (e.g. Bourbon)"
+    },
+    {
+      "command": "store_text",
+      "locator": "p[itemprop='brand_name']",
+      "output": {
+        "name": "BRAND",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract brand and location"
+    },
+    {
+      "command": "store_text",
+      "locator": "li.detail.abv .value",
+      "output": {
+        "name": "ABV",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract ABV"
+    },
+    {
+      "command": "store_text",
+      "locator": "li.detail.age .value",
+      "output": {
+        "name": "AGE",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract age statement"
+    },
+    {
+      "command": "store_text",
+      "locator": ".distiller-score span",
+      "output": {
+        "name": "SCORE",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract Distiller expert score"
+    }
+  ]
 }

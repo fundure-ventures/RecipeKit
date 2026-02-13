@@ -8,10 +8,10 @@ const TIMEOUT = parseInt(process.env.TEST_TIMEOUT);
 const RECIPE = "distillercom.json";
 const INPUT = {
     AUTOCOMPLETE: "bourbon",
-    URL: "https://distiller.com"
+    URL: "https://distiller.com/spirits/buffalo-trace-bourbon"
 };
 
-const ENTRY = {"TITLE":"Test","SUBTITLE":""};
+const ENTRY = {"TITLE":"Buffalo Trace Bourbon","SUBTITLE":""};
 
 describe(RECIPE, () => {
     test("--type autocomplete", async () => {
