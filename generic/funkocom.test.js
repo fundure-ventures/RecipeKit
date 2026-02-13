@@ -7,11 +7,11 @@ const TIMEOUT = parseInt(process.env.TEST_TIMEOUT);
 
 const RECIPE = "funkocom.json";
 const INPUT = {
-    AUTOCOMPLETE: "Pokémon",
-    URL: "https://funko.com/pop-premium-pikachu/91662.html"
+    AUTOCOMPLETE: "Dragon Ball",
+    URL: "https://funko.com/pop-super-saiyan-trunks/91825.html"
 };
 
-const ENTRY = {"TITLE":"Pop! Premium Pikachu"};
+const ENTRY = {"TITLE":"Pop! Super Saiyan Trunks"};
 
 describe(RECIPE, () => {
     test("--type autocomplete", async () => {

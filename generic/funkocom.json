@@ -40,7 +40,7 @@
     },
     {
       "command": "store_attribute",
-      "locator": "ul.row > li.col-6:nth-child($i) a.image-link",
+      "locator": "ul.row > li.col-6:nth-child($i) a",
       "attribute_name": "href",
       "output": {
         "name": "URL$i"
@@ -81,14 +81,14 @@
         "js": true,
         "timeout": 5000
       },
-      "description": "Load Funko product page"
+      "description": "Load product detail page"
     },
     {
       "command": "store_url",
       "output": {
         "name": "URL"
       },
-      "description": "Save current URL"
+      "description": "Save the current URL"
     },
     {
       "command": "store_text",
@@ -98,27 +98,29 @@
         "type": "string",
         "show": true
       },
-      "description": "Extract product title from h1"
+      "description": "Extract product title"
     },
     {
-      "command": "store_text",
-      "locator": "script[type='application/ld+json']",
-      "output": {
-        "name": "JSON_LD",
-        "type": "string"
-      },
-      "description": "Extract JSON-LD data"
-    },
-    {
-      "command": "json_store_text",
-      "input": "$JSON_LD",
-      "locator": "description",
+      "command": "store_attribute",
+      "locator": "meta[property='og:description']",
+      "attribute_name": "content",
       "output": {
         "name": "DESCRIPTION",
         "type": "string",
         "show": true
       },
-      "description": "Extract description from JSON-LD Product schema"
+      "description": "Extract product description"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "meta[property='og:image']",
+      "attribute_name": "content",
+      "output": {
+        "name": "COVER",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract cover image"
     },
     {
       "command": "store_attribute",
@@ -133,14 +135,46 @@
     },
     {
       "command": "store_attribute",
-      "locator": "meta[property='og:image']",
-      "attribute_name": "content",
+      "locator": "script[type='application/ld+json']",
+      "attribute_name": "textContent",
       "output": {
-        "name": "COVER",
+        "name": "JSON_LD",
+        "type": "string"
+      },
+      "description": "Extract JSON-LD data"
+    },
+    {
+      "command": "json_store_text",
+      "input": "JSON_LD",
+      "locator": "brand.name",
+      "output": {
+        "name": "BRAND",
         "type": "string",
         "show": true
       },
-      "description": "Extract cover image from og:image"
+      "description": "Extract brand from JSON-LD"
+    },
+    {
+      "command": "json_store_text",
+      "input": "JSON_LD",
+      "locator": "offers.price",
+      "output": {
+        "name": "PRICE",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract price from JSON-LD"
+    },
+    {
+      "command": "json_store_text",
+      "input": "JSON_LD",
+      "locator": "sku",
+      "output": {
+        "name": "SKU",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract SKU from JSON-LD"
     }
   ]
 }
