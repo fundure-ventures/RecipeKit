@@ -213,14 +213,45 @@ class EvidenceCollector {
         };
 
         const detectSearch = () => {
-          // Try to find search form/input
-          const searchInput = document.querySelector('input[type="search"], input[name="q"], input[name="query"], input[name="search"], input[placeholder*="search" i]');
+          // Universal search input discovery — don't hardcode param names
+          const searchSelectors = [
+            'input[type="search"]',
+            'input[role="searchbox"]',
+            'input[placeholder*="search" i]',
+            'input[aria-label*="search" i]',
+            'input[name="q"]',
+            'input[name="query"]',
+            'input[name="search"]',
+            'input[name="term"]',
+            'input[id*="search" i]:not([type="hidden"])',
+            'input[class*="search" i]:not([type="hidden"])',
+          ];
+          let searchInput = null;
+          for (const sel of searchSelectors) {
+            searchInput = document.querySelector(sel);
+            if (searchInput) break;
+          }
           const searchForm = searchInput?.closest('form');
+          
+          // Also detect search navigation links (for sites where search is a link, not a form)
+          let searchLink = null;
+          if (!searchInput) {
+            const links = Array.from(document.querySelectorAll('a[href*="/search"]'));
+            const searchPageLink = links.find(a => {
+              const href = a.getAttribute('href') || '';
+              // Exclude non-search links like /user_search, /search_help
+              return /\/search\/?$/.test(href) || /\/search\?/.test(href);
+            });
+            if (searchPageLink) {
+              searchLink = searchPageLink.href;
+            }
+          }
           
           return {
             has_search: !!searchInput,
-            search_box_locator: searchInput ? `input[name="${searchInput.name || 'search'}"]` : null,
-            search_form_action: searchForm?.action || null
+            search_box_locator: searchInput ? (searchInput.name ? `input[name="${searchInput.name}"]` : `input[type="${searchInput.type || 'text'}"]`) : null,
+            search_form_action: searchForm?.action || null,
+            search_link: searchLink
           };
         };
 
@@ -410,7 +441,41 @@ class EvidenceCollector {
         await this.dismissCookieBanners(page);
         await new Promise(r => setTimeout(r, 1000));
         
-        const searchInput = await page.$('input[type="search"], input[name="q"], input[name="query"], input[name="search"], input[placeholder*="search" i]');
+        // Universal search input selectors — don't hardcode param names
+        const searchInputSelectors = [
+          'input[type="search"]',
+          'input[role="searchbox"]',
+          'input[placeholder*="search" i]',
+          'input[aria-label*="search" i]',
+          'input[name="q"]',
+          'input[name="query"]',
+          'input[name="search"]',
+          'input[name="term"]',
+          'input[id*="search" i]:not([type="hidden"])',
+          'input[class*="search" i]:not([type="hidden"])',
+        ].join(', ');
+        
+        let searchInput = await page.$(searchInputSelectors);
+        
+        // If no input on homepage, follow search links to the search page
+        if (!searchInput) {
+          const searchLink = await page.evaluate(() => {
+            const links = Array.from(document.querySelectorAll('a[href*="/search"]'));
+            const link = links.find(a => {
+              const href = a.getAttribute('href') || '';
+              return /\/search\/?$/.test(href) || /\/search\?/.test(href);
+            });
+            return link ? link.href : null;
+          });
+          
+          if (searchLink) {
+            this.logger.info(`Following search link: ${searchLink}`);
+            await page.goto(searchLink, { waitUntil: 'networkidle2', timeout: 30000 });
+            await this.dismissCookieBanners(page);
+            await new Promise(r => setTimeout(r, 1000));
+            searchInput = await page.$(searchInputSelectors);
+          }
+        }
         
         if (searchInput) {
           this.logger.info('Found search input. Discovering search URL pattern...');
@@ -484,6 +549,67 @@ class EvidenceCollector {
       }
 
       return searchEvidence;
+    } finally {
+      await page.close();
+    }
+  }
+  
+  /**
+   * Visit a search link page, find the search form, and derive the search URL pattern
+   * Used when homepage has a search link but no search input
+   */
+  async discoverSearchUrlFromLink(searchLink) {
+    const page = await this.browser.newPage();
+    await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+    
+    try {
+      await page.goto(searchLink, { waitUntil: 'networkidle2', timeout: 30000 });
+      await this.dismissCookieBanners(page);
+      await new Promise(r => setTimeout(r, 1000));
+      
+      // Find search input on the search page using universal selectors
+      const searchInfo = await page.evaluate(() => {
+        const selectors = [
+          'input[type="search"]',
+          'input[role="searchbox"]',
+          'input[placeholder*="search" i]',
+          'input[aria-label*="search" i]',
+          'input[name="q"]',
+          'input[name="query"]',
+          'input[name="search"]',
+          'input[name="term"]',
+          'input[id*="search" i]:not([type="hidden"])',
+          'input[class*="search" i]:not([type="hidden"])',
+        ];
+        let input = null;
+        for (const sel of selectors) {
+          input = document.querySelector(sel);
+          if (input) break;
+        }
+        if (!input) return null;
+        
+        const form = input.closest('form');
+        return {
+          name: input.name || null,
+          formAction: form?.action || null,
+          pageUrl: window.location.href
+        };
+      });
+      
+      if (!searchInfo || !searchInfo.name) {
+        this.logger.log('No named search input found on search page');
+        return null;
+      }
+      
+      // Derive URL pattern from form action or page URL + input name
+      const baseSearchUrl = searchInfo.formAction || searchInfo.pageUrl;
+      const urlObj = new URL(baseSearchUrl);
+      // Remove any existing query params and build clean pattern
+      const cleanBase = `${urlObj.origin}${urlObj.pathname.replace(/\/$/, '')}`;
+      return `${cleanBase}?${searchInfo.name}=$INPUT`;
+    } catch (error) {
+      this.logger.log(`discoverSearchUrlFromLink error: ${error.message}`);
+      return null;
     } finally {
       await page.close();
     }
@@ -2759,6 +2885,17 @@ class AutoRecipe {
         // Add the query parameter
         const separator = searchUrl.includes('?') ? '&' : '?';
         searchUrl = `${searchUrl}${separator}${paramName}=$INPUT`;
+      }
+    } else if (siteEvidence.search?.search_link) {
+      // Homepage has a search link but no search input — visit the search page to discover the form
+      this.logger.info(`No search input on homepage, following search link: ${siteEvidence.search.search_link}`);
+      const discoveredUrl = await this.evidence.discoverSearchUrlFromLink(siteEvidence.search.search_link);
+      if (discoveredUrl) {
+        searchUrl = discoveredUrl;
+        this.logger.success(`Discovered search URL pattern: ${searchUrl}`);
+      } else {
+        const baseUrl = `https://${siteEvidence.hostname}`;
+        searchUrl = `${baseUrl}/search?q=$INPUT`;
       }
     } else {
       // Try common patterns - we'll try multiple during probing
