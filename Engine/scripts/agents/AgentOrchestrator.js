@@ -18,9 +18,9 @@ const PROMPTS_DIR = join(__dirname, '..', 'prompts');
 
 // Model constants
 export const MODELS = {
-  HAIKU: 'claude-haiku-4.5',    // Fast/cheap: classify, discovery
-  SONNET: 'claude-sonnet-4',     // Balanced: fixer
-  OPUS: 'claude-opus-4.5'        // Quality: authoring
+  HAIKU: 'claude-opus-4.6',
+  SONNET: 'claude-opus-4.6',
+  OPUS: 'claude-opus-4.6'
 };
 
 export class AgentOrchestrator {
