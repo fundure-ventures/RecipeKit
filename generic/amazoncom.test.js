@@ -10,7 +10,7 @@ const INPUT_URL = "https://www.amazon.com/MineCozy-Indoor-Cushions-Dining-Tufted
 
 describe(RECIPE, () => {
     test("--type url", async () => {
-        const result = await runEngine(`generated/${RECIPE}`, "url", INPUT_URL);
+        const result = await runEngine(`generic/${RECIPE}`, "url", INPUT_URL);
 
         expect(result.TITLE).toBeDefined();
         expect(result.DESCRIPTION).toBeDefined();
