@@ -1,0 +1,139 @@
+{
+  "recipe_shortcut": "amazoncom",
+  "list_type": "generic",
+  "engine_version": 20,
+  "title": "Amazon.com",
+  "description": "Retrieve generic from amazon.com",
+  "urls": [
+    "https://amazon.com",
+    "https://www.amazon.com"
+  ],
+  "headers": {
+    "Accept-Language": "en-UK,en",
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.113 Safari/537.36"
+  },
+  "autocomplete_steps": [],
+  "url_steps": [
+    {
+      "command": "load",
+      "url": "$INPUT",
+      "config": {
+        "js": true,
+        "timeout": 15000,
+        "waitUntil": "networkidle0"
+      },
+      "description": "Load Amazon product page"
+    },
+    {
+      "command": "store_url",
+      "output": {
+        "name": "URL"
+      },
+      "description": "Save the current URL"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "meta[name='title']",
+      "attribute_name": "content",
+      "output": {
+        "name": "RAW_TITLE",
+        "type": "string"
+      },
+      "description": "Extract raw title from meta tag"
+    },
+    {
+      "command": "regex",
+      "input": "$RAW_TITLE",
+      "expression": "(?<=Amazon\\.com\\:\\s).+",
+      "output": {
+        "name": "TITLE",
+        "type": "string",
+        "show": true
+      },
+      "description": "Strip Amazon.com prefix from title"
+    },
+    {
+      "command": "store_text",
+      "locator": "span#productTitle",
+      "output": {
+        "name": "TITLE",
+        "type": "string",
+        "show": true
+      },
+      "description": "Fallback: extract title from product heading"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "meta[name='description']",
+      "attribute_name": "content",
+      "output": {
+        "name": "DESCRIPTION",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract description from meta tag"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "div.imgTagWrapper img",
+      "attribute_name": "data-old-hires",
+      "output": {
+        "name": "COVER",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract high-res product image"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "img#landingImage",
+      "attribute_name": "src",
+      "output": {
+        "name": "COVER",
+        "type": "string",
+        "show": true
+      },
+      "description": "Fallback: extract cover from landing image src"
+    },
+    {
+      "command": "store",
+      "input": "https://www.amazon.com/favicon.ico",
+      "output": {
+        "name": "FAVICON",
+        "type": "string",
+        "show": true
+      },
+      "description": "Set Amazon favicon URL directly"
+    },
+    {
+      "command": "store_text",
+      "locator": "span.a-price > span.a-offscreen",
+      "output": {
+        "name": "PRICE",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract product price"
+    },
+    {
+      "command": "store_text",
+      "locator": "span.a-icon-alt",
+      "output": {
+        "name": "RATING",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract star rating text"
+    },
+    {
+      "command": "store_text",
+      "locator": "a#bylineInfo",
+      "output": {
+        "name": "BRAND",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract brand or seller name"
+    }
+  ]
+}

@@ -1,0 +1,153 @@
+{
+  "recipe_shortcut": "allaboutbirdsorg",
+  "list_type": "generic",
+  "engine_version": 20,
+  "title": "Allaboutbirds.org",
+  "description": "Retrieve generic from allaboutbirds.org",
+  "urls": [
+    "https://allaboutbirds.org",
+    "https://www.allaboutbirds.org"
+  ],
+  "headers": {
+    "Accept-Language": "en-UK,en",
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.113 Safari/537.36"
+  },
+  "autocomplete_steps": [
+    {
+      "command": "load",
+      "url": "https://www.allaboutbirds.org/news/search/?q=$INPUT",
+      "config": {
+        "timeout": 8000
+      },
+      "description": "Load search results page"
+    },
+    {
+      "command": "store_text",
+      "locator": "#species-search-results li:nth-child($i) .article-item-header",
+      "output": {
+        "name": "TITLE$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 1,
+          "to": 9,
+          "step": 1
+        }
+      },
+      "description": "Extract species names"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "#species-search-results li:nth-child($i) a.article-item-link",
+      "attribute_name": "href",
+      "output": {
+        "name": "URL$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 1,
+          "to": 9,
+          "step": 1
+        }
+      },
+      "description": "Extract species URLs"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "#species-search-results li:nth-child($i) img",
+      "attribute_name": "src",
+      "output": {
+        "name": "COVER$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 1,
+          "to": 9,
+          "step": 1
+        }
+      },
+      "description": "Extract species thumbnail images"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "#species-search-results li:nth-child($i) img",
+      "attribute_name": "alt",
+      "output": {
+        "name": "SUBTITLE$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 1,
+          "to": 9,
+          "step": 1
+        }
+      },
+      "description": "Extract species alt text as subtitle"
+    }
+  ],
+  "url_steps": [
+    {
+      "command": "load",
+      "url": "$INPUT",
+      "config": {
+        "js": true,
+        "timeout": 5000
+      },
+      "description": "Load bird detail page"
+    },
+    {
+      "command": "store_url",
+      "output": {
+        "name": "URL"
+      },
+      "description": "Save URL"
+    },
+    {
+      "command": "store_text",
+      "locator": "h1",
+      "output": {
+        "name": "TITLE",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract bird name from h1"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "meta[property='og:description']",
+      "attribute_name": "content",
+      "output": {
+        "name": "DESCRIPTION",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract bird description"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "link[rel='icon']",
+      "attribute_name": "href",
+      "output": {
+        "name": "FAVICON",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract favicon"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "meta[property='og:image']",
+      "attribute_name": "content",
+      "output": {
+        "name": "COVER",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract cover image"
+    }
+  ]
+}

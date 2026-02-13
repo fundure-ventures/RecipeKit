@@ -1,0 +1,109 @@
+{
+  "recipe_shortcut": "distillercom",
+  "list_type": "generic",
+  "engine_version": 20,
+  "title": "Distiller.com",
+  "description": "Retrieve generic from distiller.com",
+  "urls": [
+    "https://distiller.com",
+    "https://www.distiller.com"
+  ],
+  "headers": {
+    "Accept-Language": "en-UK,en",
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.113 Safari/537.36"
+  },
+  "autocomplete_steps": [
+    {
+      "command": "load",
+      "url": "https://distiller.com/search?q=$INPUT",
+      "config": {
+        "js": true,
+        "timeout": 5000
+      },
+      "description": "Load search results page"
+    },
+    {
+      "command": "store_text",
+      "locator": "ol.spirits > li:nth-child($i) h5.name-content",
+      "output": {
+        "name": "TITLE$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 1,
+          "to": 9,
+          "step": 1
+        }
+      },
+      "description": "Extract spirit names"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "ol.spirits > li:nth-child($i) a",
+      "attribute_name": "href",
+      "output": {
+        "name": "URL$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 1,
+          "to": 9,
+          "step": 1
+        }
+      },
+      "description": "Extract spirit detail URLs"
+    },
+    {
+      "command": "store",
+      "input": "https://distiller.com$URL$i",
+      "output": {
+        "name": "URL$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 1,
+          "to": 9,
+          "step": 1
+        }
+      },
+      "description": "Make URLs absolute"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "ol.spirits > li:nth-child($i) div.image",
+      "attribute_name": "style",
+      "output": {
+        "name": "COVER$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 1,
+          "to": 9,
+          "step": 1
+        }
+      },
+      "description": "Extract spirit image from background-image style"
+    },
+    {
+      "command": "store_text",
+      "locator": "ol.spirits > li:nth-child($i) div.category",
+      "output": {
+        "name": "SUBTITLE$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 1,
+          "to": 9,
+          "step": 1
+        }
+      },
+      "description": "Extract spirit category as subtitle"
+    }
+  ],
+  "url_steps": null
+}
