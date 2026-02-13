@@ -1,0 +1,236 @@
+{
+  "recipe_shortcut": "distillercom",
+  "list_type": "generic",
+  "engine_version": 20,
+  "title": "Distiller.com",
+  "description": "Retrieve generic from distiller.com",
+  "urls": [
+    "https://distiller.com",
+    "https://www.distiller.com"
+  ],
+  "headers": {
+    "Accept-Language": "en-UK,en",
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.113 Safari/537.36"
+  },
+  "autocomplete_steps": [
+    {
+      "command": "load",
+      "url": "https://distiller.com/search?term=$INPUT",
+      "config": {
+        "js": true,
+        "timeout": 5000
+      },
+      "description": "Load search results page"
+    },
+    {
+      "command": "store_text",
+      "locator": "ol.spirits > li:nth-child($i) div.name",
+      "output": {
+        "name": "TITLE$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 1,
+          "to": 9,
+          "step": 1
+        }
+      },
+      "description": "Extract spirit names"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "ol.spirits > li:nth-child($i) a",
+      "attribute_name": "href",
+      "output": {
+        "name": "URL$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 1,
+          "to": 9,
+          "step": 1
+        }
+      },
+      "description": "Extract spirit URLs"
+    },
+    {
+      "command": "store",
+      "input": "https://distiller.com$URL$i",
+      "output": {
+        "name": "URL$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 1,
+          "to": 9,
+          "step": 1
+        }
+      },
+      "description": "Make URLs absolute"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "ol.spirits > li:nth-child($i) div.image",
+      "attribute_name": "style",
+      "output": {
+        "name": "RAW_COVER$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 1,
+          "to": 9,
+          "step": 1
+        }
+      },
+      "description": "Extract raw style containing background-image"
+    },
+    {
+      "command": "regex",
+      "input": "$RAW_COVER$i",
+      "expression": "url\\(([^)]+)\\)",
+      "output": {
+        "name": "COVER$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 1,
+          "to": 9,
+          "step": 1
+        }
+      },
+      "description": "Extract image URL from CSS background-image"
+    },
+    {
+      "command": "store_text",
+      "locator": "ol.spirits > li:nth-child($i) p.origin",
+      "output": {
+        "name": "SUBTITLE$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 1,
+          "to": 9,
+          "step": 1
+        }
+      },
+      "description": "Extract spirit category and origin"
+    }
+  ],
+  "url_steps": [
+    {
+      "command": "load",
+      "url": "$INPUT",
+      "config": {
+        "js": true,
+        "timeout": 5000
+      },
+      "description": "Load spirit detail page"
+    },
+    {
+      "command": "store_url",
+      "output": {
+        "name": "URL"
+      },
+      "description": "Save the current URL"
+    },
+    {
+      "command": "store_text",
+      "locator": "h1",
+      "output": {
+        "name": "TITLE",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract spirit name from h1"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "meta[property='og:description']",
+      "attribute_name": "content",
+      "output": {
+        "name": "DESCRIPTION",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract description from og:description"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "meta[property='og:image']",
+      "attribute_name": "content",
+      "output": {
+        "name": "COVER",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract cover image from og:image"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "meta[property='og:image']",
+      "attribute_name": "content",
+      "output": {
+        "name": "FAVICON",
+        "type": "string",
+        "show": false
+      },
+      "description": "Extract favicon"
+    },
+    {
+      "command": "store_text",
+      "locator": "div.distiller-score",
+      "output": {
+        "name": "RATING",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract Distiller score"
+    },
+    {
+      "command": "store_text",
+      "locator": "li.detail.whiskey-style",
+      "output": {
+        "name": "STYLE",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract spirit style/category"
+    },
+    {
+      "command": "store_text",
+      "locator": "p.location",
+      "output": {
+        "name": "COUNTRY",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract country of origin"
+    },
+    {
+      "command": "store_text",
+      "locator": "[itemprop='ratingValue']",
+      "output": {
+        "name": "RAW_COMMUNITY_RATING",
+        "type": "string"
+      },
+      "description": "Extract community rating text"
+    },
+    {
+      "command": "regex",
+      "input": "$RAW_COMMUNITY_RATING",
+      "expression": "([\\d.]+)",
+      "output": {
+        "name": "COMMUNITY_RATING",
+        "type": "string",
+        "show": true
+      },
+      "description": "Clean community rating number"
+    }
+  ]
+}
