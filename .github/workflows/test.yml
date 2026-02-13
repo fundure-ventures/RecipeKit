@@ -37,4 +37,4 @@ jobs:
       - name: Test recipes
         run: |
           export DEBUG=true
-          bun test albums/ anime/ artists/ beers/ boardgames/ books/ food/ generic/ manga/ movies/ podcasts/ recipes/ restaurants/ software/ songs/ tv_shows/ videogames/ wines/
+          find albums anime artists beers boardgames books food generic manga movies podcasts recipes restaurants software songs tv_shows videogames wines -name '*.test.js' | xargs bun test
