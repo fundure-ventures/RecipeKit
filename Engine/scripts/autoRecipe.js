@@ -86,7 +86,7 @@ const DEFAULT_HEADERS = {
 };
 
 // Generated recipes folder
-const GENERATED_DIR = resolve(REPO_ROOT, 'generated');
+const GENERATED_DIR = resolve(REPO_ROOT, 'generic');
 
 /**
  * Load a prompt file from the prompts directory
@@ -2038,7 +2038,7 @@ const INPUT_URL = ${JSON.stringify(urlInput)};
 
 describe(RECIPE, () => {
     test("--type url", async () => {
-        const result = await runEngine(\`generated/\${RECIPE}\`, "url", INPUT_URL);
+        const result = await runEngine(\`generic/\${RECIPE}\`, "url", INPUT_URL);
 
         ${this.generateUrlAssertions(listType, urlExpected)}
     }, TIMEOUT);
@@ -2063,7 +2063,7 @@ const ENTRY = ${JSON.stringify(autocompleteExpected)};
 
 describe(RECIPE, () => {
     test("--type autocomplete", async () => {
-        const results = await runEngine(\`generated/\${RECIPE}\`, "autocomplete", INPUT.AUTOCOMPLETE);
+        const results = await runEngine(\`generic/\${RECIPE}\`, "autocomplete", INPUT.AUTOCOMPLETE);
         
         const entry = findEntry(results, ENTRY.TITLE${autocompleteExpected?.SUBTITLE ? ', ENTRY.SUBTITLE' : ''});
 
@@ -2074,7 +2074,7 @@ describe(RECIPE, () => {
     }, TIMEOUT);
 
     test("--type url", async () => {
-        const result = await runEngine(\`generated/\${RECIPE}\`, "url", INPUT.URL);
+        const result = await runEngine(\`generic/\${RECIPE}\`, "url", INPUT.URL);
 
         ${this.generateUrlAssertions(listType, urlExpected)}
     }, TIMEOUT);
@@ -2647,8 +2647,8 @@ class AutoRecipe {
 
       const domain = siteEvidence.hostname.replace(/\./g, '');
       
-      // Store in outputDir (if provided) or ./generated folder
-      const generatedDir = this.outputDir || join(REPO_ROOT, 'generated');
+      // Store in outputDir (if provided) or ./generic folder
+      const generatedDir = this.outputDir || join(REPO_ROOT, 'generic');
       const recipePath = join(generatedDir, `${domain}.json`);
       const testPath = join(generatedDir, `${domain}.test.js`);
 
@@ -3855,7 +3855,7 @@ if (!args.url && !args.prompt) {
   console.log('  --force          Overwrite existing recipe without prompting');
   console.log('  --debug          Enable verbose logging and stack traces');
   console.log('  --url-only       Skip autocomplete_steps, generate only url_steps');
-  console.log('  --output-dir     Directory to write recipe and test files (default: generated/)');
+  console.log('  --output-dir     Directory to write recipe and test files (default: generic/)');
   console.log('');
   console.log('Examples:');
   console.log('  bun Engine/scripts/autoRecipe.js --url=https://www.themoviedb.org --debug');

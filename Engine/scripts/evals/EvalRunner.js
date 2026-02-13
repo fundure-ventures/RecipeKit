@@ -162,7 +162,7 @@ function getRecipePath(testCase, outputDir) {
     return null;
   }
   const domain = hostname.replace(/\./g, '');
-  const baseDir = outputDir || join(REPO_ROOT, 'generated');
+  const baseDir = outputDir || join(REPO_ROOT, 'generic');
   return join(baseDir, `${domain}.json`);
 }
 
@@ -170,7 +170,7 @@ function getRecipePath(testCase, outputDir) {
  * Find the most recently modified recipe in a directory
  */
 async function findLatestRecipe(outputDir) {
-  const dir = outputDir || join(REPO_ROOT, 'generated');
+  const dir = outputDir || join(REPO_ROOT, 'generic');
   const files = await readdir(dir);
   const jsonFiles = files.filter(f => f.endsWith('.json') && !f.endsWith('.test.js'));
 
