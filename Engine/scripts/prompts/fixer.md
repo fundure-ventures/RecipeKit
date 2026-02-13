@@ -136,7 +136,25 @@ Before fixing, check:
 - [ ] Is `:nth-child($i)` on a consecutive element?
 - [ ] Are URLs relative (need `store` step to make absolute)?
 - [ ] Is the selector using `:nth-of-type` with a class? (wrong!)
+- [ ] Is COVER a clean absolute `https://` URL? (see below)
 </analysis-checklist>
+
+<cover-url-fixes>
+## Fixing COVER URL Issues
+
+COVER must be a clean absolute `https://` URL. If validation reports a COVER issue:
+
+**Relative path** → Add a `store` step: `"input": "https://hostname$RAW_COVER"`
+**Protocol-relative `//`** → Add a `store` step: `"input": "https:$RAW_COVER"`
+**CSS `background-image: url(...)`** → Either switch to a different selector (og:image, img src) OR add a `regex` step with `"expression": "url\\(([^)]+)\\)"` to extract the URL
+**`http://` instead of `https://`** → Add a `regex` or `store` step to replace http:// with https://
+**Trailing garbage chars** → Add a `regex` step: `"expression": "(https://[^\\s)\"]+)"`
+
+The fix should be a patch that either:
+1. Changes the selector to target a cleaner source (og:image meta tag, img src, JSON-LD image)
+2. Adds a regex step after the extraction to clean/transform the raw value
+3. Adds a store step to prepend the base URL for relative paths
+</cover-url-fixes>
 
 <variable-rules>
 ## Variable Reference Rules

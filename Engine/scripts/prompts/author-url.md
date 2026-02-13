@@ -313,5 +313,93 @@ main h1
 3. **Use store_attribute for meta tags** - They have no textContent
 4. **Don't use comma selectors with store_text** - May match wrong element
 5. **Prefer og: meta tags** - Most reliable across sites
-6. **Make URLs absolute** - Prepend base URL if needed
+6. **All URLs MUST be absolute `https://`** - COVER and URL values must start with `https://`. If the page returns a relative path (e.g. `/images/cover.jpg`) or protocol-relative URL (e.g. `//cdn.example.com/img.jpg`), use a `store` step to prepend the base URL and produce a full `https://` path. Never output relative URLs.
 7. **Handle missing fields gracefully** - Empty string is returned if not found
+
+## Minimum Required Fields
+
+Every recipe **must** extract at least these three fields for the url_steps to be considered valid:
+
+- **TITLE** — The item's name/title
+- **COVER** — An image URL (must be absolute `https://`)
+- **DESCRIPTION** — A text description of the item
+
+Without all three, the recipe will fail validation.
+
+## COVER Extraction — Getting a Clean Image URL
+
+COVER must be a **clean, absolute `https://` URL** pointing directly to an image file. Common pitfalls and how to solve them:
+
+### Preferred sources (in order of reliability)
+1. `meta[property="og:image"]` → `store_attribute` with `attribute_name: "content"`
+2. JSON-LD `image` field → `json_store_text`
+3. `img` element → `store_attribute` with `attribute_name: "src"`
+
+### If the extracted value is NOT a clean URL
+
+**Relative path** (e.g. `/images/cover.jpg`):
+→ Extract into `$RAW_COVER`, then add a `store` step: `"input": "https://hostname$RAW_COVER"`
+
+**Protocol-relative** (e.g. `//cdn.example.com/img.jpg`):
+→ Extract into `$RAW_COVER`, then add a `store` step: `"input": "https:$RAW_COVER"`
+
+**CSS background-image** (e.g. `background-image: url(https://...)`):
+→ First try a different selector (og:image, img src). If no alternative exists, extract the raw value into `$RAW_COVER`, then add a `regex` step with `"expression": "url\\(([^)]+)\\)"` to extract just the URL.
+
+**Trailing garbage** (e.g. URL ending with `)` or extra characters):
+→ Add a `regex` step to extract the clean URL, e.g. `"expression": "(https://[^\\s)\"]+)"`
+
+### Example: cleaning a relative COVER
+```json
+{
+  "command": "store_attribute",
+  "locator": "img.product-image",
+  "attribute_name": "src",
+  "output": { "name": "RAW_COVER", "type": "string" },
+  "description": "Extract raw cover image path"
+},
+{
+  "command": "store",
+  "input": "https://example.com$RAW_COVER",
+  "output": { "name": "COVER", "type": "string", "show": true },
+  "description": "Make cover URL absolute"
+}
+```
+
+### Example: extracting URL from CSS background-image
+```json
+{
+  "command": "store_attribute",
+  "locator": ".hero-image",
+  "attribute_name": "style",
+  "output": { "name": "RAW_STYLE", "type": "string" },
+  "description": "Extract style with background-image"
+},
+{
+  "command": "regex",
+  "input": "$RAW_STYLE",
+  "expression": "url\\(([^)]+)\\)",
+  "output": { "name": "COVER", "type": "string", "show": true },
+  "description": "Extract image URL from CSS background-image"
+}
+```
+
+## Additional Properties — Go Beyond the Minimum
+
+Beyond the required fields for each `list_type`, **analyze the page** for additional relevant data and extract it. Use the common property names below (or invent a descriptive new one if none fits):
+
+**Frequently used across recipes:**
+`RATING`, `AUTHOR`, `GENRE`, `DATE`, `PRICE`, `STYLE`, `DURATION`, `CATEGORY`
+
+**Domain-specific properties seen in real recipes:**
+`REGION`, `COUNTRY`, `PAGES`, `YEAR`, `EPISODES`, `VOLUMES`, `PLAYERS`, `TIME`, `ALCOHOL`, `INGREDIENTS`, `STEPS`, `COOKING_TIME`, `DINERS`, `ADDRESS`, `COORDS`, `PHONE`, `WEBSITE`, `ORIGINAL_TITLE`, `GRAPES`, `VINTAGE`, `NUTRISCORE`, `WINERY`, `BRAND`, `BARCODE`, `ORIGIN`, `SIZE`, `STORES`
+
+**Real-world examples from existing recipes:**
+- movies/imdb: `TITLE, DATE, DESCRIPTION, RATING, AUTHOR, COVER, GENRE, DURATION`
+- books/goodreads: `COVER, TITLE, DESCRIPTION, AUTHOR, RATING, PAGES, YEAR`
+- wines/vivino: `WINERY, TITLE, STYLE, RATING, PRICE, GRAPES, VINTAGE, COUNTRY, REGION, COVER, DESCRIPTION`
+- restaurants/tripadvisor: `TITLE, PHONE, RATING, STYLE, COVER, WEBSITE, DESCRIPTION, ADDRESS, COORDS, ORIENTATIVE_PRICE`
+- boardgames/boardgamegeek: `TITLE, DESCRIPTION, COVER, RATING, DATE, TIME, PLAYERS, CATEGORY`
+- software/googleplay: `TITLE, RATING, COVER, AUTHOR, DESCRIPTION, GENRE, PRICE`
+
+If the page contains data that maps to any of these properties, **include it**. The more relevant fields extracted, the better the recipe.
