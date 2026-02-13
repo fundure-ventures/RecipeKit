@@ -1,0 +1,584 @@
+{
+  "caseId": "funko",
+  "testCase": {
+    "id": "funko",
+    "description": "Funko — collectible figures e-commerce",
+    "mode": "url",
+    "url": "https://www.funko.com",
+    "test_url": "https://funko.com/pop-super-saiyan-trunks/91825.html",
+    "test_query": "dragon ball",
+    "expected_fields": [
+      "TITLE",
+      "COVER",
+      "DESCRIPTION"
+    ],
+    "expected_field_patterns": {
+      "COVER": "^https://"
+    },
+    "tags": [
+      "ecommerce",
+      "default"
+    ]
+  },
+  "score": {
+    "score": 100,
+    "metrics": {
+      "fields_present": 100,
+      "urls_valid": 100,
+      "patterns_match": 100,
+      "no_errors": 100
+    },
+    "passed": true,
+    "details": {
+      "fields_present": {
+        "presentFields": [
+          "TITLE",
+          "COVER",
+          "DESCRIPTION"
+        ],
+        "missingFields": [],
+        "total": 3
+      },
+      "urls_valid": {
+        "checks": [
+          {
+            "field": "COVER",
+            "value": "https://funko.com/on/demandware.static/-/Sites-funko-master-catalog/default/dw9419f6e1/images/funko/upload/1/91825a_DBS_",
+            "valid": true
+          }
+        ],
+        "valid": 1,
+        "total": 1
+      },
+      "patterns_match": {
+        "checks": [
+          {
+            "field": "COVER",
+            "pattern": "^https://",
+            "value": "https://funko.com/on/demandware.static/-/Sites-funko-master-catalog/default/dw9419f6e1/images/funko/upload/1/91825a_DBS_",
+            "matched": true
+          }
+        ],
+        "matched": 1,
+        "total": 1
+      },
+      "no_errors": {
+        "hadErrors": false,
+        "success": true
+      }
+    },
+    "threshold": 70
+  },
+  "urlResults": {
+    "TITLE": "Pop! Super Saiyan Trunks",
+    "DESCRIPTION": "Check out our Pop! Super Saiyan Trunks and more from Funko!",
+    "FAVICON": "/on/demandware.static/Sites-FunkoUS-Site/-/default/dw4d295c20/images/favicons/funko-favicon-16x16.png",
+    "COVER": "https://funko.com/on/demandware.static/-/Sites-funko-master-catalog/default/dw9419f6e1/images/funko/upload/1/91825a_DBS_SSTrunksGG_POP_GLAM-WEB.png"
+  },
+  "autocompleteResults": [
+    {
+      "TITLE": "Pop! Super Saiyan Trunks",
+      "URL": "https://funko.com/pop-super-saiyan-trunks/91825.html",
+      "COVER": "https://funko.com/dw/image/v2/BGTS_PRD/on/demandware.static/-/Sites-funko-master-catalog/default/dw9419f6e1/images/funko/upload/1/91825a_DBS_SSTrunksGG_POP_GLAM-WEB.png?sw=346&sh=346"
+    },
+    {
+      "TITLE": "Bitty Pop! Singles Dragon Ball Z 12-Pack",
+      "URL": "https://funko.com/bitty-pop-singles-dragon-ball-z-12-pack/85984.html",
+      "COVER": "https://funko.com/dw/image/v2/BGTS_PRD/on/demandware.static/-/Sites-funko-master-catalog/default/dw0f635fdd/images/funko/upload/1/85984_BittyPop_DBZ_12PC-Polybag_GLAM-WEB.png?sw=346&sh=346"
+    },
+    {
+      "TITLE": "Bitty Pop! SS Goku & Frieza 2-Pack",
+      "URL": "https://funko.com/bitty-pop-ss-goku-frieza-2-pack/88927.html",
+      "COVER": "https://funko.com/dw/image/v2/BGTS_PRD/on/demandware.static/-/Sites-funko-master-catalog/default/dw08e14b11/images/funko/upload/1/88927_DBZ_GokuFrieza_2PK_GLAM-1-WEB.png?sw=346&sh=346"
+    },
+    {
+      "TITLE": "Bitty Pop! Gohan & Piccolo 2-Pack",
+      "URL": "https://funko.com/bitty-pop-gohan-piccolo-2-pack/88926.html",
+      "COVER": "https://funko.com/dw/image/v2/BGTS_PRD/on/demandware.static/-/Sites-funko-master-catalog/default/dw164dcd16/images/funko/upload/1/88926_DBZ_GohanPiccolo_2PK_GLAM-1-WEB.png?sw=346&sh=346"
+    },
+    {
+      "TITLE": "Mystery Bitty Pop! Dragon Ball Z",
+      "URL": "https://funko.com/mystery-bitty-pop-dragon-ball-z/76388.html",
+      "COVER": "https://funko.com/dw/image/v2/BGTS_PRD/on/demandware.static/-/Sites-funko-master-catalog/default/dwd444afcc/images/funko/upload/1/76388_BittyPop_DBZ_PDQ_GLAM-WEB.png?sw=346&sh=346"
+    },
+    {
+      "TITLE": "Pop! Plus Super Saiyan 4 Goku (Dragon Fist)",
+      "URL": "https://funko.com/pop-plus-super-saiyan-4-goku-dragon-fist/87848.html",
+      "COVER": "https://funko.com/dw/image/v2/BGTS_PRD/on/demandware.static/-/Sites-funko-master-catalog/default/dw6610cb57/images/funko/upload/1/87848_DBGT_S2_GokuDF_POP_GLAM-WEB.png?sw=346&sh=346"
+    },
+    {
+      "TITLE": "Pop! Super Saiyan 4 Goku",
+      "URL": "https://funko.com/pop-super-saiyan-4-goku/86496.html",
+      "COVER": "https://funko.com/dw/image/v2/BGTS_PRD/on/demandware.static/-/Sites-funko-master-catalog/default/dw6883dd71/images/funko/upload/1/86496_DBGT_S2_SS4Goku_POP_GLAM-WEB.png?sw=346&sh=346"
+    },
+    {
+      "TITLE": "Pop! Super Saiyan 4 Vegeta",
+      "URL": "https://funko.com/pop-super-saiyan-4-vegeta/86498.html",
+      "COVER": "https://funko.com/dw/image/v2/BGTS_PRD/on/demandware.static/-/Sites-funko-master-catalog/default/dwbaf5311a/images/funko/upload/1/86498_DBGT_S2_SS4Vegeta_POP_GLAM-WEB.png?sw=346&sh=346"
+    },
+    {
+      "TITLE": "Pop! Super Android 17",
+      "URL": "https://funko.com/pop-super-android-17/86497.html",
+      "COVER": "https://funko.com/dw/image/v2/BGTS_PRD/on/demandware.static/-/Sites-funko-master-catalog/default/dw529280f9/images/funko/upload/1/86497_DBGT_S2_SuperAndroid17_POP_GLAM-WEB.png?sw=346&sh=346"
+    }
+  ],
+  "agentTurns": [
+    {
+      "agent": "author",
+      "type": "session_create",
+      "model": "claude-opus-4.6",
+      "raw": "DEBUG: Creating new author session with model claude-opus-4.6"
+    },
+    {
+      "agent": "querytest",
+      "type": "session_create",
+      "model": "claude-opus-4.6",
+      "raw": "DEBUG: Creating new querytest session with model claude-opus-4.6"
+    },
+    {
+      "agent": "querytest",
+      "type": "send",
+      "raw": "DEBUG: [querytest] Sending task..."
+    },
+    {
+      "agent": "querytest",
+      "type": "receive",
+      "chars": 306,
+      "raw": "DEBUG: [querytest] Response received (306 chars)"
+    },
+    {
+      "agent": "author",
+      "type": "send",
+      "raw": "DEBUG: [author] Sending task..."
+    },
+    {
+      "agent": "author",
+      "type": "receive",
+      "chars": 1336,
+      "raw": "DEBUG: [author] Response received (1336 chars)"
+    },
+    {
+      "agent": "author",
+      "type": "send",
+      "raw": "DEBUG: [author] Sending task..."
+    },
+    {
+      "agent": "author",
+      "type": "receive",
+      "chars": 2419,
+      "raw": "DEBUG: [author] Response received (2419 chars)"
+    },
+    {
+      "agent": "fixer",
+      "type": "session_create",
+      "model": "claude-opus-4.6",
+      "raw": "DEBUG: Creating new fixer session with model claude-opus-4.6"
+    },
+    {
+      "agent": "fixer",
+      "type": "send",
+      "raw": "DEBUG: [fixer] Sending task..."
+    },
+    {
+      "agent": "fixer",
+      "type": "receive",
+      "chars": 1087,
+      "raw": "DEBUG: [fixer] Response received (1087 chars)"
+    },
+    {
+      "agent": "fixer",
+      "type": "receive",
+      "chars": 759,
+      "raw": "DEBUG: [fixer] Response received (759 chars)"
+    },
+    {
+      "agent": "fixer",
+      "type": "receive",
+      "chars": 414,
+      "raw": "DEBUG: [fixer] Response received (414 chars)"
+    },
+    {
+      "agent": "fixer",
+      "type": "receive",
+      "chars": 1622,
+      "raw": "DEBUG: [fixer] Response received (1622 chars)"
+    }
+  ],
+  "events": [
+    {
+      "type": "case_start",
+      "time": "2026-02-13T08:14:50.232Z",
+      "case_id": "funko",
+      "mode": "url"
+    },
+    {
+      "type": "autorecipe_start",
+      "time": "2026-02-13T08:14:50.232Z"
+    },
+    {
+      "type": "autorecipe_end",
+      "time": "2026-02-13T08:16:54.777Z",
+      "exitCode": 0,
+      "duration_ms": 124545,
+      "stdout": "ℹ Starting autoRecipe for https://www.funko.com\n→ Launching browser...\n→ Initializing AgentOrchestrator...\n✓ AgentOrchestrator initialized\n  DEBUG: Creating new author session with model claude-opus-4.6\n  DEBUG: Creating new querytest session with model claude-opus-4.6\n→ Probing https://www.funko.com...\n  DEBUG: {\n  \"input_url\": \"https://www.funko.com\",\n  \"final_url\": \"https://funko.com/\",\n  \"hostname\": \"funko.com\",\n  \"title\": \"Funko Official Store, Home of Pop! Vinyl, Personalized Pops! | Funko\",\n  \"meta_description\": \"Funko designs and sells unique pop culture collectibles, accessories, and toys.\",\n  \"h1\": \"Home page\",\n  \"jsonld_types\": [\n    \"Organization\",\n    \"WebSite\"\n  ],\n  \"links_sample\": [\n    {\n      \"text\": \"Skip to main content\",\n      \"href\": \"https://funko.com/#maincontent\"\n    },\n    {\n      \"text\": \"Skip to footer content\",\n      \"href\": \"https://funko.com/#footercontent\"\n    },\n    {\n      \"text\": \"Customize\",\n      \"href\": \"https://funko.com/build-your-custom-pop\"\n    },\n    {\n      \"text\": \"Trending Titles\",\n      \"href\": \"https://funko.com/trending-titles/\"\n    },\n    {\n      \"text\": \"Bitty Pop!\",\n      \"href\": \"https://funko.com/funko.com/bitty-pop.html\"\n    },\n    {\n      \"text\": \"Fandoms\",\n      \"href\": \"https://funko.com/fandoms/\"\n    },\n    {\n      \"text\": \"Shop All\",\n      \"href\": \"https://funko.com/fandoms/\"\n    },\n    {\n      \"text\": \"Fan Favorites\",\n      \"href\": \"https://funko.com/fandoms/fan-favorites/\"\n    },\n    {\n      \"text\": \"Anime & Manga\",\n      \"href\": \"https://funko.com/fandoms/anime-manga/\"\n    },\n    {\n      \"text\": \"Anime & Manga\\n                        < Back\",\n      \"href\": \"https://funko.com/fandoms/anime-manga/\"\n    },\n    {\n      \"text\": \"Shop All\",\n      \"href\": \"https://funko.com/fandoms/anime-manga/\"\n    },\n    {\n      \"text\": \"One Piece\",\n      \"href\": \"https://funko.com/fandoms/anime-manga/one-piece/\"\n    },\n    {\n      \"text\": \"Demon Slayer\",\n      \"href\": \"https://funko.com/fandoms/anime-manga/demon-slayer/\"\n    },\n    {\n      \"text\": \"Dragon Ball\",\n      \"href\": \"https://funko.com/fandoms/anime-manga/dragon-ball/\"\n    },\n    {\n      \"text\": \"Naruto\",\n      \"href\": \"https://funko.com/fandoms/anime-manga/naruto/\"\n    },\n    {\n      \"text\": \"Pokémon\",\n      \"href\": \"https://funko.com/fandoms/anime-manga/pokemon/\"\n    },\n    {\n      \"text\": \"Jujutsu Kaisen\",\n      \"href\": \"https://funko.com/fandoms/anime-manga/jujutsu-kaisen/\"\n    }\n  ],\n  \"search\": {\n    \"has_search\": true,\n    \"search_box_locator\": \"input[name=\\\"q\\\"]\",\n    \"search_form_action\": \"https://funko.com/search/\"\n  }\n}\nℹ Using list_type: generic (classification skipped)\nℹ Phase 2: Generating autocomplete_steps...\n→ Inferring optimal test query...\n  DEBUG: [querytest] Sending task...\n  DEBUG: [querytest] Event: pending_messages.modified\n  DEBUG: [querytest] Event: pending_messages.modified\n  DEBUG: [querytest] Event: user.message\n  DEBUG: [querytest] Event: assistant.turn_start\n  DEBUG: [querytest] Event: assistant.usage\n  DEBUG: [querytest] Event: assistant.message\n  DEBUG: [querytest] Event: assistant.turn_end\n  DEBUG: [querytest] Event: session.idle\n  DEBUG: [querytest] Response received (306 chars)\n✓ Using test query: \"Dragon Ball\" (collectibles)\n  DEBUG: Reasoning: Links show specific anime/manga fandoms including Dragon Ball. It's a major franchise that Funko produces many figures for, ensuring search results.\n  DEBUG: Alternatives: Naruto, Pokémon, One Piece\nℹ Trying search URL pattern: https://funko.com/search/?q=Dragon Ball\n→ Probing search results for \"Dragon Ball\"...\nℹ Loading search URL: https://funko.com/search/?q=Dragon%20Ball\n  DEBUG: Dismissed cookie banner via: button[id*=\"accept\"]\n  DEBUG: Captured search API: GET https://px.ads.linkedin.com/attribution_trigger?pid=7615962&time=1770970508455&u...\n  DEBUG: Captured search API: GET https://px.ads.linkedin.com/attribution_trigger?pid=7615962&time=1770970508454&u...\nℹ Found consecutive parent: ul.row > li.col-6:nth-child($i)\n  DEBUG: searchEvidence.api: null\n  DEBUG: searchEvidence.search_type: url_query\n  DEBUG: [author] Sending task...\n  DEBUG: [author] Event: pending_messages.modified\n  DEBUG: [author] Event: pending_messages.modified\n  DEBUG: [author] Event: user.message\n  DEBUG: [author] Event: assistant.turn_start\n  DEBUG: [author] Event: assistant.usage\n  DEBUG: [author] Event: assistant.message\n  DEBUG: [author] Event: assistant.turn_end\n  DEBUG: [author] Event: session.idle\n  DEBUG: [author] Response received (1336 chars)\n✓ Wrote recipe: /Users/basiclines/Developer/basiclines/RecipeKit/Engine/scripts/evals/runs/2026-02-13_baseline/recipes/funkocom.json\nℹ Testing autocomplete_steps...\nℹ Starting debug-first repair loop for autocomplete_steps...\n→ Repair iteration 1/5...\n→ Running engine: autocomplete with input \"Dragon Ball...\"\n✓ Recipe working after 0 iteration(s)!\nℹ   → Got 9 results\n→ Running engine: autocomplete with input \"Dragon Ball...\"\n✓ Autocomplete working: 9 valid results\nℹ   Sample: \"Pop! Super Saiyan Trunks\" → https://funko.com/pop-super-saiyan-trunks/91825.ht...\n⚠   Result 1: SUBTITLE is empty (optional)\n⚠   Result 2: SUBTITLE is empty (optional)\n⚠   Result 3: SUBTITLE is empty (optional)\n⚠   Result 4: SUBTITLE is empty (optional)\n⚠   Result 5: SUBTITLE is empty (optional)\n⚠   Result 6: SUBTITLE is empty (optional)\n⚠   Result 7: SUBTITLE is empty (optional)\n⚠   Result 8: SUBTITLE is empty (optional)\n⚠   Result 9: SUBTITLE is empty (optional)\n✓ ✓ Semantic match: 3/9 results contain \"Dragon Ball\"\nℹ Phase 3: Generating url_steps...\n→ Probing detail page https://funko.com/pop-super-saiyan-trunks/91825.html...\n  DEBUG: [author] Sending task...\n  DEBUG: [author] Event: pending_messages.modified\n  DEBUG: [author] Event: pending_messages.modified\n  DEBUG: [author] Event: user.message\n  DEBUG: [author] Event: assistant.turn_start\n  DEBUG: [author] Event: assistant.usage\n  DEBUG: [author] Event: assistant.message\n  DEBUG: [author] Event: assistant.turn_end\n  DEBUG: [author] Event: session.idle\n  DEBUG: [author] Response received (2419 chars)\nℹ Testing url_steps...\nℹ Starting debug-first repair loop for url_steps...\n→ Repair iteration 1/5...\n→ Running engine: url with input \"https://funko.com/pop-super-saiyan-trunks/91825.ht...\"\n⚠ Fields with empty values: PRICE, SKU\n⚠ Engine output not as expected. Debugging recipe steps with Puppeteer...\n→ Debugging url_steps steps on https://funko.com/pop-super-saiyan-trunks/91825.html...\nℹ Debug results: 4 working, 2 failed\n✗   Step 6: \"Extract product price\" - selector \"span.prices span.sales span.value\" found 0 elements\n✗   Step 7: \"Extract product SKU\" - selector \"span.product-number-value\" found 0 elements\n  DEBUG: Creating new fixer session with model claude-opus-4.6\n  DEBUG: [fixer] Sending task...\n  DEBUG: [fixer] Event: pending_messages.modified\n  DEBUG: [fixer] Event: pending_messages.modified\n  DEBUG: [fixer] Event: user.message\n  DEBUG: [fixer] Event: assistant.turn_start\n  DEBUG: [fixer] Event: assistant.usage\n  DEBUG: [fixer] Event: assistant.message\n  DEBUG: [fixer] Event: assistant.turn_end\n  DEBUG: [fixer] Event: session.idle\n  DEBUG: [fixer] Response received (1087 chars)\n✓ Applied 6 patches: Price and SKU selectors failed because the page structure changed. Switching to meta tags which are more reliable on Demandware/SFCC sites like Funko.\nℹ Recipe updated. Retrying...\n→ Repair iteration 2/5...\n→ Running engine: url with input \"https://funko.com/pop-super-saiyan-trunks/91825.ht...\"\n⚠ Fields with empty values: PRICE, SKU\n⚠ Engine output not as expected. Debugging recipe steps with Puppeteer...\n→ Debugging url_steps steps on https://funko.com/pop-super-saiyan-trunks/91825.html...\nℹ Debug results: 4 working, 2 failed\n✗   Step 6: \"Extract product price\" - selector \"meta[property='product:price:amount']\" found 0 elements\n✗   Step 7: \"Extract product SKU\" - selector \"meta[property='product:retailer_item_id']\" found 0 elements\n  DEBUG: [fixer] Event: pending_messages.modified\n  DEBUG: [fixer] Event: pending_messages.modified\n  DEBUG: [fixer] Event: user.message\n  DEBUG: [fixer] Event: assistant.turn_start\n  DEBUG: [fixer] Event: assistant.usage\n  DEBUG: [fixer] Event: assistant.message\n  DEBUG: [fixer] Event: assistant.turn_end\n  DEBUG: [fixer] Event: session.idle\n  DEBUG: [fixer] Response received (759 chars)\n✓ Applied 3 patches: The product:price:amount and product:retailer_item_id meta tags don't exist on this page. Trying og:price:amount for price and span[itemprop='sku'] for SKU which are common on SFCC/Demandware product pages.\nℹ Recipe updated. Retrying...\n→ Repair iteration 3/5...\n→ Running engine: url with input \"https://funko.com/pop-super-saiyan-trunks/91825.ht...\"\n⚠ Fields with empty values: PRICE, SKU\n⚠ Engine output not as expected. Debugging recipe steps with Puppeteer...\n→ Debugging url_steps steps on https://funko.com/pop-super-saiyan-trunks/91825.html...\nℹ Debug results: 4 working, 2 failed\n✗   Step 6: \"Extract product price\" - selector \"meta[property='og:price:amount']\" found 0 elements\n✗   Step 7: \"Extract product SKU\" - selector \"span[itemprop='sku']\" found 0 elements\n  DEBUG: [fixer] Event: pending_messages.modified\n  DEBUG: [fixer] Event: pending_messages.modified\n  DEBUG: [fixer] Event: user.message\n  DEBUG: [fixer] Event: assistant.turn_start\n  DEBUG: [fixer] Event: assistant.usage\n  DEBUG: [fixer] Event: assistant.message\n  DEBUG: [fixer] Event: assistant.turn_end\n  DEBUG: [fixer] Event: session.idle\n  DEBUG: [fixer] Response received (414 chars)\n✓ Applied 1 patches: The page doesn't have price or SKU elements in any recognizable selectors. Since TITLE, DESCRIPTION, COVER, and FAVICON all extract successfully, removing the non-existent PRICE and SKU steps will allow the recipe to return results instead of failing with empty_results.\nℹ Recipe updated. Retrying...\n→ Repair iteration 4/5...\n→ Running engine: url with input \"https://funko.com/pop-super-saiyan-trunks/91825.ht...\"\n⚠ Fields with empty values: PRICE, SKU\n⚠ Engine output not as expected. Debugging recipe steps with Puppeteer...\n→ Debugging url_steps steps on https://funko.com/pop-super-saiyan-trunks/91825.html...\nℹ Debug results: 4 working, 2 failed\n✗   Step 6: \"Extract product price\" - selector \"meta[property='og:price:amount']\" found 0 elements\n✗   Step 7: \"Extract product SKU\" - selector \"span[itemprop='sku']\" found 0 elements\n  DEBUG: [fixer] Event: pending_messages.modified\n  DEBUG: [fixer] Event: pending_messages.modified\n  DEBUG: [fixer] Event: user.message\n  DEBUG: [fixer] Event: assistant.turn_start\n  DEBUG: [fixer] Event: assistant.usage\n  DEBUG: [fixer] Event: assistant.message\n  DEBUG: [fixer] Event: assistant.reasoning\n  DEBUG: [fixer] Event: assistant.turn_end\n  DEBUG: [fixer] Event: session.idle\n  DEBUG: [fixer] Response received (1622 chars)\n✓ Applied rewrite: Full rewrite of url_steps removing PRICE and SKU steps entirely since those selectors don't exist on the page. The remaining 4 fields (TITLE, DESCRIPTION, FAVICON, COVER) all extract successfully.\nℹ Recipe updated. Retrying...\n→ Repair iteration 5/5...\n→ Running engine: url with input \"https://funko.com/pop-super-saiyan-trunks/91825.ht...\"\n✓ Recipe working after 4 iteration(s)!\nℹ   → Got fields: TITLE, DESCRIPTION, FAVICON, COVER\n→ Running engine: url with input \"https://funko.com/pop-super-saiyan-trunks/91825.ht...\"\n✓ URL steps working: TITLE, DESCRIPTION, FAVICON, COVER\nℹ Phase 4: Generating test file...\n✓ Wrote test: /Users/basiclines/Developer/basiclines/RecipeKit/Engine/scripts/evals/runs/2026-02-13_baseline/recipes/funkocom.test.js\n✓ ✓ Recipe is fully functional!\n  DEBUG: Closing AgentOrchestrator...\n  DEBUG: Destroyed author session\n  DEBUG: Destroyed querytest session\n  DEBUG: Destroyed fixer session\n  DEBUG: AgentOrchestrator closed\n\n⏱  Timing:\n  Phase 1 (probe site):     10.0s\n  Phase 2 (autocomplete):   28.2s\n  Phase 3 (url_steps):      85.7s\n  Phase 4 (test gen):       1ms\n  ────────────────────────────────────\n  Total:                    123.9s\n\n📊 Copilot Usage:\n  Requests: 7\n  By agent:\n    author: 2 req, 0 tokens (claude-opus-4.6)\n    querytest: 1 req, 0 tokens (claude-opus-4.6)\n    fixer: 4 req, 0 tokens (claude-opus-4.6)\n\n✓ Recipe created successfully!\n  Recipe: /Users/basiclines/Developer/basiclines/RecipeKit/Engine/scripts/evals/runs/2026-02-13_baseline/recipes/funkocom.json\n  Test: /Users/basiclines/Developer/basiclines/RecipeKit/Engine/scripts/evals/runs/2026-02-13_baseline/recipes/funkocom.test.js\n",
+      "stderr": ""
+    },
+    {
+      "type": "agent_turns",
+      "time": "2026-02-13T08:16:54.777Z",
+      "turns": [
+        {
+          "agent": "author",
+          "type": "session_create",
+          "model": "claude-opus-4.6",
+          "raw": "DEBUG: Creating new author session with model claude-opus-4.6"
+        },
+        {
+          "agent": "querytest",
+          "type": "session_create",
+          "model": "claude-opus-4.6",
+          "raw": "DEBUG: Creating new querytest session with model claude-opus-4.6"
+        },
+        {
+          "agent": "querytest",
+          "type": "send",
+          "raw": "DEBUG: [querytest] Sending task..."
+        },
+        {
+          "agent": "querytest",
+          "type": "receive",
+          "chars": 306,
+          "raw": "DEBUG: [querytest] Response received (306 chars)"
+        },
+        {
+          "agent": "author",
+          "type": "send",
+          "raw": "DEBUG: [author] Sending task..."
+        },
+        {
+          "agent": "author",
+          "type": "receive",
+          "chars": 1336,
+          "raw": "DEBUG: [author] Response received (1336 chars)"
+        },
+        {
+          "agent": "author",
+          "type": "send",
+          "raw": "DEBUG: [author] Sending task..."
+        },
+        {
+          "agent": "author",
+          "type": "receive",
+          "chars": 2419,
+          "raw": "DEBUG: [author] Response received (2419 chars)"
+        },
+        {
+          "agent": "fixer",
+          "type": "session_create",
+          "model": "claude-opus-4.6",
+          "raw": "DEBUG: Creating new fixer session with model claude-opus-4.6"
+        },
+        {
+          "agent": "fixer",
+          "type": "send",
+          "raw": "DEBUG: [fixer] Sending task..."
+        },
+        {
+          "agent": "fixer",
+          "type": "receive",
+          "chars": 1087,
+          "raw": "DEBUG: [fixer] Response received (1087 chars)"
+        },
+        {
+          "agent": "fixer",
+          "type": "receive",
+          "chars": 759,
+          "raw": "DEBUG: [fixer] Response received (759 chars)"
+        },
+        {
+          "agent": "fixer",
+          "type": "receive",
+          "chars": 414,
+          "raw": "DEBUG: [fixer] Response received (414 chars)"
+        },
+        {
+          "agent": "fixer",
+          "type": "receive",
+          "chars": 1622,
+          "raw": "DEBUG: [fixer] Response received (1622 chars)"
+        }
+      ]
+    },
+    {
+      "type": "engine_url_start",
+      "time": "2026-02-13T08:16:54.777Z"
+    },
+    {
+      "type": "engine_url_end",
+      "time": "2026-02-13T08:16:58.654Z",
+      "success": true,
+      "results": {
+        "TITLE": "Pop! Super Saiyan Trunks",
+        "DESCRIPTION": "Check out our Pop! Super Saiyan Trunks and more from Funko!",
+        "FAVICON": "/on/demandware.static/Sites-FunkoUS-Site/-/default/dw4d295c20/images/favicons/funko-favicon-16x16.png",
+        "COVER": "https://funko.com/on/demandware.static/-/Sites-funko-master-catalog/default/dw9419f6e1/images/funko/upload/1/91825a_DBS_SSTrunksGG_POP_GLAM-WEB.png"
+      }
+    },
+    {
+      "type": "engine_autocomplete_start",
+      "time": "2026-02-13T08:16:58.654Z"
+    },
+    {
+      "type": "engine_autocomplete_end",
+      "time": "2026-02-13T08:17:02.106Z",
+      "success": true,
+      "results": [
+        {
+          "TITLE": "Pop! Super Saiyan Trunks",
+          "URL": "https://funko.com/pop-super-saiyan-trunks/91825.html",
+          "COVER": "https://funko.com/dw/image/v2/BGTS_PRD/on/demandware.static/-/Sites-funko-master-catalog/default/dw9419f6e1/images/funko/upload/1/91825a_DBS_SSTrunksGG_POP_GLAM-WEB.png?sw=346&sh=346"
+        },
+        {
+          "TITLE": "Bitty Pop! Singles Dragon Ball Z 12-Pack",
+          "URL": "https://funko.com/bitty-pop-singles-dragon-ball-z-12-pack/85984.html",
+          "COVER": "https://funko.com/dw/image/v2/BGTS_PRD/on/demandware.static/-/Sites-funko-master-catalog/default/dw0f635fdd/images/funko/upload/1/85984_BittyPop_DBZ_12PC-Polybag_GLAM-WEB.png?sw=346&sh=346"
+        },
+        {
+          "TITLE": "Bitty Pop! SS Goku & Frieza 2-Pack",
+          "URL": "https://funko.com/bitty-pop-ss-goku-frieza-2-pack/88927.html",
+          "COVER": "https://funko.com/dw/image/v2/BGTS_PRD/on/demandware.static/-/Sites-funko-master-catalog/default/dw08e14b11/images/funko/upload/1/88927_DBZ_GokuFrieza_2PK_GLAM-1-WEB.png?sw=346&sh=346"
+        },
+        {
+          "TITLE": "Bitty Pop! Gohan & Piccolo 2-Pack",
+          "URL": "https://funko.com/bitty-pop-gohan-piccolo-2-pack/88926.html",
+          "COVER": "https://funko.com/dw/image/v2/BGTS_PRD/on/demandware.static/-/Sites-funko-master-catalog/default/dw164dcd16/images/funko/upload/1/88926_DBZ_GohanPiccolo_2PK_GLAM-1-WEB.png?sw=346&sh=346"
+        },
+        {
+          "TITLE": "Mystery Bitty Pop! Dragon Ball Z",
+          "URL": "https://funko.com/mystery-bitty-pop-dragon-ball-z/76388.html",
+          "COVER": "https://funko.com/dw/image/v2/BGTS_PRD/on/demandware.static/-/Sites-funko-master-catalog/default/dwd444afcc/images/funko/upload/1/76388_BittyPop_DBZ_PDQ_GLAM-WEB.png?sw=346&sh=346"
+        },
+        {
+          "TITLE": "Pop! Plus Super Saiyan 4 Goku (Dragon Fist)",
+          "URL": "https://funko.com/pop-plus-super-saiyan-4-goku-dragon-fist/87848.html",
+          "COVER": "https://funko.com/dw/image/v2/BGTS_PRD/on/demandware.static/-/Sites-funko-master-catalog/default/dw6610cb57/images/funko/upload/1/87848_DBGT_S2_GokuDF_POP_GLAM-WEB.png?sw=346&sh=346"
+        },
+        {
+          "TITLE": "Pop! Super Saiyan 4 Goku",
+          "URL": "https://funko.com/pop-super-saiyan-4-goku/86496.html",
+          "COVER": "https://funko.com/dw/image/v2/BGTS_PRD/on/demandware.static/-/Sites-funko-master-catalog/default/dw6883dd71/images/funko/upload/1/86496_DBGT_S2_SS4Goku_POP_GLAM-WEB.png?sw=346&sh=346"
+        },
+        {
+          "TITLE": "Pop! Super Saiyan 4 Vegeta",
+          "URL": "https://funko.com/pop-super-saiyan-4-vegeta/86498.html",
+          "COVER": "https://funko.com/dw/image/v2/BGTS_PRD/on/demandware.static/-/Sites-funko-master-catalog/default/dwbaf5311a/images/funko/upload/1/86498_DBGT_S2_SS4Vegeta_POP_GLAM-WEB.png?sw=346&sh=346"
+        },
+        {
+          "TITLE": "Pop! Super Android 17",
+          "URL": "https://funko.com/pop-super-android-17/86497.html",
+          "COVER": "https://funko.com/dw/image/v2/BGTS_PRD/on/demandware.static/-/Sites-funko-master-catalog/default/dw529280f9/images/funko/upload/1/86497_DBGT_S2_SuperAndroid17_POP_GLAM-WEB.png?sw=346&sh=346"
+        }
+      ]
+    },
+    {
+      "type": "recipe_content",
+      "time": "2026-02-13T08:17:02.106Z",
+      "recipe": {
+        "recipe_shortcut": "funkocom",
+        "list_type": "generic",
+        "engine_version": 20,
+        "title": "Funko.com",
+        "description": "Retrieve generic from funko.com",
+        "urls": [
+          "https://funko.com",
+          "https://www.funko.com"
+        ],
+        "headers": {
+          "Accept-Language": "en-UK,en",
+          "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.113 Safari/537.36"
+        },
+        "autocomplete_steps": [
+          {
+            "command": "load",
+            "url": "https://funko.com/search/?q=$INPUT",
+            "config": {
+              "js": true,
+              "timeout": 5000
+            },
+            "description": "Load Funko search results"
+          },
+          {
+            "command": "store_text",
+            "locator": "ul.row > li.col-6:nth-child($i) h2.pdp-link",
+            "output": {
+              "name": "TITLE$i"
+            },
+            "config": {
+              "loop": {
+                "index": "i",
+                "from": 1,
+                "to": 9,
+                "step": 1
+              }
+            },
+            "description": "Extract product titles"
+          },
+          {
+            "command": "store_attribute",
+            "locator": "ul.row > li.col-6:nth-child($i) a",
+            "attribute_name": "href",
+            "output": {
+              "name": "URL$i"
+            },
+            "config": {
+              "loop": {
+                "index": "i",
+                "from": 1,
+                "to": 9,
+                "step": 1
+              }
+            },
+            "description": "Extract product URLs"
+          },
+          {
+            "command": "store_attribute",
+            "locator": "ul.row > li.col-6:nth-child($i) img.tile-image",
+            "attribute_name": "src",
+            "output": {
+              "name": "COVER$i"
+            },
+            "config": {
+              "loop": {
+                "index": "i",
+                "from": 1,
+                "to": 9,
+                "step": 1
+              }
+            },
+            "description": "Extract product images"
+          }
+        ],
+        "url_steps": [
+          {
+            "command": "load",
+            "url": "$INPUT",
+            "config": {
+              "js": true,
+              "timeout": 5000
+            },
+            "description": "Load product detail page"
+          },
+          {
+            "command": "store_url",
+            "output": {
+              "name": "URL"
+            },
+            "description": "Save the current URL"
+          },
+          {
+            "command": "store_text",
+            "locator": "h1",
+            "output": {
+              "name": "TITLE",
+              "type": "string",
+              "show": true
+            },
+            "description": "Extract product title"
+          },
+          {
+            "command": "store_attribute",
+            "locator": "meta[property='og:description']",
+            "attribute_name": "content",
+            "output": {
+              "name": "DESCRIPTION",
+              "type": "string",
+              "show": true
+            },
+            "description": "Extract product description"
+          },
+          {
+            "command": "store_attribute",
+            "locator": "link[rel='icon']",
+            "attribute_name": "href",
+            "output": {
+              "name": "FAVICON",
+              "type": "string",
+              "show": true
+            },
+            "description": "Extract favicon"
+          },
+          {
+            "command": "store_attribute",
+            "locator": "meta[property='og:image']",
+            "attribute_name": "content",
+            "output": {
+              "name": "COVER",
+              "type": "string",
+              "show": true
+            },
+            "description": "Extract cover image"
+          }
+        ]
+      }
+    },
+    {
+      "type": "score",
+      "time": "2026-02-13T08:17:02.106Z",
+      "score": {
+        "score": 100,
+        "metrics": {
+          "fields_present": 100,
+          "urls_valid": 100,
+          "patterns_match": 100,
+          "no_errors": 100
+        },
+        "passed": true,
+        "details": {
+          "fields_present": {
+            "presentFields": [
+              "TITLE",
+              "COVER",
+              "DESCRIPTION"
+            ],
+            "missingFields": [],
+            "total": 3
+          },
+          "urls_valid": {
+            "checks": [
+              {
+                "field": "COVER",
+                "value": "https://funko.com/on/demandware.static/-/Sites-funko-master-catalog/default/dw9419f6e1/images/funko/upload/1/91825a_DBS_",
+                "valid": true
+              }
+            ],
+            "valid": 1,
+            "total": 1
+          },
+          "patterns_match": {
+            "checks": [
+              {
+                "field": "COVER",
+                "pattern": "^https://",
+                "value": "https://funko.com/on/demandware.static/-/Sites-funko-master-catalog/default/dw9419f6e1/images/funko/upload/1/91825a_DBS_",
+                "matched": true
+              }
+            ],
+            "matched": 1,
+            "total": 1
+          },
+          "no_errors": {
+            "hadErrors": false,
+            "success": true
+          }
+        },
+        "threshold": 70
+      }
+    },
+    {
+      "type": "case_end",
+      "time": "2026-02-13T08:17:02.106Z",
+      "case_id": "funko"
+    }
+  ],
+  "duration_ms": 124545
+}

@@ -1,0 +1,402 @@
+{
+  "caseId": "amazon-product",
+  "testCase": {
+    "id": "amazon-product",
+    "description": "Amazon product detail page — RAM module",
+    "mode": "url-only",
+    "url": "https://www.amazon.com/GIGASTONE-Desktop-DDR4-3200MHz-PC4-25600-Unbuffered/dp/B0CB2TZKCG",
+    "expected_fields": [
+      "TITLE",
+      "COVER",
+      "DESCRIPTION"
+    ],
+    "expected_field_patterns": {
+      "TITLE": "GIGASTONE",
+      "COVER": "^https://"
+    },
+    "tags": [
+      "ecommerce",
+      "detail-page",
+      "default"
+    ]
+  },
+  "score": {
+    "score": 100,
+    "metrics": {
+      "fields_present": 100,
+      "urls_valid": 100,
+      "patterns_match": 100,
+      "no_errors": 100
+    },
+    "passed": true,
+    "details": {
+      "fields_present": {
+        "presentFields": [
+          "TITLE",
+          "COVER",
+          "DESCRIPTION"
+        ],
+        "missingFields": [],
+        "total": 3
+      },
+      "urls_valid": {
+        "checks": [
+          {
+            "field": "COVER",
+            "value": "https://m.media-amazon.com/images/I/51BM392zpdL._AC_SY355_PIbundle-2,TopRight,0,0_SH20_.jpg",
+            "valid": true
+          }
+        ],
+        "valid": 1,
+        "total": 1
+      },
+      "patterns_match": {
+        "checks": [
+          {
+            "field": "TITLE",
+            "pattern": "GIGASTONE",
+            "value": "【DDR4 RAM】 GIGASTONE Game PRO 32GB Kit (2x16GB) DDR4 3200MHz PC4-25600 CL 16-18-18-40 Intel XMP 2.0 AMD Ryzen 1.35V UDIM",
+            "matched": true
+          },
+          {
+            "field": "COVER",
+            "pattern": "^https://",
+            "value": "https://m.media-amazon.com/images/I/51BM392zpdL._AC_SY355_PIbundle-2,TopRight,0,0_SH20_.jpg",
+            "matched": true
+          }
+        ],
+        "matched": 2,
+        "total": 2
+      },
+      "no_errors": {
+        "hadErrors": false,
+        "success": true
+      }
+    },
+    "threshold": 70
+  },
+  "urlResults": {
+    "TITLE": "【DDR4 RAM】 GIGASTONE Game PRO 32GB Kit (2x16GB) DDR4 3200MHz PC4-25600 CL 16-18-18-40 Intel XMP 2.0 AMD Ryzen 1.35V UDIMM 288 Pin Unbuffered Non ECC High Performance Gaming Desktop Memory - White",
+    "DESCRIPTION": "About this item [Capacity] 32GB Kit (2x16GB) UDIMM Compatible with Select Gaming Desktop PCs [Speed] PC Speed ​​(PC4-25600), DDR4 3200MHz [Specification] ECC Type = Non-ECC, Form Factor = Unbuffered UDIMM, CL=16, Number of Pins = 288 Pins, Voltage = 1.35V [Overclocking] Intel XMP 2.0 and AMD Ryzen › See more product details",
+    "FAVICON": "https://www.amazon.com/favicon.ico",
+    "COVER": "https://m.media-amazon.com/images/I/51BM392zpdL._AC_SY355_PIbundle-2,TopRight,0,0_SH20_.jpg",
+    "RATING": "4.7",
+    "PRICE": "EUR226.59",
+    "BRAND": "Visit the Gigastone Store"
+  },
+  "autocompleteResults": [],
+  "agentTurns": [
+    {
+      "agent": "author",
+      "type": "session_create",
+      "model": "claude-opus-4.6",
+      "raw": "DEBUG: Creating new author session with model claude-opus-4.6"
+    },
+    {
+      "agent": "querytest",
+      "type": "session_create",
+      "model": "claude-opus-4.6",
+      "raw": "DEBUG: Creating new querytest session with model claude-opus-4.6"
+    },
+    {
+      "agent": "author",
+      "type": "send",
+      "raw": "DEBUG: [author] Sending task..."
+    },
+    {
+      "agent": "author",
+      "type": "receive",
+      "chars": 4350,
+      "raw": "DEBUG: [author] Response received (4350 chars)"
+    }
+  ],
+  "events": [
+    {
+      "type": "case_start",
+      "time": "2026-02-13T08:14:50.231Z",
+      "case_id": "amazon-product",
+      "mode": "url-only"
+    },
+    {
+      "type": "autorecipe_start",
+      "time": "2026-02-13T08:14:50.231Z"
+    },
+    {
+      "type": "autorecipe_end",
+      "time": "2026-02-13T08:15:41.343Z",
+      "exitCode": 0,
+      "duration_ms": 51112,
+      "stdout": "ℹ Starting autoRecipe for https://www.amazon.com/GIGASTONE-Desktop-DDR4-3200MHz-PC4-25600-Unbuffered/dp/B0CB2TZKCG\n→ Launching browser...\n→ Initializing AgentOrchestrator...\n✓ AgentOrchestrator initialized\n  DEBUG: Creating new author session with model claude-opus-4.6\n  DEBUG: Creating new querytest session with model claude-opus-4.6\n→ Probing https://www.amazon.com/GIGASTONE-Desktop-DDR4-3200MHz-PC4-25600-Unbuffered/dp/B0CB2TZKCG...\n  DEBUG: {\n  \"input_url\": \"https://www.amazon.com/GIGASTONE-Desktop-DDR4-3200MHz-PC4-25600-Unbuffered/dp/B0CB2TZKCG\",\n  \"final_url\": \"https://www.amazon.com/GIGASTONE-Desktop-DDR4-3200MHz-PC4-25600-Unbuffered/dp/B0CB2TZKCG\",\n  \"hostname\": \"amazon.com\",\n  \"title\": \"【DDR4 RAM】 GIGASTONE Game PRO 32GB Kit (2x16GB) DDR4 3200MHz PC4-25600 CL 16-18-18-40 Intel XMP 2.0 AMD Ryzen 1.35V UDIMM 288 Pin Unbuffered Non ECC High Performance Gaming Desktop Memory - White at Amazon.com\",\n  \"meta_description\": \"Buy 【DDR4 RAM】 GIGASTONE Game PRO 32GB Kit (2x16GB) DDR4 3200MHz PC4-25600 CL 16-18-18-40 Intel XMP 2.0 AMD Ryzen 1.35V UDIMM 288 Pin Unbuffered Non ECC High Performance Gaming Desktop Memory - White: Memory - Amazon.com ✓ FREE DELIVERY possible on eligible purchases\",\n  \"h1\": \"【DDR4 RAM】 GIGASTONE Game PRO 32GB Kit (2x16GB) DDR4 3200MHz PC4-25600 CL 16-18-18-40 Intel XMP 2.0 AMD Ryzen 1.35V UDIMM 288 Pin Unbuffered Non ECC High Performance Gaming Desktop Memory - White\",\n  \"jsonld_types\": [],\n  \"links_sample\": [\n    {\n      \"text\": \"Main content\",\n      \"href\": \"https://www.amazon.com/GIGASTONE-Desktop-DDR4-3200MHz-PC4-25600-Unbuffered/dp/B0CB2TZKCG#skippedLink\"\n    },\n    {\n      \"text\": \"About this item\",\n      \"href\": \"https://www.amazon.com/GIGASTONE-Desktop-DDR4-3200MHz-PC4-25600-Unbuffered/dp/B0CB2TZKCG#featurebullets_feature_div\"\n    },\n    {\n      \"text\": \"About this item\",\n      \"href\": \"https://www.amazon.com/GIGASTONE-Desktop-DDR4-3200MHz-PC4-25600-Unbuffered/dp/B0CB2TZKCG#nic-po-expander-heading\"\n    },\n    {\n      \"text\": \"About this item\",\n      \"href\": \"https://www.amazon.com/GIGASTONE-Desktop-DDR4-3200MHz-PC4-25600-Unbuffered/dp/B0CB2TZKCG#productFactsDesktopExpander\"\n    },\n    {\n      \"text\": \"Buying options\",\n      \"href\": \"https://www.amazon.com/GIGASTONE-Desktop-DDR4-3200MHz-PC4-25600-Unbuffered/dp/B0CB2TZKCG#buybox\"\n    },\n    {\n      \"text\": \"Compare with similar items\",\n      \"href\": \"https://www.amazon.com/GIGASTONE-Desktop-DDR4-3200MHz-PC4-25600-Unbuffered/dp/B0CB2TZKCG#product-comparison_feature_div\"\n    },\n    {\n      \"text\": \"Videos\",\n      \"href\": \"https://www.amazon.com/GIGASTONE-Desktop-DDR4-3200MHz-PC4-25600-Unbuffered/dp/B0CB2TZKCG#va-related-videos-widget_feature_div\"\n    },\n    {\n      \"text\": \"Reviews\",\n      \"href\": \"https://www.amazon.com/GIGASTONE-Desktop-DDR4-3200MHz-PC4-25600-Unbuffered/dp/B0CB2TZKCG#customerReviews\"\n    },\n    {\n      \"text\": \"Search\\n          \\n              opt\\n              +\\n              /\",\n      \"href\": \"javascript:void(0)\"\n    },\n    {\n      \"text\": \"Cart\\n          \\n              shift\\n              +\\n              opt\\n              +\\n              \",\n      \"href\": \"javascript:void(0)\"\n    },\n    {\n      \"text\": \"Home\\n          \\n              shift\\n              +\\n              opt\\n              +\\n              \",\n      \"href\": \"javascript:void(0)\"\n    },\n    {\n      \"text\": \"Orders\\n          \\n              shift\\n              +\\n              opt\\n              +\\n            \",\n      \"href\": \"javascript:void(0)\"\n    },\n    {\n      \"text\": \".us\",\n      \"href\": \"https://www.amazon.com/ref=nav_logo\"\n    },\n    {\n      \"text\": \"Deliver to\\n                \\n                \\n                   Spain\",\n      \"href\": \"https://www.amazon.com/GIGASTONE-Desktop-DDR4-3200MHz-PC4-25600-Unbuffered/dp/B0CB2TZKCG\"\n    },\n    {\n      \"text\": \"EN\",\n      \"href\": \"https://www.amazon.com/customer-preferences/edit?ie=UTF8&preferencesReturnUrl=%2F&ref_=topnav_lang_ais\"\n    },\n    {\n      \"text\": \"Hello, sign in\\n  Account & Lists\",\n      \"href\": \"https://www.amazon.com/ap/signin?openid.pape.max_auth_age=0&openid.return_to=https%3A%2F%2Fwww.amazon.com%2FGIGASTONE-Desktop-DDR4-3200MHz-PC4-25600-Unbuffered%2Fdp%2FB0CB2TZKCG%3Fref_%3Dnav_ya_signin&openid.identity=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.assoc_handle=usflex&openid.mode=checkid_setup&openid.claimed_id=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.ns=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0\"\n    },\n    {\n      \"text\": \"Returns\\n  & Orders\",\n      \"href\": \"https://www.amazon.com/gp/css/order-history?ref_=nav_orders_first\"\n    },\n    {\n      \"text\": \"0\\n      \\n    \\n    \\n      \\n        \\n      \\n      \\n        Cart\",\n      \"href\": \"https://www.amazon.com/gp/cart/view.html?ref_=nav_cart\"\n    },\n    {\n      \"text\": \"Sign in\",\n      \"href\": \"https://www.amazon.com/ap/signin?openid.pape.max_auth_age=0&openid.return_to=https%3A%2F%2Fwww.amazon.com%2FGIGASTONE-Desktop-DDR4-3200MHz-PC4-25600-Unbuffered%2Fdp%2FB0CB2TZKCG%3Fref_%3Dnav_signin&openid.identity=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.assoc_handle=usflex&openid.mode=checkid_setup&openid.claimed_id=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.ns=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0\"\n    },\n    {\n      \"text\": \"Start here.\",\n      \"href\": \"https://www.amazon.com/ap/register?openid.pape.max_auth_age=0&openid.return_to=https%3A%2F%2Fwww.amazon.com%2FGIGASTONE-Desktop-DDR4-3200MHz-PC4-25600-Unbuffered%2Fdp%2FB0CB2TZKCG%2F%3F_encoding%3DUTF8%26ref_%3Dnav_newcust&openid.identity=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.assoc_handle=usflex&openid.mode=checkid_setup&openid.claimed_id=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.ns=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0\"\n    }\n  ],\n  \"search\": {\n    \"has_search\": true,\n    \"search_box_locator\": \"input[name=\\\"field-keywords\\\"]\",\n    \"search_form_action\": \"https://www.amazon.com/s/ref=nb_sb_noss\"\n  }\n}\nℹ Using list_type: generic (classification skipped)\nℹ Phase 2: SKIPPED (--url-only mode)\n✓ Wrote recipe: /Users/basiclines/Developer/basiclines/RecipeKit/Engine/scripts/evals/runs/2026-02-13_baseline/recipes/amazoncom.json\nℹ Phase 3: Generating url_steps...\n→ Probing detail page https://www.amazon.com/GIGASTONE-Desktop-DDR4-3200MHz-PC4-25600-Unbuffered/dp/B0CB2TZKCG...\n  DEBUG: [author] Sending task...\n  DEBUG: [author] Event: pending_messages.modified\n  DEBUG: [author] Event: pending_messages.modified\n  DEBUG: [author] Event: user.message\n  DEBUG: [author] Event: assistant.turn_start\n  DEBUG: [author] Event: assistant.usage\n  DEBUG: [author] Event: assistant.message\n  DEBUG: [author] Event: assistant.reasoning\n  DEBUG: [author] Event: tool.execution_start\n  DEBUG: [author] Event: tool.execution_start\n  DEBUG: [author] Event: tool.execution_complete\n  DEBUG: [author] Event: tool.execution_complete\n  DEBUG: [author] Event: assistant.turn_end\n  DEBUG: [author] Event: assistant.turn_start\n  DEBUG: [author] Event: assistant.usage\n  DEBUG: [author] Event: assistant.message\n  DEBUG: [author] Event: assistant.reasoning\n  DEBUG: [author] Event: assistant.turn_end\n  DEBUG: [author] Event: session.idle\n  DEBUG: [author] Response received (4350 chars)\nℹ Testing url_steps...\nℹ Starting debug-first repair loop for url_steps...\n→ Repair iteration 1/5...\n→ Running engine: url with input \"https://www.amazon.com/GIGASTONE-Desktop-DDR4-3200...\"\n✓ Recipe working after 0 iteration(s)!\nℹ   → Got fields: TITLE, DESCRIPTION, FAVICON, COVER, RATING, PRICE, BRAND\n→ Running engine: url with input \"https://www.amazon.com/GIGASTONE-Desktop-DDR4-3200...\"\n✓ URL steps working: TITLE, DESCRIPTION, FAVICON, COVER, RATING, PRICE, BRAND\nℹ Phase 4: Generating test file...\n✓ Wrote test: /Users/basiclines/Developer/basiclines/RecipeKit/Engine/scripts/evals/runs/2026-02-13_baseline/recipes/amazoncom.test.js\n✓ ✓ Recipe is fully functional!\n  DEBUG: Closing AgentOrchestrator...\n  DEBUG: Destroyed author session\n  DEBUG: Destroyed querytest session\n  DEBUG: AgentOrchestrator closed\n\n⏱  Timing:\n  Phase 1 (probe site):     9.0s\n  Phase 2 (autocomplete):   skipped\n  Phase 3 (url_steps):      41.5s\n  Phase 4 (test gen):       0ms\n  ────────────────────────────────────\n  Total:                    50.5s\n\n📊 Copilot Usage:\n  Requests: 1\n  By agent:\n    author: 1 req, 0 tokens (claude-opus-4.6)\n    querytest: 0 req, 0 tokens (claude-opus-4.6)\n\n✓ Recipe created successfully!\n  Recipe: /Users/basiclines/Developer/basiclines/RecipeKit/Engine/scripts/evals/runs/2026-02-13_baseline/recipes/amazoncom.json\n  Test: /Users/basiclines/Developer/basiclines/RecipeKit/Engine/scripts/evals/runs/2026-02-13_baseline/recipes/amazoncom.test.js\n",
+      "stderr": ""
+    },
+    {
+      "type": "agent_turns",
+      "time": "2026-02-13T08:15:41.343Z",
+      "turns": [
+        {
+          "agent": "author",
+          "type": "session_create",
+          "model": "claude-opus-4.6",
+          "raw": "DEBUG: Creating new author session with model claude-opus-4.6"
+        },
+        {
+          "agent": "querytest",
+          "type": "session_create",
+          "model": "claude-opus-4.6",
+          "raw": "DEBUG: Creating new querytest session with model claude-opus-4.6"
+        },
+        {
+          "agent": "author",
+          "type": "send",
+          "raw": "DEBUG: [author] Sending task..."
+        },
+        {
+          "agent": "author",
+          "type": "receive",
+          "chars": 4350,
+          "raw": "DEBUG: [author] Response received (4350 chars)"
+        }
+      ]
+    },
+    {
+      "type": "engine_url_start",
+      "time": "2026-02-13T08:15:41.343Z"
+    },
+    {
+      "type": "engine_url_end",
+      "time": "2026-02-13T08:15:45.298Z",
+      "success": true,
+      "results": {
+        "TITLE": "【DDR4 RAM】 GIGASTONE Game PRO 32GB Kit (2x16GB) DDR4 3200MHz PC4-25600 CL 16-18-18-40 Intel XMP 2.0 AMD Ryzen 1.35V UDIMM 288 Pin Unbuffered Non ECC High Performance Gaming Desktop Memory - White",
+        "DESCRIPTION": "About this item [Capacity] 32GB Kit (2x16GB) UDIMM Compatible with Select Gaming Desktop PCs [Speed] PC Speed ​​(PC4-25600), DDR4 3200MHz [Specification] ECC Type = Non-ECC, Form Factor = Unbuffered UDIMM, CL=16, Number of Pins = 288 Pins, Voltage = 1.35V [Overclocking] Intel XMP 2.0 and AMD Ryzen › See more product details",
+        "FAVICON": "https://www.amazon.com/favicon.ico",
+        "COVER": "https://m.media-amazon.com/images/I/51BM392zpdL._AC_SY355_PIbundle-2,TopRight,0,0_SH20_.jpg",
+        "RATING": "4.7",
+        "PRICE": "EUR226.59",
+        "BRAND": "Visit the Gigastone Store"
+      }
+    },
+    {
+      "type": "recipe_content",
+      "time": "2026-02-13T08:15:45.299Z",
+      "recipe": {
+        "recipe_shortcut": "amazoncom",
+        "list_type": "generic",
+        "engine_version": 20,
+        "title": "Amazon.com",
+        "description": "Retrieve generic from amazon.com",
+        "urls": [
+          "https://amazon.com",
+          "https://www.amazon.com"
+        ],
+        "headers": {
+          "Accept-Language": "en-UK,en",
+          "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.113 Safari/537.36"
+        },
+        "autocomplete_steps": [],
+        "url_steps": [
+          {
+            "command": "load",
+            "url": "$INPUT",
+            "config": {
+              "js": true,
+              "timeout": 10000
+            },
+            "description": "Load Amazon product page"
+          },
+          {
+            "command": "store_url",
+            "output": {
+              "name": "URL"
+            },
+            "description": "Save the current URL"
+          },
+          {
+            "command": "store_text",
+            "locator": "span#productTitle",
+            "output": {
+              "name": "TITLE",
+              "type": "string",
+              "show": true
+            },
+            "description": "Extract product title"
+          },
+          {
+            "command": "store_attribute",
+            "locator": "meta[name='description']",
+            "attribute_name": "content",
+            "output": {
+              "name": "META_DESC",
+              "type": "string"
+            },
+            "description": "Extract meta description as fallback"
+          },
+          {
+            "command": "store_text",
+            "locator": "#feature-bullets",
+            "output": {
+              "name": "BULLETS",
+              "type": "string"
+            },
+            "description": "Extract feature bullets text"
+          },
+          {
+            "command": "store_text",
+            "locator": "#productDescription",
+            "output": {
+              "name": "PROD_DESC",
+              "type": "string"
+            },
+            "description": "Extract product description text"
+          },
+          {
+            "command": "store",
+            "input": "$BULLETS $PROD_DESC",
+            "output": {
+              "name": "DESCRIPTION",
+              "type": "string",
+              "show": true
+            },
+            "description": "Combine bullet points and product description"
+          },
+          {
+            "command": "store_attribute",
+            "locator": "link[rel='shortcut icon'], link[rel='icon']",
+            "attribute_name": "href",
+            "output": {
+              "name": "RAW_FAVICON",
+              "type": "string"
+            },
+            "description": "Extract favicon href"
+          },
+          {
+            "command": "store",
+            "input": "https://www.amazon.com/favicon.ico",
+            "output": {
+              "name": "FAVICON",
+              "type": "string",
+              "show": true
+            },
+            "description": "Use Amazon favicon URL"
+          },
+          {
+            "command": "store_attribute",
+            "locator": "#landingImage, #imgBlkFront, #ebooksImgBlkFront",
+            "attribute_name": "src",
+            "output": {
+              "name": "COVER",
+              "type": "string",
+              "show": true
+            },
+            "description": "Extract main product image"
+          },
+          {
+            "command": "store_text",
+            "locator": "#acrPopover span.a-icon-alt",
+            "output": {
+              "name": "RAW_RATING",
+              "type": "string"
+            },
+            "description": "Extract rating text"
+          },
+          {
+            "command": "regex",
+            "input": "$RAW_RATING",
+            "expression": "([\\d.]+)",
+            "output": {
+              "name": "RATING",
+              "type": "string",
+              "show": true
+            },
+            "description": "Extract numeric rating value"
+          },
+          {
+            "command": "store_text",
+            "locator": "span.a-price > span.a-offscreen",
+            "output": {
+              "name": "PRICE",
+              "type": "string",
+              "show": true
+            },
+            "description": "Extract product price"
+          },
+          {
+            "command": "store_text",
+            "locator": "#bylineInfo",
+            "output": {
+              "name": "BRAND",
+              "type": "string",
+              "show": true
+            },
+            "description": "Extract brand or seller name"
+          }
+        ]
+      }
+    },
+    {
+      "type": "score",
+      "time": "2026-02-13T08:15:45.299Z",
+      "score": {
+        "score": 100,
+        "metrics": {
+          "fields_present": 100,
+          "urls_valid": 100,
+          "patterns_match": 100,
+          "no_errors": 100
+        },
+        "passed": true,
+        "details": {
+          "fields_present": {
+            "presentFields": [
+              "TITLE",
+              "COVER",
+              "DESCRIPTION"
+            ],
+            "missingFields": [],
+            "total": 3
+          },
+          "urls_valid": {
+            "checks": [
+              {
+                "field": "COVER",
+                "value": "https://m.media-amazon.com/images/I/51BM392zpdL._AC_SY355_PIbundle-2,TopRight,0,0_SH20_.jpg",
+                "valid": true
+              }
+            ],
+            "valid": 1,
+            "total": 1
+          },
+          "patterns_match": {
+            "checks": [
+              {
+                "field": "TITLE",
+                "pattern": "GIGASTONE",
+                "value": "【DDR4 RAM】 GIGASTONE Game PRO 32GB Kit (2x16GB) DDR4 3200MHz PC4-25600 CL 16-18-18-40 Intel XMP 2.0 AMD Ryzen 1.35V UDIM",
+                "matched": true
+              },
+              {
+                "field": "COVER",
+                "pattern": "^https://",
+                "value": "https://m.media-amazon.com/images/I/51BM392zpdL._AC_SY355_PIbundle-2,TopRight,0,0_SH20_.jpg",
+                "matched": true
+              }
+            ],
+            "matched": 2,
+            "total": 2
+          },
+          "no_errors": {
+            "hadErrors": false,
+            "success": true
+          }
+        },
+        "threshold": 70
+      }
+    },
+    {
+      "type": "case_end",
+      "time": "2026-02-13T08:15:45.299Z",
+      "case_id": "amazon-product"
+    }
+  ],
+  "duration_ms": 51112
+}
