@@ -1,0 +1,1802 @@
+[
+  {
+    "type": "case_start",
+    "time": "2026-02-13T08:14:50.230Z",
+    "case_id": "fragrantica",
+    "mode": "url"
+  },
+  {
+    "type": "autorecipe_start",
+    "time": "2026-02-13T08:14:50.230Z"
+  },
+  {
+    "type": "autorecipe_end",
+    "time": "2026-02-13T08:20:23.497Z",
+    "exitCode": 1,
+    "duration_ms": 333267,
+    "stdout": "ℹ Starting autoRecipe for https://www.fragrantica.com\n→ Launching browser...\n→ Initializing AgentOrchestrator...\n✓ AgentOrchestrator initialized\n  DEBUG: Creating new author session with model claude-opus-4.6\n  DEBUG: Creating new querytest session with model claude-opus-4.6\n→ Probing https://www.fragrantica.com...\n  DEBUG: {\n  \"input_url\": \"https://www.fragrantica.com\",\n  \"final_url\": \"https://www.fragrantica.com/\",\n  \"hostname\": \"fragrantica.com\",\n  \"title\": \"Perfumes and Colognes Magazine, Perfume Reviews and Online Community—Fragrantica.com\",\n  \"meta_description\": \"Fragrantica: Your Online Destination for All Things Fragrance\\nDiscover the world of perfumes with Fragrantica, a comprehensive online resource, magazine...\",\n  \"h1\": null,\n  \"jsonld_types\": [],\n  \"links_sample\": [\n    {\n      \"text\": \"News\",\n      \"href\": \"https://www.fragrantica.com/\"\n    },\n    {\n      \"text\": \"Perfumes\",\n      \"href\": \"https://www.fragrantica.com/search/\"\n    },\n    {\n      \"text\": \"Search\",\n      \"href\": \"https://www.fragrantica.com/search/\"\n    },\n    {\n      \"text\": \"Designers\",\n      \"href\": \"https://www.fragrantica.com/designers/\"\n    },\n    {\n      \"text\": \"Countries\",\n      \"href\": \"https://www.fragrantica.com/country/\"\n    },\n    {\n      \"text\": \"Parent Companies\",\n      \"href\": \"https://www.fragrantica.com/parent-company/\"\n    },\n    {\n      \"text\": \"Industries\",\n      \"href\": \"https://www.fragrantica.com/industry/\"\n    },\n    {\n      \"text\": \"Search by notes\",\n      \"href\": \"https://www.fragrantica.com/ingredients-search/\"\n    },\n    {\n      \"text\": \"Perfume Finder\",\n      \"href\": \"https://www.fragrantica.com/perfume-finder/\"\n    },\n    {\n      \"text\": \"Perfume Map\",\n      \"href\": \"https://www.fragrantica.com/perfume-map/\"\n    },\n    {\n      \"text\": \"Fragrantica Pulse\",\n      \"href\": \"https://www.fragrantica.com/pulse/\"\n    },\n    {\n      \"text\": \"Groups\",\n      \"href\": \"https://www.fragrantica.com/groups/\"\n    },\n    {\n      \"text\": \"Colors\",\n      \"href\": \"https://www.fragrantica.com/colors/\"\n    },\n    {\n      \"text\": \"Awards\",\n      \"href\": \"https://www.fragrantica.com/awards2025/\"\n    },\n    {\n      \"text\": \"2025\",\n      \"href\": \"https://www.fragrantica.com/awards2025/\"\n    },\n    {\n      \"text\": \"2024\",\n      \"href\": \"https://www.fragrantica.com/awards2024/\"\n    },\n    {\n      \"text\": \"2023\",\n      \"href\": \"https://www.fragrantica.com/awards2023/\"\n    },\n    {\n      \"text\": \"2022\",\n      \"href\": \"https://www.fragrantica.com/awards2022/\"\n    },\n    {\n      \"text\": \"2021\",\n      \"href\": \"https://www.fragrantica.com/awards2021/\"\n    }\n  ],\n  \"search\": {\n    \"has_search\": false,\n    \"search_box_locator\": null,\n    \"search_form_action\": null\n  }\n}\nℹ Using list_type: generic (classification skipped)\nℹ Phase 2: Generating autocomplete_steps...\n→ Inferring optimal test query...\n  DEBUG: [querytest] Sending task...\n  DEBUG: [querytest] Event: pending_messages.modified\n  DEBUG: [querytest] Event: pending_messages.modified\n  DEBUG: [querytest] Event: user.message\n  DEBUG: [querytest] Event: assistant.turn_start\n  DEBUG: [querytest] Event: assistant.usage\n  DEBUG: [querytest] Event: assistant.message\n  DEBUG: [querytest] Event: assistant.turn_end\n  DEBUG: [querytest] Event: session.idle\n  DEBUG: [querytest] Response received (321 chars)\n✓ Using test query: \"Chanel\" (other)\n  DEBUG: Reasoning: Fragrantica is a perfume review and community site. 'Chanel' is one of the most iconic perfume houses and is certain to have extensive results on this fragrance database.\n  DEBUG: Alternatives: Dior Sauvage, vanilla, Tom Ford\nℹ Trying search URL pattern: https://fragrantica.com/search?q=Chanel\n→ Probing search results for \"Chanel\"...\nℹ Loading search URL: https://fragrantica.com/search?q=Chanel\nℹ URL-based search found no results. Trying form submission...\nℹ Attempting to discover autocomplete API via network interception...\nℹ No search input found for API discovery\nℹ Trying search URL pattern: https://fragrantica.com/search?query=Chanel\n→ Probing search results for \"Chanel\"...\nℹ Loading search URL: https://fragrantica.com/search?query=Chanel\nℹ URL-based search found no results. Trying form submission...\nℹ Attempting to discover autocomplete API via network interception...\nℹ No search input found for API discovery\nℹ Trying search URL pattern: https://fragrantica.com/search/?query=Chanel\n→ Probing search results for \"Chanel\"...\nℹ Loading search URL: https://fragrantica.com/search/?query=Chanel\nℹ URL-based search found no results. Trying form submission...\nℹ Attempting to discover autocomplete API via network interception...\nℹ No search input found for API discovery\nℹ Trying search URL pattern: https://fragrantica.com/search?search=Chanel\n→ Probing search results for \"Chanel\"...\nℹ Loading search URL: https://fragrantica.com/search?search=Chanel\nℹ URL-based search found no results. Trying form submission...\nℹ Attempting to discover autocomplete API via network interception...\nℹ No search input found for API discovery\nℹ Trying search URL pattern: https://fragrantica.com/?s=Chanel\n→ Probing search results for \"Chanel\"...\nℹ Loading search URL: https://fragrantica.com/?s=Chanel\nℹ Found consecutive parent: div.grid > div.col-span-12:nth-of-type($i)\n  DEBUG: searchEvidence.api: null\n  DEBUG: searchEvidence.search_type: url_query\n  DEBUG: [author] Sending task...\n  DEBUG: [author] Event: pending_messages.modified\n  DEBUG: [author] Event: pending_messages.modified\n  DEBUG: [author] Event: user.message\n  DEBUG: [author] Event: assistant.turn_start\n  DEBUG: [author] Event: assistant.usage\n  DEBUG: [author] Event: assistant.message\n  DEBUG: [author] Event: assistant.reasoning\n  DEBUG: [author] Event: assistant.turn_end\n  DEBUG: [author] Event: session.idle\n  DEBUG: [author] Response received (1901 chars)\n✓ Wrote recipe: /Users/basiclines/Developer/basiclines/RecipeKit/Engine/scripts/evals/runs/2026-02-13_baseline/recipes/fragranticacom.json\nℹ Testing autocomplete_steps...\nℹ Starting debug-first repair loop for autocomplete_steps...\n→ Repair iteration 1/5...\n→ Running engine: autocomplete with input \"Chanel...\"\n✓ Recipe working after 0 iteration(s)!\nℹ   → Got 9 results\n→ Running engine: autocomplete with input \"Chanel...\"\n✓ Autocomplete working: 7 valid results\nℹ   Sample: \"In Florence with a Book and Perfume. Part 5\" → https://www.fragrantica.com/news/In-Florence-with-...\n⚠   Result 1: SUBTITLE is empty (optional)\n⚠   Result 2: SUBTITLE is empty (optional)\n⚠   Result 3: SUBTITLE is empty (optional)\n⚠   Result 4: SUBTITLE is empty (optional)\n⚠   Result 5: SUBTITLE is empty (optional)\n⚠   Result 6: SUBTITLE is empty (optional)\n⚠   Result 7: SUBTITLE is empty (optional)\n⚠   Result 8: SUBTITLE is empty (optional)\n⚠   Result 9: SUBTITLE is empty (optional)\n⚠ ⚠ Semantic mismatch: Only 0/9 results match query (need 30%)\n⚠   Results don't match query \"Chanel\" - might be a false positive\n⚠   Non-matching: \"In Florence with a Book and Perfume. Part 5\"\n⚠   Non-matching: \"With Lift Me Up, Initio Puts the Radiance of the Sun in a Bottle\"\n⚠   Non-matching: \"The Best Roses of Recent Years\"\nℹ → Verifying with second query \"Dior\"...\n→ Running engine: autocomplete with input \"Dior...\"\n✗ ❌ FALSE POSITIVE DETECTED: Both \"Chanel\" and \"Dior\" return same results\n✗   Recipe is returning static content, not search results\nℹ → Attempting API interception for JavaScript-powered search...\nℹ   Probing 5 search URL patterns for API calls...\nℹ   Trying: https://www.fragrantica.com/search/?query=Chanel...\n  DEBUG:     Navigating to https://www.fragrantica.com/search/?query=Chanel...\n  DEBUG:     Algolia response detected: https://www.fragrantica.com/new-js/chunks/vendor-algolia.js?...\n  DEBUG:     Response length: 179729, starts with {: false\n  DEBUG:     Algolia response detected: https://fgvi612dfz-dsn.algolia.net/1/indexes/*/queries?x-alg...\n  DEBUG:     Response length: 28926, starts with {: true\n  DEBUG:     Found Algolia response with 30 hits\n✓     Captured 30 results from Algolia API!\n  DEBUG:     Total responses seen: 135\n✓   ✓ Captured 30 results from API!\n  DEBUG:     API URL pattern: algolia\n  DEBUG:     JSON path hint: results[0].hits[$i]\n  DEBUG:     Navigating to https://www.fragrantica.com/search/?query=Dior...\n  DEBUG:     Algolia response detected: https://www.fragrantica.com/new-js/chunks/vendor-algolia.js?...\n  DEBUG:     Response length: 179729, starts with {: false\n  DEBUG:     Algolia response detected: https://fgvi612dfz-dsn.algolia.net/1/indexes/*/queries?x-alg...\n  DEBUG:     Response length: 27774, starts with {: true\n  DEBUG:     Found Algolia response with 30 hits\n✓     Captured 30 results from Algolia API!\n  DEBUG:     Total responses seen: 135\n✓   ✓ API returns different results for different queries!\nℹ   Passing captured API evidence to AuthorAgent...\n  DEBUG: [author] Sending task...\n  DEBUG: [author] Event: pending_messages.modified\n  DEBUG: [author] Event: pending_messages.modified\n  DEBUG: [author] Event: user.message\n  DEBUG: [author] Event: assistant.turn_start\n  DEBUG: [author] Event: assistant.usage\n  DEBUG: [author] Event: assistant.message\n  DEBUG: [author] Event: assistant.turn_end\n  DEBUG: [author] Event: session.idle\n  DEBUG: [author] Response received (3205 chars)\n✓ ✓ API interception successful! Switching to API-based recipe.\n→ Running engine: autocomplete with input \"Chanel...\"\n✓ ✓ API recipe working: 10 valid results\nℹ Phase 3: Generating url_steps...\n→ Probing detail page https://www.fragrantica.com/perfume/Chanel/Chanel-No-5-Eau-de-Parfum-40069.html...\n  DEBUG: [author] Sending task...\n  DEBUG: [author] Event: pending_messages.modified\n  DEBUG: [author] Event: pending_messages.modified\n  DEBUG: [author] Event: user.message\n  DEBUG: [author] Event: assistant.turn_start\n  DEBUG: [author] Event: assistant.usage\n  DEBUG: [author] Event: assistant.message\n  DEBUG: [author] Event: assistant.turn_end\n  DEBUG: [author] Event: session.idle\n  DEBUG: [author] Response received (3577 chars)\nℹ Testing url_steps...\nℹ Starting debug-first repair loop for url_steps...\n→ Repair iteration 1/5...\n→ Running engine: url with input \"https://www.fragrantica.com/perfume/Chanel/Chanel-...\"\n⚠ Fields with empty values: YEAR\n⚠ Engine output not as expected. Debugging recipe steps with Puppeteer...\n→ Debugging url_steps steps on https://www.fragrantica.com/perfume/Chanel/Chanel-No-5-Eau-de-Parfum-40069.html...\nℹ Debug results: 1 working, 8 failed\n✗   Step 3: \"Extract description from og:description\" - selector \"meta[property='og:description']\" found 0 elements\nℹ     → Suggested alternative: \"[class*=\"description\"]\" (found 1)\n✗   Step 4: \"Extract cover image from og:image\" - selector \"meta[property='og:image']\" found 0 elements\n✗   Step 5: \"Extract favicon\" - selector \"link[rel='icon']\" found 0 elements\n✗   Step 6: \"Extract designer/brand name\" - selector \"span[itemprop='name']\" found 0 elements\nℹ     → Suggested alternative: \"h1\" (found 1)\n✗   Step 7: \"Extract perfume rating\" - selector \"span[itemprop='ratingValue']\" found 0 elements\n✗   Step 8: \"Extract detailed description from itemprop if available\" - selector \"div#col1 p[itemprop='description']\" found 0 elements\nℹ     → Suggested alternative: \"[class*=\"description\"]\" (found 1)\n✗   Step 9: \"Extract year of release\" - selector \"div.cell.small-12 span\" found 0 elements\n✗   Step 10: \"Extract fragrance family/accord\" - selector \"div#pyramid h4\" found 0 elements\n  DEBUG: Creating new fixer session with model claude-opus-4.6\n  DEBUG: [fixer] Sending task...\n  DEBUG: [fixer] Event: pending_messages.modified\n  DEBUG: [fixer] Event: pending_messages.modified\n  DEBUG: [fixer] Event: user.message\n  DEBUG: [fixer] Event: assistant.turn_start\n  DEBUG: [fixer] Event: assistant.usage\n  DEBUG: [fixer] Event: assistant.message\n  DEBUG: [fixer] Event: assistant.reasoning\n  DEBUG: [fixer] Event: assistant.turn_end\n  DEBUG: [fixer] Event: session.idle\n  DEBUG: [fixer] Response received (663 chars)\n✓ Applied 2 patches: FAVICON was relative (/favicon.ico), adding store step to prepend hostname to make it an absolute URL\nℹ Recipe updated. Retrying...\n→ Repair iteration 2/5...\n→ Running engine: url with input \"https://www.fragrantica.com/perfume/Chanel/Chanel-...\"\n⚠ Fields with empty values: YEAR\n⚠ Engine output not as expected. Debugging recipe steps with Puppeteer...\n→ Debugging url_steps steps on https://www.fragrantica.com/perfume/Chanel/Chanel-No-5-Eau-de-Parfum-40069.html...\nℹ Debug results: 1 working, 8 failed\n✗   Step 3: \"Extract description from og:description\" - selector \"meta[property='og:description']\" found 0 elements\nℹ     → Suggested alternative: \"[class*=\"description\"]\" (found 1)\n✗   Step 4: \"Extract cover image from og:image\" - selector \"meta[property='og:image']\" found 0 elements\n✗   Step 5: \"Extract favicon\" - selector \"link[rel='icon']\" found 0 elements\n✗   Step 6: \"Extract designer/brand name\" - selector \"span[itemprop='name']\" found 0 elements\nℹ     → Suggested alternative: \"h1\" (found 1)\n✗   Step 7: \"Extract perfume rating\" - selector \"span[itemprop='ratingValue']\" found 0 elements\n✗   Step 8: \"Extract detailed description from itemprop if available\" - selector \"div#col1 p[itemprop='description']\" found 0 elements\nℹ     → Suggested alternative: \"[class*=\"description\"]\" (found 1)\n✗   Step 9: \"Extract year of release\" - selector \"div.cell.small-12 span\" found 0 elements\n✗   Step 10: \"Extract fragrance family/accord\" - selector \"div#pyramid h4\" found 0 elements\n  DEBUG: [fixer] Event: pending_messages.modified\n  DEBUG: [fixer] Event: pending_messages.modified\n  DEBUG: [fixer] Event: user.message\n  DEBUG: [fixer] Event: assistant.turn_start\n  DEBUG: [fixer] Event: assistant.usage\n  DEBUG: [fixer] Event: assistant.message\n  DEBUG: [fixer] Event: assistant.reasoning\n  DEBUG: [fixer] Event: assistant.turn_end\n  DEBUG: [fixer] Event: session.idle\n  DEBUG: [fixer] Response received (841 chars)\n✓ Applied 5 patches: FAVICON was relative /favicon.ico causing validation failure. Changed to store command with absolute URL. Removed failing RAW_DESCRIPTION and empty YEAR steps that may contribute to empty_results error.\nℹ Recipe updated. Retrying...\n→ Repair iteration 3/5...\n→ Running engine: url with input \"https://www.fragrantica.com/perfume/Chanel/Chanel-...\"\n⚠ Fields with empty values: YEAR\n⚠ Engine output not as expected. Debugging recipe steps with Puppeteer...\n→ Debugging url_steps steps on https://www.fragrantica.com/perfume/Chanel/Chanel-No-5-Eau-de-Parfum-40069.html...\nℹ Debug results: 1 working, 7 failed\n✗   Step 3: \"Extract description from og:description\" - selector \"meta[property='og:description']\" found 0 elements\nℹ     → Suggested alternative: \"[class*=\"description\"]\" (found 1)\n✗   Step 4: \"Extract cover image from og:image\" - selector \"meta[property='og:image']\" found 0 elements\n✗   Step 6: \"Extract designer/brand name\" - selector \"span[itemprop='name']\" found 0 elements\nℹ     → Suggested alternative: \"h1\" (found 1)\n✗   Step 7: \"Extract perfume rating\" - selector \"span[itemprop='ratingValue']\" found 0 elements\n✗   Step 8: \"Extract detailed description from itemprop if available\" - selector \"div#col1 p[itemprop='description']\" found 0 elements\nℹ     → Suggested alternative: \"[class*=\"description\"]\" (found 1)\n✗   Step 9: \"Extract year of release\" - selector \"div.cell.small-12 span\" found 0 elements\n✗   Step 10: \"Extract fragrance family/accord\" - selector \"div#pyramid h4\" found 0 elements\n  DEBUG: [fixer] Event: pending_messages.modified\n  DEBUG: [fixer] Event: pending_messages.modified\n  DEBUG: [fixer] Event: user.message\n  DEBUG: [fixer] Event: assistant.turn_start\n  DEBUG: [fixer] Event: assistant.usage\n  DEBUG: [fixer] Event: assistant.message\n  DEBUG: [fixer] Event: assistant.reasoning\n  DEBUG: [fixer] Event: assistant.turn_end\n  DEBUG: [fixer] Event: session.idle\n  DEBUG: [fixer] Response received (434 chars)\n✓ Applied 2 patches: URL was missing show:true which may be required for generic type. Removing RAW_DESCRIPTION (fails) and YEAR (empty) steps that produce no valid output.\nℹ Recipe updated. Retrying...\n→ Repair iteration 4/5...\n→ Running engine: url with input \"https://www.fragrantica.com/perfume/Chanel/Chanel-...\"\n⚠ Fields with empty values: YEAR\n⚠ Engine output not as expected. Debugging recipe steps with Puppeteer...\n→ Debugging url_steps steps on https://www.fragrantica.com/perfume/Chanel/Chanel-No-5-Eau-de-Parfum-40069.html...\nℹ Debug results: 1 working, 7 failed\n✗   Step 3: \"Extract description from og:description\" - selector \"meta[property='og:description']\" found 0 elements\nℹ     → Suggested alternative: \"[class*=\"description\"]\" (found 1)\n✗   Step 4: \"Extract cover image from og:image\" - selector \"meta[property='og:image']\" found 0 elements\n✗   Step 6: \"Extract designer/brand name\" - selector \"span[itemprop='name']\" found 0 elements\nℹ     → Suggested alternative: \"h1\" (found 1)\n✗   Step 7: \"Extract perfume rating\" - selector \"span[itemprop='ratingValue']\" found 0 elements\n✗   Step 8: \"Extract detailed description from itemprop if available\" - selector \"div#col1 p[itemprop='description']\" found 0 elements\nℹ     → Suggested alternative: \"[class*=\"description\"]\" (found 1)\n✗   Step 9: \"Extract year of release\" - selector \"div.cell.small-12 span\" found 0 elements\n✗   Step 10: \"Extract fragrance family/accord\" - selector \"div#pyramid h4\" found 0 elements\n  DEBUG: [fixer] Event: pending_messages.modified\n  DEBUG: [fixer] Event: pending_messages.modified\n  DEBUG: [fixer] Event: user.message\n  DEBUG: [fixer] Event: assistant.turn_start\n  DEBUG: [fixer] Event: assistant.usage\n  DEBUG: [fixer] Event: assistant.message\n  DEBUG: [fixer] Event: assistant.reasoning\n  DEBUG: [fixer] Event: assistant.turn_end\n  DEBUG: [fixer] Event: session.idle\n  DEBUG: [fixer] Response received (466 chars)\n✓ Applied 1 patches: Cloudflare challenge needs more time. Increased timeout to 30s and added waitForSelector to wait for actual page content to load after Cloudflare passes.\nℹ Recipe updated. Retrying...\n→ Repair iteration 5/5...\n→ Running engine: url with input \"https://www.fragrantica.com/perfume/Chanel/Chanel-...\"\n⚠ Fields with empty values: YEAR\n⚠ Engine output not as expected. Debugging recipe steps with Puppeteer...\n→ Debugging url_steps steps on https://www.fragrantica.com/perfume/Chanel/Chanel-No-5-Eau-de-Parfum-40069.html...\nℹ Debug results: 1 working, 7 failed\n✗   Step 3: \"Extract description from og:description\" - selector \"meta[property='og:description']\" found 0 elements\nℹ     → Suggested alternative: \"[class*=\"description\"]\" (found 1)\n✗   Step 4: \"Extract cover image from og:image\" - selector \"meta[property='og:image']\" found 0 elements\n✗   Step 6: \"Extract designer/brand name\" - selector \"span[itemprop='name']\" found 0 elements\nℹ     → Suggested alternative: \"h1\" (found 1)\n✗   Step 7: \"Extract perfume rating\" - selector \"span[itemprop='ratingValue']\" found 0 elements\n✗   Step 8: \"Extract detailed description from itemprop if available\" - selector \"div#col1 p[itemprop='description']\" found 0 elements\nℹ     → Suggested alternative: \"[class*=\"description\"]\" (found 1)\n✗   Step 9: \"Extract year of release\" - selector \"div.cell.small-12 span\" found 0 elements\n✗   Step 10: \"Extract fragrance family/accord\" - selector \"div#pyramid h4\" found 0 elements\n  DEBUG: [fixer] Event: pending_messages.modified\n  DEBUG: [fixer] Event: pending_messages.modified\n  DEBUG: [fixer] Event: user.message\n  DEBUG: [fixer] Event: assistant.turn_start\n  DEBUG: [fixer] Event: assistant.usage\n  DEBUG: [fixer] Event: assistant.message\n  DEBUG: [fixer] Event: assistant.reasoning\n  DEBUG: [fixer] Event: assistant.turn_end\n  DEBUG: [fixer] Event: session.idle\n  DEBUG: [fixer] Response received (2292 chars)\n✓ Applied rewrite: Full rewrite of url_steps removing YEAR (empty), STYLE, and RAW_DESCRIPTION steps that fail or return useless data. Cloudflare-protected site with js:true engine gets through but empty fields may cause empty_results validation failure.\nℹ Recipe updated. Retrying...\n✗ Repair loop exhausted after 5 iterations\n→ Running engine: url with input \"https://www.fragrantica.com/perfume/Chanel/Chanel-...\"\n✓ URL steps working: URL, TITLE, DESCRIPTION, COVER, FAVICON, AUTHOR, RATING\nℹ Phase 4: Generating test file...\n✓ Wrote test: /Users/basiclines/Developer/basiclines/RecipeKit/Engine/scripts/evals/runs/2026-02-13_baseline/recipes/fragranticacom.test.js\n⚠ Recipe created but url_steps may need manual review:\n  DEBUG: Closing AgentOrchestrator...\n  DEBUG: Destroyed author session\n  DEBUG: Destroyed querytest session\n  DEBUG: Destroyed fixer session\n  DEBUG: AgentOrchestrator closed\n\n⏱  Timing:\n  Phase 1 (probe site):     7.3s\n  Phase 2 (autocomplete):   144.7s\n  Phase 3 (url_steps):      180.8s\n  Phase 4 (test gen):       0ms\n  ────────────────────────────────────\n  Total:                    332.8s\n\n📊 Copilot Usage:\n  Requests: 9\n  By agent:\n    author: 3 req, 0 tokens (claude-opus-4.6)\n    querytest: 1 req, 0 tokens (claude-opus-4.6)\n    fixer: 5 req, 0 tokens (claude-opus-4.6)\n\n⚠ Recipe created but tests failed. Manual review needed.\n",
+    "stderr": ""
+  },
+  {
+    "type": "agent_turns",
+    "time": "2026-02-13T08:20:23.497Z",
+    "turns": [
+      {
+        "agent": "author",
+        "type": "session_create",
+        "model": "claude-opus-4.6",
+        "raw": "DEBUG: Creating new author session with model claude-opus-4.6"
+      },
+      {
+        "agent": "querytest",
+        "type": "session_create",
+        "model": "claude-opus-4.6",
+        "raw": "DEBUG: Creating new querytest session with model claude-opus-4.6"
+      },
+      {
+        "agent": "querytest",
+        "type": "send",
+        "raw": "DEBUG: [querytest] Sending task..."
+      },
+      {
+        "agent": "querytest",
+        "type": "receive",
+        "chars": 321,
+        "raw": "DEBUG: [querytest] Response received (321 chars)"
+      },
+      {
+        "agent": "author",
+        "type": "send",
+        "raw": "DEBUG: [author] Sending task..."
+      },
+      {
+        "agent": "author",
+        "type": "receive",
+        "chars": 1901,
+        "raw": "DEBUG: [author] Response received (1901 chars)"
+      },
+      {
+        "agent": "author",
+        "type": "send",
+        "raw": "DEBUG: [author] Sending task..."
+      },
+      {
+        "agent": "author",
+        "type": "receive",
+        "chars": 3205,
+        "raw": "DEBUG: [author] Response received (3205 chars)"
+      },
+      {
+        "agent": "author",
+        "type": "send",
+        "raw": "DEBUG: [author] Sending task..."
+      },
+      {
+        "agent": "author",
+        "type": "receive",
+        "chars": 3577,
+        "raw": "DEBUG: [author] Response received (3577 chars)"
+      },
+      {
+        "agent": "fixer",
+        "type": "session_create",
+        "model": "claude-opus-4.6",
+        "raw": "DEBUG: Creating new fixer session with model claude-opus-4.6"
+      },
+      {
+        "agent": "fixer",
+        "type": "send",
+        "raw": "DEBUG: [fixer] Sending task..."
+      },
+      {
+        "agent": "fixer",
+        "type": "receive",
+        "chars": 663,
+        "raw": "DEBUG: [fixer] Response received (663 chars)"
+      },
+      {
+        "agent": "fixer",
+        "type": "receive",
+        "chars": 841,
+        "raw": "DEBUG: [fixer] Response received (841 chars)"
+      },
+      {
+        "agent": "fixer",
+        "type": "receive",
+        "chars": 434,
+        "raw": "DEBUG: [fixer] Response received (434 chars)"
+      },
+      {
+        "agent": "fixer",
+        "type": "receive",
+        "chars": 466,
+        "raw": "DEBUG: [fixer] Response received (466 chars)"
+      },
+      {
+        "agent": "fixer",
+        "type": "receive",
+        "chars": 2292,
+        "raw": "DEBUG: [fixer] Response received (2292 chars)"
+      }
+    ]
+  },
+  {
+    "type": "engine_url_start",
+    "time": "2026-02-13T08:20:23.497Z"
+  },
+  {
+    "type": "engine_url_end",
+    "time": "2026-02-13T08:20:26.493Z",
+    "success": true,
+    "results": {
+      "URL": "https://www.fragrantica.com/perfume/Dior/Sauvage-31861.html",
+      "TITLE": "Sauvage Dior for men",
+      "DESCRIPTION": "Dior launches its new fragrance Sauvage, with the name originating from the fragrance Eau Sauvage from 1966, although the two don&rsquo;t belong to the same collection. Sauvage is inspired by wild, op...",
+      "COVER": "https://fimgs.net/mdimg/perfume-social-cards/en-social-31861.jpeg",
+      "FAVICON": "https://www.fragrantica.com/favicon.ico",
+      "AUTHOR": "Dior",
+      "RATING": "3.86"
+    }
+  },
+  {
+    "type": "engine_autocomplete_start",
+    "time": "2026-02-13T08:20:26.493Z"
+  },
+  {
+    "type": "engine_autocomplete_end",
+    "time": "2026-02-13T08:20:28.000Z",
+    "success": true,
+    "results": [
+      {
+        "TITLE": "Sauvage",
+        "SUBTITLE": "Dior",
+        "URL": "https://www.fragrantica.com/perfume/Dior/Sauvage-31861.html",
+        "COVER": "https://fimgs.net/mdimg/perfume/m.31861.jpg"
+      },
+      {
+        "TITLE": "Sauvage",
+        "SUBTITLE": "Alta Moda",
+        "URL": "https://www.fragrantica.com/perfume/Alta-Moda/Sauvage-82473.html",
+        "COVER": "https://fimgs.net/mdimg/perfume/m.82473.jpg"
+      },
+      {
+        "TITLE": "Sauvage Elixir",
+        "SUBTITLE": "Dior",
+        "URL": "https://www.fragrantica.com/perfume/Dior/Sauvage-Elixir-68415.html",
+        "COVER": "https://fimgs.net/mdimg/perfume/m.68415.jpg"
+      },
+      {
+        "TITLE": "Sauvage Eau de Parfum",
+        "SUBTITLE": "Dior",
+        "URL": "https://www.fragrantica.com/perfume/Dior/Sauvage-Eau-de-Parfum-48100.html",
+        "COVER": "https://fimgs.net/mdimg/perfume/m.48100.jpg"
+      },
+      {
+        "TITLE": "Sauvage Parfum",
+        "SUBTITLE": "Dior",
+        "URL": "https://www.fragrantica.com/perfume/Dior/Sauvage-Parfum-56324.html",
+        "COVER": "https://fimgs.net/mdimg/perfume/m.56324.jpg"
+      },
+      {
+        "TITLE": "Sauvage Eau Forte",
+        "SUBTITLE": "Dior",
+        "URL": "https://www.fragrantica.com/perfume/Dior/Sauvage-Eau-Forte-95863.html",
+        "COVER": "https://fimgs.net/mdimg/perfume/m.95863.jpg"
+      },
+      {
+        "TITLE": "Sauvage Rare Blend",
+        "SUBTITLE": "Dior",
+        "URL": "https://www.fragrantica.com/perfume/Dior/Sauvage-Rare-Blend-118815.html",
+        "COVER": "https://fimgs.net/mdimg/perfume/m.118815.jpg"
+      },
+      {
+        "TITLE": "Sauvage Very Cool Spray",
+        "SUBTITLE": "Dior",
+        "URL": "https://www.fragrantica.com/perfume/Dior/Sauvage-Very-Cool-Spray-43933.html",
+        "COVER": "https://fimgs.net/mdimg/perfume/m.43933.jpg"
+      },
+      {
+        "TITLE": "Sauvage Eau de Toilette Into The Wild",
+        "SUBTITLE": "Dior",
+        "URL": "https://www.fragrantica.com/perfume/Dior/Sauvage-Eau-de-Toilette-Into-The-Wild-114982.html",
+        "COVER": "https://fimgs.net/mdimg/perfume/m.114982.jpg"
+      },
+      {
+        "TITLE": "Sauvage Parfum Into The Wild",
+        "SUBTITLE": "Dior",
+        "URL": "https://www.fragrantica.com/perfume/Dior/Sauvage-Parfum-Into-The-Wild-114984.html",
+        "COVER": "https://fimgs.net/mdimg/perfume/m.114984.jpg"
+      }
+    ]
+  },
+  {
+    "type": "recipe_content",
+    "time": "2026-02-13T08:20:28.000Z",
+    "recipe": {
+      "recipe_shortcut": "fragranticacom",
+      "list_type": "generic",
+      "engine_version": 20,
+      "title": "Perfumes and Colognes Magazine, Perfume Reviews and Online Community—Fragrantica.com",
+      "description": "Retrieve generic from fragrantica.com",
+      "urls": [
+        "https://fragrantica.com",
+        "https://www.fragrantica.com"
+      ],
+      "headers": {
+        "Accept-Language": "en-UK,en",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.113 Safari/537.36"
+      },
+      "autocomplete_steps": [
+        {
+          "command": "api_request",
+          "url": "https://fgvi612dfz-dsn.algolia.net/1/indexes/*/queries?x-algolia-agent=Algolia%20for%20JavaScript%20(4.25.3)%3B%20Browser%20(lite)%3B%20instantsearch.js%20(4.86.1)%3B%20Vue%20(3.5.27)%3B%20Vue%20InstantSearch%20(4.22.8)%3B%20JS%20Helper%20(3.27.0)&x-algolia-api-key=MDg3YmVhZjkwNjk3YjllNzA5Yzg3YWQ0NDMxZGVlNmVjNzNjMDkxNmI4OTgxYjIyODc0OTY0NmZhYTMxYjQwOHZhbGlkVW50aWw9MTc3MjY5ODYwNg%3D%3D&x-algolia-application-id=FGVI612DFZ",
+          "config": {
+            "method": "POST",
+            "headers": {
+              "Content-Type": "application/x-www-form-urlencoded",
+              "Origin": "https://www.fragrantica.com",
+              "Referer": "https://www.fragrantica.com/"
+            },
+            "body": "{\"requests\":[{\"indexName\":\"fragrantica_perfumes\",\"params\":\"attributesToRetrieve=%5B%22naslov%22%2C%22dizajner%22%2C%22godina%22%2C%22url.EN%22%2C%22thumbnail%22%2C%22spol%22%2C%22num_reviews.EN%22%5D&facets=%5B%22collection%22%2C%22designer_meta.category%22%2C%22designer_meta.country%22%2C%22designer_meta.main_activity%22%2C%22designer_meta.parent_company%22%2C%22dizajner%22%2C%22godina%22%2C%22ingredients.EN%22%2C%22nosevi%22%2C%22osobine.EN%22%2C%22rating_rounded%22%2C%22spol%22%5D&highlightPostTag=__%2Fais-highlight__&highlightPreTag=__ais-highlight__&hitsPerPage=60&maxValuesPerFacet=100&page=0&query=$INPUT\"}]}"
+          },
+          "output": {
+            "name": "API_RESPONSE"
+          },
+          "description": "Fetch perfume search results from Algolia API"
+        },
+        {
+          "command": "json_store_text",
+          "input": "API_RESPONSE",
+          "locator": "results[0].hits[$i].naslov",
+          "output": {
+            "name": "TITLE$i"
+          },
+          "config": {
+            "loop": {
+              "index": "i",
+              "from": 0,
+              "to": 9,
+              "step": 1
+            }
+          },
+          "description": "Extract perfume names"
+        },
+        {
+          "command": "json_store_text",
+          "input": "API_RESPONSE",
+          "locator": "results[0].hits[$i].dizajner",
+          "output": {
+            "name": "SUBTITLE$i"
+          },
+          "config": {
+            "loop": {
+              "index": "i",
+              "from": 0,
+              "to": 9,
+              "step": 1
+            }
+          },
+          "description": "Extract designer names"
+        },
+        {
+          "command": "json_store_text",
+          "input": "API_RESPONSE",
+          "locator": "results[0].hits[$i].url.EN[0]",
+          "output": {
+            "name": "URL$i"
+          },
+          "config": {
+            "loop": {
+              "index": "i",
+              "from": 0,
+              "to": 9,
+              "step": 1
+            }
+          },
+          "description": "Extract perfume URLs"
+        },
+        {
+          "command": "json_store_text",
+          "input": "API_RESPONSE",
+          "locator": "results[0].hits[$i].thumbnail",
+          "output": {
+            "name": "COVER$i"
+          },
+          "config": {
+            "loop": {
+              "index": "i",
+              "from": 0,
+              "to": 9,
+              "step": 1
+            }
+          },
+          "description": "Extract thumbnail images"
+        }
+      ],
+      "url_steps": [
+        {
+          "command": "load",
+          "url": "$INPUT",
+          "config": {
+            "js": true,
+            "timeout": 30000,
+            "waitForSelector": "h1[itemprop='name']",
+            "waitTimeout": 25000
+          },
+          "description": "Load perfume detail page with JS for Cloudflare"
+        },
+        {
+          "command": "store_url",
+          "output": {
+            "name": "URL",
+            "type": "string",
+            "show": true
+          },
+          "description": "Save the current URL"
+        },
+        {
+          "command": "store_text",
+          "locator": "h1",
+          "output": {
+            "name": "TITLE",
+            "type": "string",
+            "show": true
+          },
+          "description": "Extract perfume title"
+        },
+        {
+          "command": "store_attribute",
+          "locator": "meta[property='og:description']",
+          "attribute_name": "content",
+          "output": {
+            "name": "DESCRIPTION",
+            "type": "string",
+            "show": true
+          },
+          "description": "Extract description from og:description"
+        },
+        {
+          "command": "store_attribute",
+          "locator": "meta[property='og:image']",
+          "attribute_name": "content",
+          "output": {
+            "name": "COVER",
+            "type": "string",
+            "show": true
+          },
+          "description": "Extract cover image from og:image"
+        },
+        {
+          "command": "store",
+          "input": "https://www.fragrantica.com/favicon.ico",
+          "output": {
+            "name": "FAVICON",
+            "type": "string",
+            "show": true
+          },
+          "description": "Set favicon URL"
+        },
+        {
+          "command": "store_text",
+          "locator": "span[itemprop='name']",
+          "output": {
+            "name": "AUTHOR",
+            "type": "string",
+            "show": true
+          },
+          "description": "Extract designer/brand name"
+        },
+        {
+          "command": "store_text",
+          "locator": "span[itemprop='ratingValue']",
+          "output": {
+            "name": "RATING",
+            "type": "string",
+            "show": true
+          },
+          "description": "Extract perfume rating"
+        }
+      ]
+    }
+  },
+  {
+    "type": "score",
+    "time": "2026-02-13T08:20:28.000Z",
+    "score": {
+      "score": 80,
+      "metrics": {
+        "fields_present": 100,
+        "urls_valid": 100,
+        "patterns_match": 100,
+        "no_errors": 0
+      },
+      "passed": true,
+      "details": {
+        "fields_present": {
+          "presentFields": [
+            "TITLE",
+            "COVER",
+            "DESCRIPTION"
+          ],
+          "missingFields": [],
+          "total": 3
+        },
+        "urls_valid": {
+          "checks": [
+            {
+              "field": "COVER",
+              "value": "https://fimgs.net/mdimg/perfume-social-cards/en-social-31861.jpeg",
+              "valid": true
+            },
+            {
+              "field": "URL",
+              "value": "https://www.fragrantica.com/perfume/Dior/Sauvage-31861.html",
+              "valid": true
+            }
+          ],
+          "valid": 2,
+          "total": 2
+        },
+        "patterns_match": {
+          "checks": [
+            {
+              "field": "COVER",
+              "pattern": "^https://",
+              "value": "https://fimgs.net/mdimg/perfume-social-cards/en-social-31861.jpeg",
+              "matched": true
+            }
+          ],
+          "matched": 1,
+          "total": 1
+        },
+        "no_errors": {
+          "hadErrors": true,
+          "success": false
+        }
+      },
+      "threshold": 70
+    }
+  },
+  {
+    "type": "case_end",
+    "time": "2026-02-13T08:20:28.000Z",
+    "case_id": "fragrantica"
+  },
+  {
+    "type": "case_start",
+    "time": "2026-02-13T08:14:50.231Z",
+    "case_id": "amazon-product",
+    "mode": "url-only"
+  },
+  {
+    "type": "autorecipe_start",
+    "time": "2026-02-13T08:14:50.231Z"
+  },
+  {
+    "type": "autorecipe_end",
+    "time": "2026-02-13T08:15:41.343Z",
+    "exitCode": 0,
+    "duration_ms": 51112,
+    "stdout": "ℹ Starting autoRecipe for https://www.amazon.com/GIGASTONE-Desktop-DDR4-3200MHz-PC4-25600-Unbuffered/dp/B0CB2TZKCG\n→ Launching browser...\n→ Initializing AgentOrchestrator...\n✓ AgentOrchestrator initialized\n  DEBUG: Creating new author session with model claude-opus-4.6\n  DEBUG: Creating new querytest session with model claude-opus-4.6\n→ Probing https://www.amazon.com/GIGASTONE-Desktop-DDR4-3200MHz-PC4-25600-Unbuffered/dp/B0CB2TZKCG...\n  DEBUG: {\n  \"input_url\": \"https://www.amazon.com/GIGASTONE-Desktop-DDR4-3200MHz-PC4-25600-Unbuffered/dp/B0CB2TZKCG\",\n  \"final_url\": \"https://www.amazon.com/GIGASTONE-Desktop-DDR4-3200MHz-PC4-25600-Unbuffered/dp/B0CB2TZKCG\",\n  \"hostname\": \"amazon.com\",\n  \"title\": \"【DDR4 RAM】 GIGASTONE Game PRO 32GB Kit (2x16GB) DDR4 3200MHz PC4-25600 CL 16-18-18-40 Intel XMP 2.0 AMD Ryzen 1.35V UDIMM 288 Pin Unbuffered Non ECC High Performance Gaming Desktop Memory - White at Amazon.com\",\n  \"meta_description\": \"Buy 【DDR4 RAM】 GIGASTONE Game PRO 32GB Kit (2x16GB) DDR4 3200MHz PC4-25600 CL 16-18-18-40 Intel XMP 2.0 AMD Ryzen 1.35V UDIMM 288 Pin Unbuffered Non ECC High Performance Gaming Desktop Memory - White: Memory - Amazon.com ✓ FREE DELIVERY possible on eligible purchases\",\n  \"h1\": \"【DDR4 RAM】 GIGASTONE Game PRO 32GB Kit (2x16GB) DDR4 3200MHz PC4-25600 CL 16-18-18-40 Intel XMP 2.0 AMD Ryzen 1.35V UDIMM 288 Pin Unbuffered Non ECC High Performance Gaming Desktop Memory - White\",\n  \"jsonld_types\": [],\n  \"links_sample\": [\n    {\n      \"text\": \"Main content\",\n      \"href\": \"https://www.amazon.com/GIGASTONE-Desktop-DDR4-3200MHz-PC4-25600-Unbuffered/dp/B0CB2TZKCG#skippedLink\"\n    },\n    {\n      \"text\": \"About this item\",\n      \"href\": \"https://www.amazon.com/GIGASTONE-Desktop-DDR4-3200MHz-PC4-25600-Unbuffered/dp/B0CB2TZKCG#featurebullets_feature_div\"\n    },\n    {\n      \"text\": \"About this item\",\n      \"href\": \"https://www.amazon.com/GIGASTONE-Desktop-DDR4-3200MHz-PC4-25600-Unbuffered/dp/B0CB2TZKCG#nic-po-expander-heading\"\n    },\n    {\n      \"text\": \"About this item\",\n      \"href\": \"https://www.amazon.com/GIGASTONE-Desktop-DDR4-3200MHz-PC4-25600-Unbuffered/dp/B0CB2TZKCG#productFactsDesktopExpander\"\n    },\n    {\n      \"text\": \"Buying options\",\n      \"href\": \"https://www.amazon.com/GIGASTONE-Desktop-DDR4-3200MHz-PC4-25600-Unbuffered/dp/B0CB2TZKCG#buybox\"\n    },\n    {\n      \"text\": \"Compare with similar items\",\n      \"href\": \"https://www.amazon.com/GIGASTONE-Desktop-DDR4-3200MHz-PC4-25600-Unbuffered/dp/B0CB2TZKCG#product-comparison_feature_div\"\n    },\n    {\n      \"text\": \"Videos\",\n      \"href\": \"https://www.amazon.com/GIGASTONE-Desktop-DDR4-3200MHz-PC4-25600-Unbuffered/dp/B0CB2TZKCG#va-related-videos-widget_feature_div\"\n    },\n    {\n      \"text\": \"Reviews\",\n      \"href\": \"https://www.amazon.com/GIGASTONE-Desktop-DDR4-3200MHz-PC4-25600-Unbuffered/dp/B0CB2TZKCG#customerReviews\"\n    },\n    {\n      \"text\": \"Search\\n          \\n              opt\\n              +\\n              /\",\n      \"href\": \"javascript:void(0)\"\n    },\n    {\n      \"text\": \"Cart\\n          \\n              shift\\n              +\\n              opt\\n              +\\n              \",\n      \"href\": \"javascript:void(0)\"\n    },\n    {\n      \"text\": \"Home\\n          \\n              shift\\n              +\\n              opt\\n              +\\n              \",\n      \"href\": \"javascript:void(0)\"\n    },\n    {\n      \"text\": \"Orders\\n          \\n              shift\\n              +\\n              opt\\n              +\\n            \",\n      \"href\": \"javascript:void(0)\"\n    },\n    {\n      \"text\": \".us\",\n      \"href\": \"https://www.amazon.com/ref=nav_logo\"\n    },\n    {\n      \"text\": \"Deliver to\\n                \\n                \\n                   Spain\",\n      \"href\": \"https://www.amazon.com/GIGASTONE-Desktop-DDR4-3200MHz-PC4-25600-Unbuffered/dp/B0CB2TZKCG\"\n    },\n    {\n      \"text\": \"EN\",\n      \"href\": \"https://www.amazon.com/customer-preferences/edit?ie=UTF8&preferencesReturnUrl=%2F&ref_=topnav_lang_ais\"\n    },\n    {\n      \"text\": \"Hello, sign in\\n  Account & Lists\",\n      \"href\": \"https://www.amazon.com/ap/signin?openid.pape.max_auth_age=0&openid.return_to=https%3A%2F%2Fwww.amazon.com%2FGIGASTONE-Desktop-DDR4-3200MHz-PC4-25600-Unbuffered%2Fdp%2FB0CB2TZKCG%3Fref_%3Dnav_ya_signin&openid.identity=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.assoc_handle=usflex&openid.mode=checkid_setup&openid.claimed_id=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.ns=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0\"\n    },\n    {\n      \"text\": \"Returns\\n  & Orders\",\n      \"href\": \"https://www.amazon.com/gp/css/order-history?ref_=nav_orders_first\"\n    },\n    {\n      \"text\": \"0\\n      \\n    \\n    \\n      \\n        \\n      \\n      \\n        Cart\",\n      \"href\": \"https://www.amazon.com/gp/cart/view.html?ref_=nav_cart\"\n    },\n    {\n      \"text\": \"Sign in\",\n      \"href\": \"https://www.amazon.com/ap/signin?openid.pape.max_auth_age=0&openid.return_to=https%3A%2F%2Fwww.amazon.com%2FGIGASTONE-Desktop-DDR4-3200MHz-PC4-25600-Unbuffered%2Fdp%2FB0CB2TZKCG%3Fref_%3Dnav_signin&openid.identity=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.assoc_handle=usflex&openid.mode=checkid_setup&openid.claimed_id=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.ns=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0\"\n    },\n    {\n      \"text\": \"Start here.\",\n      \"href\": \"https://www.amazon.com/ap/register?openid.pape.max_auth_age=0&openid.return_to=https%3A%2F%2Fwww.amazon.com%2FGIGASTONE-Desktop-DDR4-3200MHz-PC4-25600-Unbuffered%2Fdp%2FB0CB2TZKCG%2F%3F_encoding%3DUTF8%26ref_%3Dnav_newcust&openid.identity=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.assoc_handle=usflex&openid.mode=checkid_setup&openid.claimed_id=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.ns=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0\"\n    }\n  ],\n  \"search\": {\n    \"has_search\": true,\n    \"search_box_locator\": \"input[name=\\\"field-keywords\\\"]\",\n    \"search_form_action\": \"https://www.amazon.com/s/ref=nb_sb_noss\"\n  }\n}\nℹ Using list_type: generic (classification skipped)\nℹ Phase 2: SKIPPED (--url-only mode)\n✓ Wrote recipe: /Users/basiclines/Developer/basiclines/RecipeKit/Engine/scripts/evals/runs/2026-02-13_baseline/recipes/amazoncom.json\nℹ Phase 3: Generating url_steps...\n→ Probing detail page https://www.amazon.com/GIGASTONE-Desktop-DDR4-3200MHz-PC4-25600-Unbuffered/dp/B0CB2TZKCG...\n  DEBUG: [author] Sending task...\n  DEBUG: [author] Event: pending_messages.modified\n  DEBUG: [author] Event: pending_messages.modified\n  DEBUG: [author] Event: user.message\n  DEBUG: [author] Event: assistant.turn_start\n  DEBUG: [author] Event: assistant.usage\n  DEBUG: [author] Event: assistant.message\n  DEBUG: [author] Event: assistant.reasoning\n  DEBUG: [author] Event: tool.execution_start\n  DEBUG: [author] Event: tool.execution_start\n  DEBUG: [author] Event: tool.execution_complete\n  DEBUG: [author] Event: tool.execution_complete\n  DEBUG: [author] Event: assistant.turn_end\n  DEBUG: [author] Event: assistant.turn_start\n  DEBUG: [author] Event: assistant.usage\n  DEBUG: [author] Event: assistant.message\n  DEBUG: [author] Event: assistant.reasoning\n  DEBUG: [author] Event: assistant.turn_end\n  DEBUG: [author] Event: session.idle\n  DEBUG: [author] Response received (4350 chars)\nℹ Testing url_steps...\nℹ Starting debug-first repair loop for url_steps...\n→ Repair iteration 1/5...\n→ Running engine: url with input \"https://www.amazon.com/GIGASTONE-Desktop-DDR4-3200...\"\n✓ Recipe working after 0 iteration(s)!\nℹ   → Got fields: TITLE, DESCRIPTION, FAVICON, COVER, RATING, PRICE, BRAND\n→ Running engine: url with input \"https://www.amazon.com/GIGASTONE-Desktop-DDR4-3200...\"\n✓ URL steps working: TITLE, DESCRIPTION, FAVICON, COVER, RATING, PRICE, BRAND\nℹ Phase 4: Generating test file...\n✓ Wrote test: /Users/basiclines/Developer/basiclines/RecipeKit/Engine/scripts/evals/runs/2026-02-13_baseline/recipes/amazoncom.test.js\n✓ ✓ Recipe is fully functional!\n  DEBUG: Closing AgentOrchestrator...\n  DEBUG: Destroyed author session\n  DEBUG: Destroyed querytest session\n  DEBUG: AgentOrchestrator closed\n\n⏱  Timing:\n  Phase 1 (probe site):     9.0s\n  Phase 2 (autocomplete):   skipped\n  Phase 3 (url_steps):      41.5s\n  Phase 4 (test gen):       0ms\n  ────────────────────────────────────\n  Total:                    50.5s\n\n📊 Copilot Usage:\n  Requests: 1\n  By agent:\n    author: 1 req, 0 tokens (claude-opus-4.6)\n    querytest: 0 req, 0 tokens (claude-opus-4.6)\n\n✓ Recipe created successfully!\n  Recipe: /Users/basiclines/Developer/basiclines/RecipeKit/Engine/scripts/evals/runs/2026-02-13_baseline/recipes/amazoncom.json\n  Test: /Users/basiclines/Developer/basiclines/RecipeKit/Engine/scripts/evals/runs/2026-02-13_baseline/recipes/amazoncom.test.js\n",
+    "stderr": ""
+  },
+  {
+    "type": "agent_turns",
+    "time": "2026-02-13T08:15:41.343Z",
+    "turns": [
+      {
+        "agent": "author",
+        "type": "session_create",
+        "model": "claude-opus-4.6",
+        "raw": "DEBUG: Creating new author session with model claude-opus-4.6"
+      },
+      {
+        "agent": "querytest",
+        "type": "session_create",
+        "model": "claude-opus-4.6",
+        "raw": "DEBUG: Creating new querytest session with model claude-opus-4.6"
+      },
+      {
+        "agent": "author",
+        "type": "send",
+        "raw": "DEBUG: [author] Sending task..."
+      },
+      {
+        "agent": "author",
+        "type": "receive",
+        "chars": 4350,
+        "raw": "DEBUG: [author] Response received (4350 chars)"
+      }
+    ]
+  },
+  {
+    "type": "engine_url_start",
+    "time": "2026-02-13T08:15:41.343Z"
+  },
+  {
+    "type": "engine_url_end",
+    "time": "2026-02-13T08:15:45.298Z",
+    "success": true,
+    "results": {
+      "TITLE": "【DDR4 RAM】 GIGASTONE Game PRO 32GB Kit (2x16GB) DDR4 3200MHz PC4-25600 CL 16-18-18-40 Intel XMP 2.0 AMD Ryzen 1.35V UDIMM 288 Pin Unbuffered Non ECC High Performance Gaming Desktop Memory - White",
+      "DESCRIPTION": "About this item [Capacity] 32GB Kit (2x16GB) UDIMM Compatible with Select Gaming Desktop PCs [Speed] PC Speed ​​(PC4-25600), DDR4 3200MHz [Specification] ECC Type = Non-ECC, Form Factor = Unbuffered UDIMM, CL=16, Number of Pins = 288 Pins, Voltage = 1.35V [Overclocking] Intel XMP 2.0 and AMD Ryzen › See more product details",
+      "FAVICON": "https://www.amazon.com/favicon.ico",
+      "COVER": "https://m.media-amazon.com/images/I/51BM392zpdL._AC_SY355_PIbundle-2,TopRight,0,0_SH20_.jpg",
+      "RATING": "4.7",
+      "PRICE": "EUR226.59",
+      "BRAND": "Visit the Gigastone Store"
+    }
+  },
+  {
+    "type": "recipe_content",
+    "time": "2026-02-13T08:15:45.299Z",
+    "recipe": {
+      "recipe_shortcut": "amazoncom",
+      "list_type": "generic",
+      "engine_version": 20,
+      "title": "Amazon.com",
+      "description": "Retrieve generic from amazon.com",
+      "urls": [
+        "https://amazon.com",
+        "https://www.amazon.com"
+      ],
+      "headers": {
+        "Accept-Language": "en-UK,en",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.113 Safari/537.36"
+      },
+      "autocomplete_steps": [],
+      "url_steps": [
+        {
+          "command": "load",
+          "url": "$INPUT",
+          "config": {
+            "js": true,
+            "timeout": 10000
+          },
+          "description": "Load Amazon product page"
+        },
+        {
+          "command": "store_url",
+          "output": {
+            "name": "URL"
+          },
+          "description": "Save the current URL"
+        },
+        {
+          "command": "store_text",
+          "locator": "span#productTitle",
+          "output": {
+            "name": "TITLE",
+            "type": "string",
+            "show": true
+          },
+          "description": "Extract product title"
+        },
+        {
+          "command": "store_attribute",
+          "locator": "meta[name='description']",
+          "attribute_name": "content",
+          "output": {
+            "name": "META_DESC",
+            "type": "string"
+          },
+          "description": "Extract meta description as fallback"
+        },
+        {
+          "command": "store_text",
+          "locator": "#feature-bullets",
+          "output": {
+            "name": "BULLETS",
+            "type": "string"
+          },
+          "description": "Extract feature bullets text"
+        },
+        {
+          "command": "store_text",
+          "locator": "#productDescription",
+          "output": {
+            "name": "PROD_DESC",
+            "type": "string"
+          },
+          "description": "Extract product description text"
+        },
+        {
+          "command": "store",
+          "input": "$BULLETS $PROD_DESC",
+          "output": {
+            "name": "DESCRIPTION",
+            "type": "string",
+            "show": true
+          },
+          "description": "Combine bullet points and product description"
+        },
+        {
+          "command": "store_attribute",
+          "locator": "link[rel='shortcut icon'], link[rel='icon']",
+          "attribute_name": "href",
+          "output": {
+            "name": "RAW_FAVICON",
+            "type": "string"
+          },
+          "description": "Extract favicon href"
+        },
+        {
+          "command": "store",
+          "input": "https://www.amazon.com/favicon.ico",
+          "output": {
+            "name": "FAVICON",
+            "type": "string",
+            "show": true
+          },
+          "description": "Use Amazon favicon URL"
+        },
+        {
+          "command": "store_attribute",
+          "locator": "#landingImage, #imgBlkFront, #ebooksImgBlkFront",
+          "attribute_name": "src",
+          "output": {
+            "name": "COVER",
+            "type": "string",
+            "show": true
+          },
+          "description": "Extract main product image"
+        },
+        {
+          "command": "store_text",
+          "locator": "#acrPopover span.a-icon-alt",
+          "output": {
+            "name": "RAW_RATING",
+            "type": "string"
+          },
+          "description": "Extract rating text"
+        },
+        {
+          "command": "regex",
+          "input": "$RAW_RATING",
+          "expression": "([\\d.]+)",
+          "output": {
+            "name": "RATING",
+            "type": "string",
+            "show": true
+          },
+          "description": "Extract numeric rating value"
+        },
+        {
+          "command": "store_text",
+          "locator": "span.a-price > span.a-offscreen",
+          "output": {
+            "name": "PRICE",
+            "type": "string",
+            "show": true
+          },
+          "description": "Extract product price"
+        },
+        {
+          "command": "store_text",
+          "locator": "#bylineInfo",
+          "output": {
+            "name": "BRAND",
+            "type": "string",
+            "show": true
+          },
+          "description": "Extract brand or seller name"
+        }
+      ]
+    }
+  },
+  {
+    "type": "score",
+    "time": "2026-02-13T08:15:45.299Z",
+    "score": {
+      "score": 100,
+      "metrics": {
+        "fields_present": 100,
+        "urls_valid": 100,
+        "patterns_match": 100,
+        "no_errors": 100
+      },
+      "passed": true,
+      "details": {
+        "fields_present": {
+          "presentFields": [
+            "TITLE",
+            "COVER",
+            "DESCRIPTION"
+          ],
+          "missingFields": [],
+          "total": 3
+        },
+        "urls_valid": {
+          "checks": [
+            {
+              "field": "COVER",
+              "value": "https://m.media-amazon.com/images/I/51BM392zpdL._AC_SY355_PIbundle-2,TopRight,0,0_SH20_.jpg",
+              "valid": true
+            }
+          ],
+          "valid": 1,
+          "total": 1
+        },
+        "patterns_match": {
+          "checks": [
+            {
+              "field": "TITLE",
+              "pattern": "GIGASTONE",
+              "value": "【DDR4 RAM】 GIGASTONE Game PRO 32GB Kit (2x16GB) DDR4 3200MHz PC4-25600 CL 16-18-18-40 Intel XMP 2.0 AMD Ryzen 1.35V UDIM",
+              "matched": true
+            },
+            {
+              "field": "COVER",
+              "pattern": "^https://",
+              "value": "https://m.media-amazon.com/images/I/51BM392zpdL._AC_SY355_PIbundle-2,TopRight,0,0_SH20_.jpg",
+              "matched": true
+            }
+          ],
+          "matched": 2,
+          "total": 2
+        },
+        "no_errors": {
+          "hadErrors": false,
+          "success": true
+        }
+      },
+      "threshold": 70
+    }
+  },
+  {
+    "type": "case_end",
+    "time": "2026-02-13T08:15:45.299Z",
+    "case_id": "amazon-product"
+  },
+  {
+    "type": "case_start",
+    "time": "2026-02-13T08:14:50.232Z",
+    "case_id": "distiller",
+    "mode": "url"
+  },
+  {
+    "type": "autorecipe_start",
+    "time": "2026-02-13T08:14:50.232Z"
+  },
+  {
+    "type": "autorecipe_end",
+    "time": "2026-02-13T08:17:38.721Z",
+    "exitCode": 1,
+    "duration_ms": 168489,
+    "stdout": "ℹ Starting autoRecipe for https://www.distiller.com\n→ Launching browser...\n→ Initializing AgentOrchestrator...\n✓ AgentOrchestrator initialized\n  DEBUG: Creating new author session with model claude-opus-4.6\n  DEBUG: Creating new querytest session with model claude-opus-4.6\n→ Probing https://www.distiller.com...\n  DEBUG: {\n  \"input_url\": \"https://www.distiller.com\",\n  \"final_url\": \"https://distiller.com/\",\n  \"hostname\": \"distiller.com\",\n  \"title\": \"World’s Largest Spirits Community. Reviews, Tasting Notes, Collection Tracking\",\n  \"meta_description\": \"Distiller is filled with expert reviews of liquor from all over the world so your next purchase, bar order, or gift, will be the right one!\",\n  \"h1\": \"distiller_headline\",\n  \"jsonld_types\": [\n    \"WebSite\"\n  ],\n  \"links_sample\": [\n    {\n      \"text\": \"Skip to navigation\",\n      \"href\": \"https://distiller.com/#global-menu\"\n    },\n    {\n      \"text\": \"Skip to main content\",\n      \"href\": \"https://distiller.com/#main-content\"\n    },\n    {\n      \"text\": \"Skip to footer\",\n      \"href\": \"https://distiller.com/#global-footer\"\n    },\n    {\n      \"text\": \"Create Account\",\n      \"href\": \"https://distiller.com/users/sign_up\"\n    },\n    {\n      \"text\": \"Sign in\",\n      \"href\": \"https://distiller.com/users/sign_in\"\n    },\n    {\n      \"text\": \"free distiller app\",\n      \"href\": \"https://itunes.apple.com/us/app/distiller-your-whiskey-companion/id784925833?mt=8&uo=4\"\n    },\n    {\n      \"text\": \"Download Now\",\n      \"href\": \"https://itunes.apple.com/us/app/distiller-your-whiskey-companion/id784925833?mt=8&uo=4\"\n    },\n    {\n      \"text\": \"free distiller app\",\n      \"href\": \"https://itunes.apple.com/us/app/distiller-your-whiskey-companion/id784925833?mt=8&uo=4\"\n    },\n    {\n      \"text\": \"Learn More About Cookies\",\n      \"href\": \"https://distiller.com/cookie-policy\"\n    },\n    {\n      \"text\": \"Search\",\n      \"href\": \"https://distiller.com/search\"\n    },\n    {\n      \"text\": \"Distiller Home\",\n      \"href\": \"https://distiller.com/\"\n    },\n    {\n      \"text\": \"Search\",\n      \"href\": \"https://distiller.com/search\"\n    },\n    {\n      \"text\": \"Find People\",\n      \"href\": \"https://distiller.com/user_search\"\n    },\n    {\n      \"text\": \"Join Pro\",\n      \"href\": \"https://distiller.com/join-pro\"\n    },\n    {\n      \"text\": \"Recommend\",\n      \"href\": \"https://distiller.com/recommend\"\n    },\n    {\n      \"text\": \"Articles\",\n      \"href\": \"https://distiller.com/articles\"\n    }\n  ],\n  \"search\": {\n    \"has_search\": false,\n    \"search_box_locator\": null,\n    \"search_form_action\": null\n  }\n}\nℹ Using list_type: generic (classification skipped)\nℹ Phase 2: Generating autocomplete_steps...\n→ Inferring optimal test query...\n  DEBUG: [querytest] Sending task...\n  DEBUG: [querytest] Event: pending_messages.modified\n  DEBUG: [querytest] Event: pending_messages.modified\n  DEBUG: [querytest] Event: user.message\n  DEBUG: [querytest] Event: assistant.turn_start\n  DEBUG: [querytest] Event: assistant.usage\n  DEBUG: [querytest] Event: assistant.message\n  DEBUG: [querytest] Event: assistant.turn_end\n  DEBUG: [querytest] Event: session.idle\n  DEBUG: [querytest] Response received (338 chars)\n✓ Using test query: \"bourbon\" (other)\n  DEBUG: Reasoning: Distiller.com is a spirits review community. The app is described as 'your whiskey companion' and the site covers liquor reviews. 'bourbon' is a major whiskey category certain to have many results.\n  DEBUG: Alternatives: whiskey, scotch, rye\nℹ Trying search URL pattern: https://distiller.com/search?q=bourbon\n→ Probing search results for \"bourbon\"...\nℹ Loading search URL: https://distiller.com/search?q=bourbon\n  DEBUG: Captured search API: GET https://ads.adthrive.com/api/v1/marmalade?siteid=606c5a9360a4830c06758746&url=ht...\n  DEBUG: Dismissed cookie banner via: button[id*=\"accept\"]\nℹ Found consecutive parent: div.content-container > div:nth-of-type($i)\n  DEBUG: searchEvidence.api: null\n  DEBUG: searchEvidence.search_type: url_query\n  DEBUG: [author] Sending task...\n  DEBUG: [author] Event: pending_messages.modified\n  DEBUG: [author] Event: pending_messages.modified\n  DEBUG: [author] Event: user.message\n  DEBUG: [author] Event: assistant.turn_start\n  DEBUG: [author] Event: assistant.usage\n  DEBUG: [author] Event: assistant.message\n  DEBUG: [author] Event: assistant.reasoning\n  DEBUG: [author] Event: tool.execution_start\n  DEBUG: [author] Event: tool.execution_start\n  DEBUG: [author] Event: tool.execution_complete\n  DEBUG: [author] Event: tool.execution_complete\n  DEBUG: [author] Event: assistant.turn_end\n  DEBUG: [author] Event: assistant.turn_start\n  DEBUG: [author] Event: assistant.usage\n  DEBUG: [author] Event: assistant.message\n  DEBUG: [author] Event: tool.execution_start\n  DEBUG: [author] Event: tool.execution_complete\n  DEBUG: [author] Event: assistant.turn_end\n  DEBUG: [author] Event: assistant.turn_start\n  DEBUG: [author] Event: assistant.usage\n  DEBUG: [author] Event: assistant.message\n  DEBUG: [author] Event: assistant.turn_end\n  DEBUG: [author] Event: session.idle\n  DEBUG: [author] Response received (2113 chars)\n⚠ LLM may have used wrong selector pattern. Expected to include: div\n⚠ Got: ol.spirits > li:nth-child($i) h5.name-content\nℹ Suggested base: div.content-container > div:nth-of-type($i)\n✓ Wrote recipe: /Users/basiclines/Developer/basiclines/RecipeKit/Engine/scripts/evals/runs/2026-02-13_baseline/recipes/distillercom.json\nℹ Testing autocomplete_steps...\nℹ Starting debug-first repair loop for autocomplete_steps...\n→ Repair iteration 1/5...\n→ Running engine: autocomplete with input \"bourbon...\"\n✓ Recipe working after 0 iteration(s)!\nℹ   → Got 9 results\n→ Running engine: autocomplete with input \"bourbon...\"\n✓ Autocomplete working: 8 valid results\nℹ   Sample: \"Monkey 47 Dry Gin\" → https://distiller.com/spirits/monkey-47-schwarzwal...\n⚠   Result 5: SUBTITLE is empty (optional)\n⚠ ⚠ Semantic mismatch: Only 2/9 results match query (need 30%)\n⚠   Results don't match query \"bourbon\" - might be a false positive\n⚠   Non-matching: \"Monkey 47 Dry Gin\"\n⚠   Non-matching: \"Eric Bordelet Selection \"Henri Bernard Beudin\" 1997 Single Cask Calvados\"\n⚠   Non-matching: \"Rémy Martin Louis XIII Cognac\"\nℹ → Verifying with second query \"Chanel\"...\n→ Running engine: autocomplete with input \"Chanel...\"\n✗ ❌ FALSE POSITIVE DETECTED: Both \"bourbon\" and \"Chanel\" return same results\n✗   Recipe is returning static content, not search results\nℹ → Attempting API interception for JavaScript-powered search...\nℹ   Probing 5 search URL patterns for API calls...\nℹ   Trying: https://www.distiller.com/search/?query=bourbon...\n  DEBUG:     Navigating to https://www.distiller.com/search/?query=bourbon...\n  DEBUG:     Total responses seen: 134\n  DEBUG:     API capture timeout - no Algolia responses found\nℹ   Trying: https://www.distiller.com/search?query=bourbon...\n  DEBUG:     Navigating to https://www.distiller.com/search?query=bourbon...\n  DEBUG:     Total responses seen: 128\n  DEBUG:     API capture timeout - no Algolia responses found\nℹ   Trying: https://www.distiller.com/search?q=bourbon...\n  DEBUG:     Navigating to https://www.distiller.com/search?q=bourbon...\n  DEBUG:     Total responses seen: 147\n  DEBUG:     API capture timeout - no Algolia responses found\nℹ   Trying: https://www.distiller.com/?s=bourbon...\n  DEBUG:     Navigating to https://www.distiller.com/?s=bourbon...\n  DEBUG:     Total responses seen: 138\n  DEBUG:     API capture timeout - no Algolia responses found\nℹ   Trying: https://www.distiller.com/search/bourbon...\n  DEBUG:     Navigating to https://www.distiller.com/search/bourbon...\n  DEBUG:     Total responses seen: 112\n  DEBUG:     API capture timeout - no Algolia responses found\n⚠ API interception failed - site may require manual recipe authoring.\nℹ Phase 4: Generating test file (for debugging)...\n✓ Wrote test: /Users/basiclines/Developer/basiclines/RecipeKit/Engine/scripts/evals/runs/2026-02-13_baseline/recipes/distillercom.test.js\n⚠ Recipe created but returns static content instead of search results. Manual review needed.\n  DEBUG: Closing AgentOrchestrator...\n  DEBUG: Destroyed author session\n  DEBUG: Destroyed querytest session\n  DEBUG: AgentOrchestrator closed\n\n⏱  Timing:\n  Phase 1 (probe site):     9.5s\n  Phase 2 (autocomplete):   skipped\n  Phase 3 (url_steps):      0ms\n  Phase 4 (test gen):       0ms\n  ────────────────────────────────────\n  Total:                    168.0s\n\n📊 Copilot Usage:\n  Requests: 2\n  By agent:\n    author: 1 req, 0 tokens (claude-opus-4.6)\n    querytest: 1 req, 0 tokens (claude-opus-4.6)\n\n⚠ Recipe created but tests failed. Manual review needed.\n",
+    "stderr": ""
+  },
+  {
+    "type": "agent_turns",
+    "time": "2026-02-13T08:17:38.721Z",
+    "turns": [
+      {
+        "agent": "author",
+        "type": "session_create",
+        "model": "claude-opus-4.6",
+        "raw": "DEBUG: Creating new author session with model claude-opus-4.6"
+      },
+      {
+        "agent": "querytest",
+        "type": "session_create",
+        "model": "claude-opus-4.6",
+        "raw": "DEBUG: Creating new querytest session with model claude-opus-4.6"
+      },
+      {
+        "agent": "querytest",
+        "type": "send",
+        "raw": "DEBUG: [querytest] Sending task..."
+      },
+      {
+        "agent": "querytest",
+        "type": "receive",
+        "chars": 338,
+        "raw": "DEBUG: [querytest] Response received (338 chars)"
+      },
+      {
+        "agent": "author",
+        "type": "send",
+        "raw": "DEBUG: [author] Sending task..."
+      },
+      {
+        "agent": "author",
+        "type": "receive",
+        "chars": 2113,
+        "raw": "DEBUG: [author] Response received (2113 chars)"
+      }
+    ]
+  },
+  {
+    "type": "engine_url_start",
+    "time": "2026-02-13T08:17:38.721Z"
+  },
+  {
+    "type": "engine_url_end",
+    "time": "2026-02-13T08:17:39.330Z",
+    "success": true,
+    "results": {}
+  },
+  {
+    "type": "engine_autocomplete_start",
+    "time": "2026-02-13T08:17:39.330Z"
+  },
+  {
+    "type": "engine_autocomplete_end",
+    "time": "2026-02-13T08:17:46.785Z",
+    "success": true,
+    "results": [
+      {
+        "TITLE": "Monkey 47 Dry Gin",
+        "URL": "https://distiller.com/spirits/monkey-47-schwarzwald-dry-gin",
+        "COVER": "background-image: url(https://ip-distiller.imgix.net/images/spirits/22c95ea0-6baf-0134-c69b-5ab98231182e/monkey_47_schwarzwald_dry_gin_original.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=)",
+        "SUBTITLE": "99"
+      },
+      {
+        "TITLE": "Eric Bordelet Selection \"Henri Bernard Beudin\" 1997 Single Cask Calvados",
+        "URL": "https://distiller.com/spirits/eric-bordelet-selection-henri-bernard-beudin-1997-single-cask-calvados",
+        "COVER": "background-image: url(https://ip-distiller.imgix.net/images/spirits/72a1b540-867b-0133-ab7b-4e403cbf2cb9/eric_bordelet_selection_henri_bernard_beudin_1997_single_cask_calvados_original.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=)",
+        "SUBTITLE": "99"
+      },
+      {
+        "TITLE": "Rémy Martin Louis XIII Cognac",
+        "URL": "https://distiller.com/spirits/remy-martin-louis-xiii-cognac",
+        "COVER": "background-image: url(https://ip-distiller.imgix.net/images/spirits/d11a60b0-7544-0133-dedd-62b978720717/remy_martin_louis_xiii_cognac_original.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=)",
+        "SUBTITLE": "99"
+      },
+      {
+        "TITLE": "Cognac Dudognon Heritage",
+        "URL": "https://distiller.com/spirits/cognac-dudognon-heritage",
+        "COVER": "background-image: url(https://ip-distiller.imgix.net/images/spirits/ce6fb5a0-6bd4-0133-13c4-16d3e9a61cc7/cognac_dudognon_heritage_original.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=)",
+        "SUBTITLE": "99"
+      },
+      {
+        "TITLE": "",
+        "URL": "https://distiller.com/join-pro",
+        "COVER": "",
+        "SUBTITLE": ""
+      },
+      {
+        "TITLE": "Hibiki 21 Year",
+        "URL": "https://distiller.com/spirits/hibiki-21-year",
+        "COVER": "background-image: url(https://ip-distiller.imgix.net/images/spirits/42372d30-4dbf-0132-ff20-4a02559918a4/hibiki-21_original.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=)",
+        "SUBTITLE": "99"
+      },
+      {
+        "TITLE": "Highland Park 18 Year",
+        "URL": "https://distiller.com/spirits/highland-park-18",
+        "COVER": "background-image: url(https://ip-distiller.imgix.net/images/spirits/0755d5c9-c3c7-41e2-9dbe-401070ab6f19/highland-park-18-year_original-1747951347.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=)",
+        "SUBTITLE": "99"
+      },
+      {
+        "TITLE": "Michter's 20 Year Kentucky Straight Bourbon (2021 Release)",
+        "URL": "https://distiller.com/spirits/michter-s-20-year-kentucky-straight-bourbon-2021-release",
+        "COVER": "background-image: url(https://ip-distiller.imgix.net/images/spirits/c03d5430-18a8-013a-6798-4637613bb8aa/michters_20_year_2018_original_original_original.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=)",
+        "SUBTITLE": "98"
+      },
+      {
+        "TITLE": "George T. Stagg Bourbon (Fall 2019)",
+        "URL": "https://distiller.com/spirits/george-t-stagg-bourbon-fall-2019",
+        "COVER": "background-image: url(https://ip-distiller.imgix.net/images/spirits/96133fd0-b701-0137-c627-0a8f7e82b852/btac_gts_2019_original.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=)",
+        "SUBTITLE": "98"
+      }
+    ]
+  },
+  {
+    "type": "recipe_content",
+    "time": "2026-02-13T08:17:46.785Z",
+    "recipe": {
+      "recipe_shortcut": "distillercom",
+      "list_type": "generic",
+      "engine_version": 20,
+      "title": "Distiller.com",
+      "description": "Retrieve generic from distiller.com",
+      "urls": [
+        "https://distiller.com",
+        "https://www.distiller.com"
+      ],
+      "headers": {
+        "Accept-Language": "en-UK,en",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.113 Safari/537.36"
+      },
+      "autocomplete_steps": [
+        {
+          "command": "load",
+          "url": "https://distiller.com/search?q=$INPUT",
+          "config": {
+            "js": true,
+            "timeout": 5000
+          },
+          "description": "Load search results from Distiller"
+        },
+        {
+          "command": "store_text",
+          "locator": "ol.spirits > li:nth-child($i) h5.name-content",
+          "output": {
+            "name": "TITLE$i"
+          },
+          "config": {
+            "loop": {
+              "index": "i",
+              "from": 1,
+              "to": 9,
+              "step": 1
+            }
+          },
+          "description": "Extract spirit names"
+        },
+        {
+          "command": "store_attribute",
+          "locator": "ol.spirits > li:nth-child($i) a",
+          "attribute_name": "href",
+          "output": {
+            "name": "URL$i"
+          },
+          "config": {
+            "loop": {
+              "index": "i",
+              "from": 1,
+              "to": 9,
+              "step": 1
+            }
+          },
+          "description": "Extract spirit detail URLs"
+        },
+        {
+          "command": "store",
+          "input": "https://distiller.com$URL$i",
+          "output": {
+            "name": "URL$i"
+          },
+          "config": {
+            "loop": {
+              "index": "i",
+              "from": 1,
+              "to": 9,
+              "step": 1
+            }
+          },
+          "description": "Make URLs absolute"
+        },
+        {
+          "command": "store_attribute",
+          "locator": "ol.spirits > li:nth-child($i) div.image",
+          "attribute_name": "style",
+          "output": {
+            "name": "COVER$i"
+          },
+          "config": {
+            "loop": {
+              "index": "i",
+              "from": 1,
+              "to": 9,
+              "step": 1
+            }
+          },
+          "description": "Extract spirit image style attribute"
+        },
+        {
+          "command": "store_text",
+          "locator": "ol.spirits > li:nth-child($i) div.distiller-score",
+          "output": {
+            "name": "SUBTITLE$i"
+          },
+          "config": {
+            "loop": {
+              "index": "i",
+              "from": 1,
+              "to": 9,
+              "step": 1
+            }
+          },
+          "description": "Extract distiller score as subtitle"
+        }
+      ],
+      "url_steps": null
+    }
+  },
+  {
+    "type": "score",
+    "time": "2026-02-13T08:17:46.786Z",
+    "score": {
+      "score": 20,
+      "metrics": {
+        "fields_present": 0,
+        "urls_valid": 100,
+        "patterns_match": 0,
+        "no_errors": 0
+      },
+      "passed": false,
+      "details": {
+        "fields_present": {
+          "presentFields": [],
+          "missingFields": [
+            "TITLE",
+            "COVER",
+            "DESCRIPTION"
+          ],
+          "total": 3
+        },
+        "urls_valid": {
+          "checks": [],
+          "valid": 0,
+          "total": 0
+        },
+        "patterns_match": {
+          "checks": [
+            {
+              "field": "COVER",
+              "pattern": "^https://",
+              "value": "(empty)"
+            }
+          ],
+          "matched": 0,
+          "total": 1
+        },
+        "no_errors": {
+          "hadErrors": true,
+          "success": false
+        }
+      },
+      "threshold": 70
+    }
+  },
+  {
+    "type": "case_end",
+    "time": "2026-02-13T08:17:46.786Z",
+    "case_id": "distiller"
+  },
+  {
+    "type": "case_start",
+    "time": "2026-02-13T08:14:50.232Z",
+    "case_id": "footballkitarchive",
+    "mode": "url"
+  },
+  {
+    "type": "autorecipe_start",
+    "time": "2026-02-13T08:14:50.232Z"
+  },
+  {
+    "type": "autorecipe_end",
+    "time": "2026-02-13T08:16:07.318Z",
+    "exitCode": 0,
+    "duration_ms": 77086,
+    "stdout": "ℹ Starting autoRecipe for https://www.footballkitarchive.com\n→ Launching browser...\n→ Initializing AgentOrchestrator...\n✓ AgentOrchestrator initialized\n  DEBUG: Creating new author session with model claude-opus-4.6\n  DEBUG: Creating new querytest session with model claude-opus-4.6\n→ Probing https://www.footballkitarchive.com...\n  DEBUG: {\n  \"input_url\": \"https://www.footballkitarchive.com\",\n  \"final_url\": \"https://www.footballkitarchive.com/\",\n  \"hostname\": \"footballkitarchive.com\",\n  \"title\": \"Football Kit Archive\",\n  \"meta_description\": \"Football Kit Archive is the state of art archive for all old and new football kits, or if you prefer it, soccer jerseys.\",\n  \"h1\": \"Football Kit Archive\",\n  \"jsonld_types\": [],\n  \"links_sample\": [\n    {\n      \"text\": \"Football Kit Archive\",\n      \"href\": \"https://www.footballkitarchive.com/\"\n    },\n    {\n      \"text\": \"Advanced Search\",\n      \"href\": \"https://www.footballkitarchive.com/search/\"\n    },\n    {\n      \"text\": \"Release Calendar\",\n      \"href\": \"https://www.footballkitarchive.com/release-calendar/\"\n    },\n    {\n      \"text\": \"Get Plus\",\n      \"href\": \"https://www.footballkitarchive.com/plus/\"\n    },\n    {\n      \"text\": \"Collections New\",\n      \"href\": \"https://www.footballkitarchive.com/collection/\"\n    },\n    {\n      \"text\": \"Footy Headlines\",\n      \"href\": \"https://www.footyheadlines.com/\"\n    },\n    {\n      \"text\": \"Sneaker Legacy\",\n      \"href\": \"https://sneakerlegacy.com/\"\n    },\n    {\n      \"text\": \"Basketball Jersey Archive\",\n      \"href\": \"https://basketballjerseyarchive.com/\"\n    },\n    {\n      \"text\": \"Kit Creator\",\n      \"href\": \"https://fifakitcreator.com/\"\n    },\n    {\n      \"text\": \"FM Kit Creator + Generator\",\n      \"href\": \"https://fmkitcreator.com/\"\n    },\n    {\n      \"text\": \"Bundesliga\",\n      \"href\": \"https://www.footballkitarchive.com/bundesliga-kits/\"\n    },\n    {\n      \"text\": \"Champions League\",\n      \"href\": \"https://www.footballkitarchive.com/champions-league-kits/\"\n    },\n    {\n      \"text\": \"Copa America\",\n      \"href\": \"https://www.footballkitarchive.com/copa-america-kits/\"\n    },\n    {\n      \"text\": \"Euro\",\n      \"href\": \"https://www.footballkitarchive.com/euro-kits/\"\n    },\n    {\n      \"text\": \"Europa League\",\n      \"href\": \"https://www.footballkitarchive.com/europa-league-kits/\"\n    },\n    {\n      \"text\": \"La Liga\",\n      \"href\": \"https://www.footballkitarchive.com/la-liga-kits/\"\n    },\n    {\n      \"text\": \"Ligue 1\",\n      \"href\": \"https://www.footballkitarchive.com/ligue-1-kits/\"\n    },\n    {\n      \"text\": \"Premier League\",\n      \"href\": \"https://www.footballkitarchive.com/premier-league-kits/\"\n    },\n    {\n      \"text\": \"Serie A\",\n      \"href\": \"https://www.footballkitarchive.com/serie-a-kits/\"\n    },\n    {\n      \"text\": \"World Cup\",\n      \"href\": \"https://www.footballkitarchive.com/world-cup-kits/\"\n    }\n  ],\n  \"search\": {\n    \"has_search\": true,\n    \"search_box_locator\": \"input[name=\\\"q\\\"]\",\n    \"search_form_action\": \"https://www.footballkitarchive.com/\"\n  }\n}\nℹ Using list_type: generic (classification skipped)\nℹ Phase 2: Generating autocomplete_steps...\n→ Inferring optimal test query...\n  DEBUG: [querytest] Sending task...\n  DEBUG: [querytest] Event: pending_messages.modified\n  DEBUG: [querytest] Event: pending_messages.modified\n  DEBUG: [querytest] Event: user.message\n  DEBUG: [querytest] Event: assistant.turn_start\n  DEBUG: [querytest] Event: assistant.usage\n  DEBUG: [querytest] Event: assistant.message\n  DEBUG: [querytest] Event: assistant.turn_end\n  DEBUG: [querytest] Event: session.idle\n  DEBUG: [querytest] Response received (341 chars)\n✓ Using test query: \"Barcelona\" (other)\n  DEBUG: Reasoning: Site is a football kit archive with links to major leagues like La Liga, Premier League, etc. 'Barcelona' is one of the most popular football clubs and would certainly have multiple kit entries.\n  DEBUG: Alternatives: Real Madrid, Nike, Arsenal\nℹ Trying search URL pattern: https://www.footballkitarchive.com/?q=Barcelona\n→ Probing search results for \"Barcelona\"...\nℹ Loading search URL: https://www.footballkitarchive.com/?q=Barcelona\n  DEBUG: Dismissed cookie banner via: button[class*=\"consent\"]\nℹ Found consecutive parent: #navigation > div:nth-of-type($i)\n  DEBUG: searchEvidence.api: null\n  DEBUG: searchEvidence.search_type: url_query\n  DEBUG: [author] Sending task...\n  DEBUG: [author] Event: pending_messages.modified\n  DEBUG: [author] Event: pending_messages.modified\n  DEBUG: [author] Event: user.message\n  DEBUG: [author] Event: assistant.turn_start\n  DEBUG: [author] Event: assistant.usage\n  DEBUG: [author] Event: assistant.message\n  DEBUG: [author] Event: assistant.reasoning\n  DEBUG: [author] Event: tool.execution_start\n  DEBUG: [author] Event: tool.execution_start\n  DEBUG: [author] Event: tool.execution_complete\n  DEBUG: [author] Event: tool.execution_complete\n  DEBUG: [author] Event: assistant.turn_end\n  DEBUG: [author] Event: assistant.turn_start\n  DEBUG: [author] Event: assistant.usage\n  DEBUG: [author] Event: assistant.message\n  DEBUG: [author] Event: assistant.turn_end\n  DEBUG: [author] Event: session.idle\n  DEBUG: [author] Response received (2309 chars)\n✓ Wrote recipe: /Users/basiclines/Developer/basiclines/RecipeKit/Engine/scripts/evals/runs/2026-02-13_baseline/recipes/footballkitarchivecom.json\nℹ Testing autocomplete_steps...\nℹ Starting debug-first repair loop for autocomplete_steps...\n→ Repair iteration 1/5...\n→ Running engine: autocomplete with input \"Barcelona...\"\n✓ Recipe working after 0 iteration(s)!\nℹ   → Got 9 results\n→ Running engine: autocomplete with input \"Barcelona...\"\n✓ Autocomplete working: 9 valid results\nℹ   Sample: \"FC Barcelona\" → https://www.footballkitarchive.com/fc-barcelona-20...\n✓ ✓ Semantic match: 9/9 results contain \"Barcelona\"\nℹ Phase 3: Generating url_steps...\n→ Probing detail page https://www.footballkitarchive.com/fc-barcelona-2025-26-home-kit/339490/...\n  DEBUG: [author] Sending task...\n  DEBUG: [author] Event: pending_messages.modified\n  DEBUG: [author] Event: pending_messages.modified\n  DEBUG: [author] Event: user.message\n  DEBUG: [author] Event: assistant.turn_start\n  DEBUG: [author] Event: assistant.usage\n  DEBUG: [author] Event: assistant.message\n  DEBUG: [author] Event: assistant.turn_end\n  DEBUG: [author] Event: session.idle\n  DEBUG: [author] Response received (1697 chars)\nℹ Testing url_steps...\nℹ Starting debug-first repair loop for url_steps...\n→ Repair iteration 1/5...\n→ Running engine: url with input \"https://www.footballkitarchive.com/fc-barcelona-20...\"\n✓ Recipe working after 0 iteration(s)!\nℹ   → Got fields: TITLE, DESCRIPTION, FAVICON, COVER\n→ Running engine: url with input \"https://www.footballkitarchive.com/fc-barcelona-20...\"\n✓ URL steps working: TITLE, DESCRIPTION, FAVICON, COVER\nℹ Phase 4: Generating test file...\n✓ Wrote test: /Users/basiclines/Developer/basiclines/RecipeKit/Engine/scripts/evals/runs/2026-02-13_baseline/recipes/footballkitarchivecom.test.js\n✓ ✓ Recipe is fully functional!\n  DEBUG: Closing AgentOrchestrator...\n  DEBUG: Destroyed author session\n  DEBUG: Destroyed querytest session\n  DEBUG: AgentOrchestrator closed\n\n⏱  Timing:\n  Phase 1 (probe site):     7.5s\n  Phase 2 (autocomplete):   50.5s\n  Phase 3 (url_steps):      18.5s\n  Phase 4 (test gen):       0ms\n  ────────────────────────────────────\n  Total:                    76.5s\n\n📊 Copilot Usage:\n  Requests: 3\n  By agent:\n    author: 2 req, 0 tokens (claude-opus-4.6)\n    querytest: 1 req, 0 tokens (claude-opus-4.6)\n\n✓ Recipe created successfully!\n  Recipe: /Users/basiclines/Developer/basiclines/RecipeKit/Engine/scripts/evals/runs/2026-02-13_baseline/recipes/footballkitarchivecom.json\n  Test: /Users/basiclines/Developer/basiclines/RecipeKit/Engine/scripts/evals/runs/2026-02-13_baseline/recipes/footballkitarchivecom.test.js\n",
+    "stderr": ""
+  },
+  {
+    "type": "agent_turns",
+    "time": "2026-02-13T08:16:07.318Z",
+    "turns": [
+      {
+        "agent": "author",
+        "type": "session_create",
+        "model": "claude-opus-4.6",
+        "raw": "DEBUG: Creating new author session with model claude-opus-4.6"
+      },
+      {
+        "agent": "querytest",
+        "type": "session_create",
+        "model": "claude-opus-4.6",
+        "raw": "DEBUG: Creating new querytest session with model claude-opus-4.6"
+      },
+      {
+        "agent": "querytest",
+        "type": "send",
+        "raw": "DEBUG: [querytest] Sending task..."
+      },
+      {
+        "agent": "querytest",
+        "type": "receive",
+        "chars": 341,
+        "raw": "DEBUG: [querytest] Response received (341 chars)"
+      },
+      {
+        "agent": "author",
+        "type": "send",
+        "raw": "DEBUG: [author] Sending task..."
+      },
+      {
+        "agent": "author",
+        "type": "receive",
+        "chars": 2309,
+        "raw": "DEBUG: [author] Response received (2309 chars)"
+      },
+      {
+        "agent": "author",
+        "type": "send",
+        "raw": "DEBUG: [author] Sending task..."
+      },
+      {
+        "agent": "author",
+        "type": "receive",
+        "chars": 1697,
+        "raw": "DEBUG: [author] Response received (1697 chars)"
+      }
+    ]
+  },
+  {
+    "type": "engine_url_start",
+    "time": "2026-02-13T08:16:07.318Z"
+  },
+  {
+    "type": "engine_url_end",
+    "time": "2026-02-13T08:16:10.406Z",
+    "success": true,
+    "results": {
+      "TITLE": "Real Madrid 2024-25 Home Kit",
+      "DESCRIPTION": "The Adidas Real Madrid Club de Fútbol 2024-25 home football shirt has the team's traditional white color combined with black for the Three Stripes.",
+      "FAVICON": "https://www.footballkitarchive.com/img/favicon.png",
+      "COVER": "https://cdn.footballkitarchive.com/2025/01/12/VkmL8ExPBf9xrxJ.jpg"
+    }
+  },
+  {
+    "type": "engine_autocomplete_start",
+    "time": "2026-02-13T08:16:10.406Z"
+  },
+  {
+    "type": "engine_autocomplete_end",
+    "time": "2026-02-13T08:16:13.289Z",
+    "success": true,
+    "results": [
+      {
+        "TITLE": "Real Madrid",
+        "SUBTITLE": "2026-27 Home",
+        "URL": "https://www.footballkitarchive.com/real-madrid-2026-27-home-kit/439615/",
+        "COVER": "https://cdn.footballkitarchive.com/2026/01/03/WXJM4Y68PdabZxe-small.jpg"
+      },
+      {
+        "TITLE": "Real Madrid",
+        "SUBTITLE": "2025-26 Home",
+        "URL": "https://www.footballkitarchive.com/real-madrid-2025-26-home-kit/320888/",
+        "COVER": "https://cdn.footballkitarchive.com/2025/12/17/RnfDbwpw5IwmMUj-small.jpg"
+      },
+      {
+        "TITLE": "Real Madrid",
+        "SUBTITLE": "2025-26 Away",
+        "URL": "https://www.footballkitarchive.com/real-madrid-2025-26-away-kit/338203/",
+        "COVER": "https://cdn.footballkitarchive.com/2025/06/16/2k7MkhBMEUibzM2-small.jpg"
+      },
+      {
+        "TITLE": "Real Madrid",
+        "SUBTITLE": "2025-26 Third",
+        "URL": "https://www.footballkitarchive.com/real-madrid-2025-26-third-kit/321505/",
+        "COVER": "https://cdn.footballkitarchive.com/2025/08/08/gwXuqt7oCi7hupw-small.jpg"
+      },
+      {
+        "TITLE": "Real Madrid",
+        "SUBTITLE": "1998-99 Home",
+        "URL": "https://www.footballkitarchive.com/real-madrid-1998-99-home-kit/669/",
+        "COVER": "https://cdn.footballkitarchive.com/2025/08/25/CItvmmer1Y8Vsex-small.jpg"
+      },
+      {
+        "TITLE": "Real Madrid",
+        "SUBTITLE": "2026-27 Away",
+        "URL": "https://www.footballkitarchive.com/real-madrid-2026-27-away-kit/440291/",
+        "COVER": "https://cdn.footballkitarchive.com/2025/12/28/NmbVU6LocenxU8u-small.jpg"
+      },
+      {
+        "TITLE": "Real Madrid",
+        "SUBTITLE": "2023-24 Home",
+        "URL": "https://www.footballkitarchive.com/real-madrid-2023-24-home-kit/99216/",
+        "COVER": "https://cdn.footballkitarchive.com/2023/06/14/ElstKiyZ92Cyza5-small.jpg"
+      },
+      {
+        "TITLE": "Real Madrid",
+        "SUBTITLE": "2017-18 Home",
+        "URL": "https://www.footballkitarchive.com/real-madrid-2017-18-home-kit/593/",
+        "COVER": "https://cdn.footballkitarchive.com/2025/03/02/qFSG9eo2BuWWgDY-small.jpg"
+      },
+      {
+        "TITLE": "Real Madrid",
+        "SUBTITLE": "1999-00 Home",
+        "URL": "https://www.footballkitarchive.com/real-madrid-1999-00-home-kit/38960/",
+        "COVER": "https://cdn.footballkitarchive.com/2025/08/25/GXn8Q7tS18nz7dj-small.jpg"
+      }
+    ]
+  },
+  {
+    "type": "recipe_content",
+    "time": "2026-02-13T08:16:13.289Z",
+    "recipe": {
+      "recipe_shortcut": "footballkitarchivecom",
+      "list_type": "generic",
+      "engine_version": 20,
+      "title": "Footballkitarchive.com",
+      "description": "Retrieve generic from footballkitarchive.com",
+      "urls": [
+        "https://footballkitarchive.com",
+        "https://www.footballkitarchive.com"
+      ],
+      "headers": {
+        "Accept-Language": "en-UK,en",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.113 Safari/537.36"
+      },
+      "autocomplete_steps": [
+        {
+          "command": "load",
+          "url": "https://www.footballkitarchive.com/?q=$INPUT",
+          "config": {
+            "js": true,
+            "timeout": 5000
+          },
+          "description": "Load search results"
+        },
+        {
+          "command": "store_text",
+          "locator": "div.kit-container > div.kit:nth-child($i) div.kit-teamname",
+          "output": {
+            "name": "TITLE$i"
+          },
+          "config": {
+            "loop": {
+              "index": "i",
+              "from": 1,
+              "to": 9,
+              "step": 1
+            }
+          },
+          "description": "Extract team names"
+        },
+        {
+          "command": "store_text",
+          "locator": "div.kit-container > div.kit:nth-child($i) div.kit-season",
+          "output": {
+            "name": "SUBTITLE$i"
+          },
+          "config": {
+            "loop": {
+              "index": "i",
+              "from": 1,
+              "to": 9,
+              "step": 1
+            }
+          },
+          "description": "Extract kit season info"
+        },
+        {
+          "command": "store_attribute",
+          "locator": "div.kit-container > div.kit:nth-child($i) a",
+          "attribute_name": "href",
+          "output": {
+            "name": "URL$i"
+          },
+          "config": {
+            "loop": {
+              "index": "i",
+              "from": 1,
+              "to": 9,
+              "step": 1
+            }
+          },
+          "description": "Extract kit detail URLs"
+        },
+        {
+          "command": "store",
+          "input": "https://www.footballkitarchive.com$URL$i",
+          "output": {
+            "name": "URL$i"
+          },
+          "config": {
+            "loop": {
+              "index": "i",
+              "from": 1,
+              "to": 9,
+              "step": 1
+            }
+          },
+          "description": "Make URLs absolute"
+        },
+        {
+          "command": "store_attribute",
+          "locator": "div.kit-container > div.kit:nth-child($i) img",
+          "attribute_name": "src",
+          "output": {
+            "name": "COVER$i"
+          },
+          "config": {
+            "loop": {
+              "index": "i",
+              "from": 1,
+              "to": 9,
+              "step": 1
+            }
+          },
+          "description": "Extract kit images"
+        }
+      ],
+      "url_steps": [
+        {
+          "command": "load",
+          "url": "$INPUT",
+          "config": {
+            "js": true,
+            "timeout": 5000
+          },
+          "description": "Load detail page"
+        },
+        {
+          "command": "store_url",
+          "output": {
+            "name": "URL"
+          },
+          "description": "Save URL"
+        },
+        {
+          "command": "store_text",
+          "locator": "h1",
+          "output": {
+            "name": "TITLE",
+            "type": "string",
+            "show": true
+          },
+          "description": "Extract kit title"
+        },
+        {
+          "command": "store_attribute",
+          "locator": "meta[property='og:description']",
+          "attribute_name": "content",
+          "output": {
+            "name": "DESCRIPTION",
+            "type": "string",
+            "show": true
+          },
+          "description": "Extract description"
+        },
+        {
+          "command": "store_attribute",
+          "locator": "link[rel='icon']",
+          "attribute_name": "href",
+          "output": {
+            "name": "FAVICON",
+            "type": "string",
+            "show": true
+          },
+          "description": "Extract favicon"
+        },
+        {
+          "command": "store_attribute",
+          "locator": "meta[property='og:image']",
+          "attribute_name": "content",
+          "output": {
+            "name": "COVER",
+            "type": "string",
+            "show": true
+          },
+          "description": "Extract cover image"
+        }
+      ]
+    }
+  },
+  {
+    "type": "score",
+    "time": "2026-02-13T08:16:13.289Z",
+    "score": {
+      "score": 100,
+      "metrics": {
+        "fields_present": 100,
+        "urls_valid": 100,
+        "patterns_match": 100,
+        "no_errors": 100
+      },
+      "passed": true,
+      "details": {
+        "fields_present": {
+          "presentFields": [
+            "TITLE",
+            "COVER",
+            "DESCRIPTION"
+          ],
+          "missingFields": [],
+          "total": 3
+        },
+        "urls_valid": {
+          "checks": [
+            {
+              "field": "COVER",
+              "value": "https://cdn.footballkitarchive.com/2025/01/12/VkmL8ExPBf9xrxJ.jpg",
+              "valid": true
+            }
+          ],
+          "valid": 1,
+          "total": 1
+        },
+        "patterns_match": {
+          "checks": [
+            {
+              "field": "COVER",
+              "pattern": "^https://",
+              "value": "https://cdn.footballkitarchive.com/2025/01/12/VkmL8ExPBf9xrxJ.jpg",
+              "matched": true
+            }
+          ],
+          "matched": 1,
+          "total": 1
+        },
+        "no_errors": {
+          "hadErrors": false,
+          "success": true
+        }
+      },
+      "threshold": 70
+    }
+  },
+  {
+    "type": "case_end",
+    "time": "2026-02-13T08:16:13.289Z",
+    "case_id": "footballkitarchive"
+  },
+  {
+    "type": "case_start",
+    "time": "2026-02-13T08:14:50.232Z",
+    "case_id": "funko",
+    "mode": "url"
+  },
+  {
+    "type": "autorecipe_start",
+    "time": "2026-02-13T08:14:50.232Z"
+  },
+  {
+    "type": "autorecipe_end",
+    "time": "2026-02-13T08:16:54.777Z",
+    "exitCode": 0,
+    "duration_ms": 124545,
+    "stdout": "ℹ Starting autoRecipe for https://www.funko.com\n→ Launching browser...\n→ Initializing AgentOrchestrator...\n✓ AgentOrchestrator initialized\n  DEBUG: Creating new author session with model claude-opus-4.6\n  DEBUG: Creating new querytest session with model claude-opus-4.6\n→ Probing https://www.funko.com...\n  DEBUG: {\n  \"input_url\": \"https://www.funko.com\",\n  \"final_url\": \"https://funko.com/\",\n  \"hostname\": \"funko.com\",\n  \"title\": \"Funko Official Store, Home of Pop! Vinyl, Personalized Pops! | Funko\",\n  \"meta_description\": \"Funko designs and sells unique pop culture collectibles, accessories, and toys.\",\n  \"h1\": \"Home page\",\n  \"jsonld_types\": [\n    \"Organization\",\n    \"WebSite\"\n  ],\n  \"links_sample\": [\n    {\n      \"text\": \"Skip to main content\",\n      \"href\": \"https://funko.com/#maincontent\"\n    },\n    {\n      \"text\": \"Skip to footer content\",\n      \"href\": \"https://funko.com/#footercontent\"\n    },\n    {\n      \"text\": \"Customize\",\n      \"href\": \"https://funko.com/build-your-custom-pop\"\n    },\n    {\n      \"text\": \"Trending Titles\",\n      \"href\": \"https://funko.com/trending-titles/\"\n    },\n    {\n      \"text\": \"Bitty Pop!\",\n      \"href\": \"https://funko.com/funko.com/bitty-pop.html\"\n    },\n    {\n      \"text\": \"Fandoms\",\n      \"href\": \"https://funko.com/fandoms/\"\n    },\n    {\n      \"text\": \"Shop All\",\n      \"href\": \"https://funko.com/fandoms/\"\n    },\n    {\n      \"text\": \"Fan Favorites\",\n      \"href\": \"https://funko.com/fandoms/fan-favorites/\"\n    },\n    {\n      \"text\": \"Anime & Manga\",\n      \"href\": \"https://funko.com/fandoms/anime-manga/\"\n    },\n    {\n      \"text\": \"Anime & Manga\\n                        < Back\",\n      \"href\": \"https://funko.com/fandoms/anime-manga/\"\n    },\n    {\n      \"text\": \"Shop All\",\n      \"href\": \"https://funko.com/fandoms/anime-manga/\"\n    },\n    {\n      \"text\": \"One Piece\",\n      \"href\": \"https://funko.com/fandoms/anime-manga/one-piece/\"\n    },\n    {\n      \"text\": \"Demon Slayer\",\n      \"href\": \"https://funko.com/fandoms/anime-manga/demon-slayer/\"\n    },\n    {\n      \"text\": \"Dragon Ball\",\n      \"href\": \"https://funko.com/fandoms/anime-manga/dragon-ball/\"\n    },\n    {\n      \"text\": \"Naruto\",\n      \"href\": \"https://funko.com/fandoms/anime-manga/naruto/\"\n    },\n    {\n      \"text\": \"Pokémon\",\n      \"href\": \"https://funko.com/fandoms/anime-manga/pokemon/\"\n    },\n    {\n      \"text\": \"Jujutsu Kaisen\",\n      \"href\": \"https://funko.com/fandoms/anime-manga/jujutsu-kaisen/\"\n    }\n  ],\n  \"search\": {\n    \"has_search\": true,\n    \"search_box_locator\": \"input[name=\\\"q\\\"]\",\n    \"search_form_action\": \"https://funko.com/search/\"\n  }\n}\nℹ Using list_type: generic (classification skipped)\nℹ Phase 2: Generating autocomplete_steps...\n→ Inferring optimal test query...\n  DEBUG: [querytest] Sending task...\n  DEBUG: [querytest] Event: pending_messages.modified\n  DEBUG: [querytest] Event: pending_messages.modified\n  DEBUG: [querytest] Event: user.message\n  DEBUG: [querytest] Event: assistant.turn_start\n  DEBUG: [querytest] Event: assistant.usage\n  DEBUG: [querytest] Event: assistant.message\n  DEBUG: [querytest] Event: assistant.turn_end\n  DEBUG: [querytest] Event: session.idle\n  DEBUG: [querytest] Response received (306 chars)\n✓ Using test query: \"Dragon Ball\" (collectibles)\n  DEBUG: Reasoning: Links show specific anime/manga fandoms including Dragon Ball. It's a major franchise that Funko produces many figures for, ensuring search results.\n  DEBUG: Alternatives: Naruto, Pokémon, One Piece\nℹ Trying search URL pattern: https://funko.com/search/?q=Dragon Ball\n→ Probing search results for \"Dragon Ball\"...\nℹ Loading search URL: https://funko.com/search/?q=Dragon%20Ball\n  DEBUG: Dismissed cookie banner via: button[id*=\"accept\"]\n  DEBUG: Captured search API: GET https://px.ads.linkedin.com/attribution_trigger?pid=7615962&time=1770970508455&u...\n  DEBUG: Captured search API: GET https://px.ads.linkedin.com/attribution_trigger?pid=7615962&time=1770970508454&u...\nℹ Found consecutive parent: ul.row > li.col-6:nth-child($i)\n  DEBUG: searchEvidence.api: null\n  DEBUG: searchEvidence.search_type: url_query\n  DEBUG: [author] Sending task...\n  DEBUG: [author] Event: pending_messages.modified\n  DEBUG: [author] Event: pending_messages.modified\n  DEBUG: [author] Event: user.message\n  DEBUG: [author] Event: assistant.turn_start\n  DEBUG: [author] Event: assistant.usage\n  DEBUG: [author] Event: assistant.message\n  DEBUG: [author] Event: assistant.turn_end\n  DEBUG: [author] Event: session.idle\n  DEBUG: [author] Response received (1336 chars)\n✓ Wrote recipe: /Users/basiclines/Developer/basiclines/RecipeKit/Engine/scripts/evals/runs/2026-02-13_baseline/recipes/funkocom.json\nℹ Testing autocomplete_steps...\nℹ Starting debug-first repair loop for autocomplete_steps...\n→ Repair iteration 1/5...\n→ Running engine: autocomplete with input \"Dragon Ball...\"\n✓ Recipe working after 0 iteration(s)!\nℹ   → Got 9 results\n→ Running engine: autocomplete with input \"Dragon Ball...\"\n✓ Autocomplete working: 9 valid results\nℹ   Sample: \"Pop! Super Saiyan Trunks\" → https://funko.com/pop-super-saiyan-trunks/91825.ht...\n⚠   Result 1: SUBTITLE is empty (optional)\n⚠   Result 2: SUBTITLE is empty (optional)\n⚠   Result 3: SUBTITLE is empty (optional)\n⚠   Result 4: SUBTITLE is empty (optional)\n⚠   Result 5: SUBTITLE is empty (optional)\n⚠   Result 6: SUBTITLE is empty (optional)\n⚠   Result 7: SUBTITLE is empty (optional)\n⚠   Result 8: SUBTITLE is empty (optional)\n⚠   Result 9: SUBTITLE is empty (optional)\n✓ ✓ Semantic match: 3/9 results contain \"Dragon Ball\"\nℹ Phase 3: Generating url_steps...\n→ Probing detail page https://funko.com/pop-super-saiyan-trunks/91825.html...\n  DEBUG: [author] Sending task...\n  DEBUG: [author] Event: pending_messages.modified\n  DEBUG: [author] Event: pending_messages.modified\n  DEBUG: [author] Event: user.message\n  DEBUG: [author] Event: assistant.turn_start\n  DEBUG: [author] Event: assistant.usage\n  DEBUG: [author] Event: assistant.message\n  DEBUG: [author] Event: assistant.turn_end\n  DEBUG: [author] Event: session.idle\n  DEBUG: [author] Response received (2419 chars)\nℹ Testing url_steps...\nℹ Starting debug-first repair loop for url_steps...\n→ Repair iteration 1/5...\n→ Running engine: url with input \"https://funko.com/pop-super-saiyan-trunks/91825.ht...\"\n⚠ Fields with empty values: PRICE, SKU\n⚠ Engine output not as expected. Debugging recipe steps with Puppeteer...\n→ Debugging url_steps steps on https://funko.com/pop-super-saiyan-trunks/91825.html...\nℹ Debug results: 4 working, 2 failed\n✗   Step 6: \"Extract product price\" - selector \"span.prices span.sales span.value\" found 0 elements\n✗   Step 7: \"Extract product SKU\" - selector \"span.product-number-value\" found 0 elements\n  DEBUG: Creating new fixer session with model claude-opus-4.6\n  DEBUG: [fixer] Sending task...\n  DEBUG: [fixer] Event: pending_messages.modified\n  DEBUG: [fixer] Event: pending_messages.modified\n  DEBUG: [fixer] Event: user.message\n  DEBUG: [fixer] Event: assistant.turn_start\n  DEBUG: [fixer] Event: assistant.usage\n  DEBUG: [fixer] Event: assistant.message\n  DEBUG: [fixer] Event: assistant.turn_end\n  DEBUG: [fixer] Event: session.idle\n  DEBUG: [fixer] Response received (1087 chars)\n✓ Applied 6 patches: Price and SKU selectors failed because the page structure changed. Switching to meta tags which are more reliable on Demandware/SFCC sites like Funko.\nℹ Recipe updated. Retrying...\n→ Repair iteration 2/5...\n→ Running engine: url with input \"https://funko.com/pop-super-saiyan-trunks/91825.ht...\"\n⚠ Fields with empty values: PRICE, SKU\n⚠ Engine output not as expected. Debugging recipe steps with Puppeteer...\n→ Debugging url_steps steps on https://funko.com/pop-super-saiyan-trunks/91825.html...\nℹ Debug results: 4 working, 2 failed\n✗   Step 6: \"Extract product price\" - selector \"meta[property='product:price:amount']\" found 0 elements\n✗   Step 7: \"Extract product SKU\" - selector \"meta[property='product:retailer_item_id']\" found 0 elements\n  DEBUG: [fixer] Event: pending_messages.modified\n  DEBUG: [fixer] Event: pending_messages.modified\n  DEBUG: [fixer] Event: user.message\n  DEBUG: [fixer] Event: assistant.turn_start\n  DEBUG: [fixer] Event: assistant.usage\n  DEBUG: [fixer] Event: assistant.message\n  DEBUG: [fixer] Event: assistant.turn_end\n  DEBUG: [fixer] Event: session.idle\n  DEBUG: [fixer] Response received (759 chars)\n✓ Applied 3 patches: The product:price:amount and product:retailer_item_id meta tags don't exist on this page. Trying og:price:amount for price and span[itemprop='sku'] for SKU which are common on SFCC/Demandware product pages.\nℹ Recipe updated. Retrying...\n→ Repair iteration 3/5...\n→ Running engine: url with input \"https://funko.com/pop-super-saiyan-trunks/91825.ht...\"\n⚠ Fields with empty values: PRICE, SKU\n⚠ Engine output not as expected. Debugging recipe steps with Puppeteer...\n→ Debugging url_steps steps on https://funko.com/pop-super-saiyan-trunks/91825.html...\nℹ Debug results: 4 working, 2 failed\n✗   Step 6: \"Extract product price\" - selector \"meta[property='og:price:amount']\" found 0 elements\n✗   Step 7: \"Extract product SKU\" - selector \"span[itemprop='sku']\" found 0 elements\n  DEBUG: [fixer] Event: pending_messages.modified\n  DEBUG: [fixer] Event: pending_messages.modified\n  DEBUG: [fixer] Event: user.message\n  DEBUG: [fixer] Event: assistant.turn_start\n  DEBUG: [fixer] Event: assistant.usage\n  DEBUG: [fixer] Event: assistant.message\n  DEBUG: [fixer] Event: assistant.turn_end\n  DEBUG: [fixer] Event: session.idle\n  DEBUG: [fixer] Response received (414 chars)\n✓ Applied 1 patches: The page doesn't have price or SKU elements in any recognizable selectors. Since TITLE, DESCRIPTION, COVER, and FAVICON all extract successfully, removing the non-existent PRICE and SKU steps will allow the recipe to return results instead of failing with empty_results.\nℹ Recipe updated. Retrying...\n→ Repair iteration 4/5...\n→ Running engine: url with input \"https://funko.com/pop-super-saiyan-trunks/91825.ht...\"\n⚠ Fields with empty values: PRICE, SKU\n⚠ Engine output not as expected. Debugging recipe steps with Puppeteer...\n→ Debugging url_steps steps on https://funko.com/pop-super-saiyan-trunks/91825.html...\nℹ Debug results: 4 working, 2 failed\n✗   Step 6: \"Extract product price\" - selector \"meta[property='og:price:amount']\" found 0 elements\n✗   Step 7: \"Extract product SKU\" - selector \"span[itemprop='sku']\" found 0 elements\n  DEBUG: [fixer] Event: pending_messages.modified\n  DEBUG: [fixer] Event: pending_messages.modified\n  DEBUG: [fixer] Event: user.message\n  DEBUG: [fixer] Event: assistant.turn_start\n  DEBUG: [fixer] Event: assistant.usage\n  DEBUG: [fixer] Event: assistant.message\n  DEBUG: [fixer] Event: assistant.reasoning\n  DEBUG: [fixer] Event: assistant.turn_end\n  DEBUG: [fixer] Event: session.idle\n  DEBUG: [fixer] Response received (1622 chars)\n✓ Applied rewrite: Full rewrite of url_steps removing PRICE and SKU steps entirely since those selectors don't exist on the page. The remaining 4 fields (TITLE, DESCRIPTION, FAVICON, COVER) all extract successfully.\nℹ Recipe updated. Retrying...\n→ Repair iteration 5/5...\n→ Running engine: url with input \"https://funko.com/pop-super-saiyan-trunks/91825.ht...\"\n✓ Recipe working after 4 iteration(s)!\nℹ   → Got fields: TITLE, DESCRIPTION, FAVICON, COVER\n→ Running engine: url with input \"https://funko.com/pop-super-saiyan-trunks/91825.ht...\"\n✓ URL steps working: TITLE, DESCRIPTION, FAVICON, COVER\nℹ Phase 4: Generating test file...\n✓ Wrote test: /Users/basiclines/Developer/basiclines/RecipeKit/Engine/scripts/evals/runs/2026-02-13_baseline/recipes/funkocom.test.js\n✓ ✓ Recipe is fully functional!\n  DEBUG: Closing AgentOrchestrator...\n  DEBUG: Destroyed author session\n  DEBUG: Destroyed querytest session\n  DEBUG: Destroyed fixer session\n  DEBUG: AgentOrchestrator closed\n\n⏱  Timing:\n  Phase 1 (probe site):     10.0s\n  Phase 2 (autocomplete):   28.2s\n  Phase 3 (url_steps):      85.7s\n  Phase 4 (test gen):       1ms\n  ────────────────────────────────────\n  Total:                    123.9s\n\n📊 Copilot Usage:\n  Requests: 7\n  By agent:\n    author: 2 req, 0 tokens (claude-opus-4.6)\n    querytest: 1 req, 0 tokens (claude-opus-4.6)\n    fixer: 4 req, 0 tokens (claude-opus-4.6)\n\n✓ Recipe created successfully!\n  Recipe: /Users/basiclines/Developer/basiclines/RecipeKit/Engine/scripts/evals/runs/2026-02-13_baseline/recipes/funkocom.json\n  Test: /Users/basiclines/Developer/basiclines/RecipeKit/Engine/scripts/evals/runs/2026-02-13_baseline/recipes/funkocom.test.js\n",
+    "stderr": ""
+  },
+  {
+    "type": "agent_turns",
+    "time": "2026-02-13T08:16:54.777Z",
+    "turns": [
+      {
+        "agent": "author",
+        "type": "session_create",
+        "model": "claude-opus-4.6",
+        "raw": "DEBUG: Creating new author session with model claude-opus-4.6"
+      },
+      {
+        "agent": "querytest",
+        "type": "session_create",
+        "model": "claude-opus-4.6",
+        "raw": "DEBUG: Creating new querytest session with model claude-opus-4.6"
+      },
+      {
+        "agent": "querytest",
+        "type": "send",
+        "raw": "DEBUG: [querytest] Sending task..."
+      },
+      {
+        "agent": "querytest",
+        "type": "receive",
+        "chars": 306,
+        "raw": "DEBUG: [querytest] Response received (306 chars)"
+      },
+      {
+        "agent": "author",
+        "type": "send",
+        "raw": "DEBUG: [author] Sending task..."
+      },
+      {
+        "agent": "author",
+        "type": "receive",
+        "chars": 1336,
+        "raw": "DEBUG: [author] Response received (1336 chars)"
+      },
+      {
+        "agent": "author",
+        "type": "send",
+        "raw": "DEBUG: [author] Sending task..."
+      },
+      {
+        "agent": "author",
+        "type": "receive",
+        "chars": 2419,
+        "raw": "DEBUG: [author] Response received (2419 chars)"
+      },
+      {
+        "agent": "fixer",
+        "type": "session_create",
+        "model": "claude-opus-4.6",
+        "raw": "DEBUG: Creating new fixer session with model claude-opus-4.6"
+      },
+      {
+        "agent": "fixer",
+        "type": "send",
+        "raw": "DEBUG: [fixer] Sending task..."
+      },
+      {
+        "agent": "fixer",
+        "type": "receive",
+        "chars": 1087,
+        "raw": "DEBUG: [fixer] Response received (1087 chars)"
+      },
+      {
+        "agent": "fixer",
+        "type": "receive",
+        "chars": 759,
+        "raw": "DEBUG: [fixer] Response received (759 chars)"
+      },
+      {
+        "agent": "fixer",
+        "type": "receive",
+        "chars": 414,
+        "raw": "DEBUG: [fixer] Response received (414 chars)"
+      },
+      {
+        "agent": "fixer",
+        "type": "receive",
+        "chars": 1622,
+        "raw": "DEBUG: [fixer] Response received (1622 chars)"
+      }
+    ]
+  },
+  {
+    "type": "engine_url_start",
+    "time": "2026-02-13T08:16:54.777Z"
+  },
+  {
+    "type": "engine_url_end",
+    "time": "2026-02-13T08:16:58.654Z",
+    "success": true,
+    "results": {
+      "TITLE": "Pop! Super Saiyan Trunks",
+      "DESCRIPTION": "Check out our Pop! Super Saiyan Trunks and more from Funko!",
+      "FAVICON": "/on/demandware.static/Sites-FunkoUS-Site/-/default/dw4d295c20/images/favicons/funko-favicon-16x16.png",
+      "COVER": "https://funko.com/on/demandware.static/-/Sites-funko-master-catalog/default/dw9419f6e1/images/funko/upload/1/91825a_DBS_SSTrunksGG_POP_GLAM-WEB.png"
+    }
+  },
+  {
+    "type": "engine_autocomplete_start",
+    "time": "2026-02-13T08:16:58.654Z"
+  },
+  {
+    "type": "engine_autocomplete_end",
+    "time": "2026-02-13T08:17:02.106Z",
+    "success": true,
+    "results": [
+      {
+        "TITLE": "Pop! Super Saiyan Trunks",
+        "URL": "https://funko.com/pop-super-saiyan-trunks/91825.html",
+        "COVER": "https://funko.com/dw/image/v2/BGTS_PRD/on/demandware.static/-/Sites-funko-master-catalog/default/dw9419f6e1/images/funko/upload/1/91825a_DBS_SSTrunksGG_POP_GLAM-WEB.png?sw=346&sh=346"
+      },
+      {
+        "TITLE": "Bitty Pop! Singles Dragon Ball Z 12-Pack",
+        "URL": "https://funko.com/bitty-pop-singles-dragon-ball-z-12-pack/85984.html",
+        "COVER": "https://funko.com/dw/image/v2/BGTS_PRD/on/demandware.static/-/Sites-funko-master-catalog/default/dw0f635fdd/images/funko/upload/1/85984_BittyPop_DBZ_12PC-Polybag_GLAM-WEB.png?sw=346&sh=346"
+      },
+      {
+        "TITLE": "Bitty Pop! SS Goku & Frieza 2-Pack",
+        "URL": "https://funko.com/bitty-pop-ss-goku-frieza-2-pack/88927.html",
+        "COVER": "https://funko.com/dw/image/v2/BGTS_PRD/on/demandware.static/-/Sites-funko-master-catalog/default/dw08e14b11/images/funko/upload/1/88927_DBZ_GokuFrieza_2PK_GLAM-1-WEB.png?sw=346&sh=346"
+      },
+      {
+        "TITLE": "Bitty Pop! Gohan & Piccolo 2-Pack",
+        "URL": "https://funko.com/bitty-pop-gohan-piccolo-2-pack/88926.html",
+        "COVER": "https://funko.com/dw/image/v2/BGTS_PRD/on/demandware.static/-/Sites-funko-master-catalog/default/dw164dcd16/images/funko/upload/1/88926_DBZ_GohanPiccolo_2PK_GLAM-1-WEB.png?sw=346&sh=346"
+      },
+      {
+        "TITLE": "Mystery Bitty Pop! Dragon Ball Z",
+        "URL": "https://funko.com/mystery-bitty-pop-dragon-ball-z/76388.html",
+        "COVER": "https://funko.com/dw/image/v2/BGTS_PRD/on/demandware.static/-/Sites-funko-master-catalog/default/dwd444afcc/images/funko/upload/1/76388_BittyPop_DBZ_PDQ_GLAM-WEB.png?sw=346&sh=346"
+      },
+      {
+        "TITLE": "Pop! Plus Super Saiyan 4 Goku (Dragon Fist)",
+        "URL": "https://funko.com/pop-plus-super-saiyan-4-goku-dragon-fist/87848.html",
+        "COVER": "https://funko.com/dw/image/v2/BGTS_PRD/on/demandware.static/-/Sites-funko-master-catalog/default/dw6610cb57/images/funko/upload/1/87848_DBGT_S2_GokuDF_POP_GLAM-WEB.png?sw=346&sh=346"
+      },
+      {
+        "TITLE": "Pop! Super Saiyan 4 Goku",
+        "URL": "https://funko.com/pop-super-saiyan-4-goku/86496.html",
+        "COVER": "https://funko.com/dw/image/v2/BGTS_PRD/on/demandware.static/-/Sites-funko-master-catalog/default/dw6883dd71/images/funko/upload/1/86496_DBGT_S2_SS4Goku_POP_GLAM-WEB.png?sw=346&sh=346"
+      },
+      {
+        "TITLE": "Pop! Super Saiyan 4 Vegeta",
+        "URL": "https://funko.com/pop-super-saiyan-4-vegeta/86498.html",
+        "COVER": "https://funko.com/dw/image/v2/BGTS_PRD/on/demandware.static/-/Sites-funko-master-catalog/default/dwbaf5311a/images/funko/upload/1/86498_DBGT_S2_SS4Vegeta_POP_GLAM-WEB.png?sw=346&sh=346"
+      },
+      {
+        "TITLE": "Pop! Super Android 17",
+        "URL": "https://funko.com/pop-super-android-17/86497.html",
+        "COVER": "https://funko.com/dw/image/v2/BGTS_PRD/on/demandware.static/-/Sites-funko-master-catalog/default/dw529280f9/images/funko/upload/1/86497_DBGT_S2_SuperAndroid17_POP_GLAM-WEB.png?sw=346&sh=346"
+      }
+    ]
+  },
+  {
+    "type": "recipe_content",
+    "time": "2026-02-13T08:17:02.106Z",
+    "recipe": {
+      "recipe_shortcut": "funkocom",
+      "list_type": "generic",
+      "engine_version": 20,
+      "title": "Funko.com",
+      "description": "Retrieve generic from funko.com",
+      "urls": [
+        "https://funko.com",
+        "https://www.funko.com"
+      ],
+      "headers": {
+        "Accept-Language": "en-UK,en",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.113 Safari/537.36"
+      },
+      "autocomplete_steps": [
+        {
+          "command": "load",
+          "url": "https://funko.com/search/?q=$INPUT",
+          "config": {
+            "js": true,
+            "timeout": 5000
+          },
+          "description": "Load Funko search results"
+        },
+        {
+          "command": "store_text",
+          "locator": "ul.row > li.col-6:nth-child($i) h2.pdp-link",
+          "output": {
+            "name": "TITLE$i"
+          },
+          "config": {
+            "loop": {
+              "index": "i",
+              "from": 1,
+              "to": 9,
+              "step": 1
+            }
+          },
+          "description": "Extract product titles"
+        },
+        {
+          "command": "store_attribute",
+          "locator": "ul.row > li.col-6:nth-child($i) a",
+          "attribute_name": "href",
+          "output": {
+            "name": "URL$i"
+          },
+          "config": {
+            "loop": {
+              "index": "i",
+              "from": 1,
+              "to": 9,
+              "step": 1
+            }
+          },
+          "description": "Extract product URLs"
+        },
+        {
+          "command": "store_attribute",
+          "locator": "ul.row > li.col-6:nth-child($i) img.tile-image",
+          "attribute_name": "src",
+          "output": {
+            "name": "COVER$i"
+          },
+          "config": {
+            "loop": {
+              "index": "i",
+              "from": 1,
+              "to": 9,
+              "step": 1
+            }
+          },
+          "description": "Extract product images"
+        }
+      ],
+      "url_steps": [
+        {
+          "command": "load",
+          "url": "$INPUT",
+          "config": {
+            "js": true,
+            "timeout": 5000
+          },
+          "description": "Load product detail page"
+        },
+        {
+          "command": "store_url",
+          "output": {
+            "name": "URL"
+          },
+          "description": "Save the current URL"
+        },
+        {
+          "command": "store_text",
+          "locator": "h1",
+          "output": {
+            "name": "TITLE",
+            "type": "string",
+            "show": true
+          },
+          "description": "Extract product title"
+        },
+        {
+          "command": "store_attribute",
+          "locator": "meta[property='og:description']",
+          "attribute_name": "content",
+          "output": {
+            "name": "DESCRIPTION",
+            "type": "string",
+            "show": true
+          },
+          "description": "Extract product description"
+        },
+        {
+          "command": "store_attribute",
+          "locator": "link[rel='icon']",
+          "attribute_name": "href",
+          "output": {
+            "name": "FAVICON",
+            "type": "string",
+            "show": true
+          },
+          "description": "Extract favicon"
+        },
+        {
+          "command": "store_attribute",
+          "locator": "meta[property='og:image']",
+          "attribute_name": "content",
+          "output": {
+            "name": "COVER",
+            "type": "string",
+            "show": true
+          },
+          "description": "Extract cover image"
+        }
+      ]
+    }
+  },
+  {
+    "type": "score",
+    "time": "2026-02-13T08:17:02.106Z",
+    "score": {
+      "score": 100,
+      "metrics": {
+        "fields_present": 100,
+        "urls_valid": 100,
+        "patterns_match": 100,
+        "no_errors": 100
+      },
+      "passed": true,
+      "details": {
+        "fields_present": {
+          "presentFields": [
+            "TITLE",
+            "COVER",
+            "DESCRIPTION"
+          ],
+          "missingFields": [],
+          "total": 3
+        },
+        "urls_valid": {
+          "checks": [
+            {
+              "field": "COVER",
+              "value": "https://funko.com/on/demandware.static/-/Sites-funko-master-catalog/default/dw9419f6e1/images/funko/upload/1/91825a_DBS_",
+              "valid": true
+            }
+          ],
+          "valid": 1,
+          "total": 1
+        },
+        "patterns_match": {
+          "checks": [
+            {
+              "field": "COVER",
+              "pattern": "^https://",
+              "value": "https://funko.com/on/demandware.static/-/Sites-funko-master-catalog/default/dw9419f6e1/images/funko/upload/1/91825a_DBS_",
+              "matched": true
+            }
+          ],
+          "matched": 1,
+          "total": 1
+        },
+        "no_errors": {
+          "hadErrors": false,
+          "success": true
+        }
+      },
+      "threshold": 70
+    }
+  },
+  {
+    "type": "case_end",
+    "time": "2026-02-13T08:17:02.106Z",
+    "case_id": "funko"
+  }
+]
