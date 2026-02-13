@@ -2602,6 +2602,7 @@ class AutoRecipe {
     this.force = options.force || false;
     this.debug = options.debug || false;
     this.urlOnly = options.urlOnly || false;
+    this.outputDir = options.outputDir || null;
     
     this.logger = new Logger(this.debug);
     this.evidence = new EvidenceCollector(this.logger);
@@ -2646,8 +2647,8 @@ class AutoRecipe {
 
       const domain = siteEvidence.hostname.replace(/\./g, '');
       
-      // Store in ./generated folder instead of category folder
-      const generatedDir = join(REPO_ROOT, 'generated');
+      // Store in outputDir (if provided) or ./generated folder
+      const generatedDir = this.outputDir || join(REPO_ROOT, 'generated');
       const recipePath = join(generatedDir, `${domain}.json`);
       const testPath = join(generatedDir, `${domain}.test.js`);
 
@@ -3845,7 +3846,7 @@ const args = minimist(process.argv.slice(2));
 if (!args.url && !args.prompt) {
   console.log(chalk.red('Error: Either --url or --prompt is required\n'));
   console.log('Usage:');
-  console.log('  bun Engine/scripts/autoRecipe.js --url=https://example.com [--force] [--debug] [--url-only]');
+  console.log('  bun Engine/scripts/autoRecipe.js --url=https://example.com [--force] [--debug] [--url-only] [--output-dir=<path>]');
   console.log('  bun Engine/scripts/autoRecipe.js --prompt="movie database" [--force] [--debug]');
   console.log('');
   console.log('Options:');
@@ -3854,6 +3855,7 @@ if (!args.url && !args.prompt) {
   console.log('  --force          Overwrite existing recipe without prompting');
   console.log('  --debug          Enable verbose logging and stack traces');
   console.log('  --url-only       Skip autocomplete_steps, generate only url_steps');
+  console.log('  --output-dir     Directory to write recipe and test files (default: generated/)');
   console.log('');
   console.log('Examples:');
   console.log('  bun Engine/scripts/autoRecipe.js --url=https://www.themoviedb.org --debug');
@@ -3895,7 +3897,8 @@ if (!args.url && !args.prompt) {
       url: targetUrl,
       force: args.force || false,
       debug: args.debug || false,
-      urlOnly: args['url-only'] || false
+      urlOnly: args['url-only'] || false,
+      outputDir: args['output-dir'] || null
     });
     
     const result = await autoRecipe.run();
