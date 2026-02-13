@@ -1785,6 +1785,16 @@ export class EvidenceCollector {
         fieldSelectors.cover = getSelector(imgEl) || 'img';
         fieldSelectors.cover_attr = imgEl.getAttribute('src') ? 'src' :
                                     imgEl.getAttribute('data-src') ? 'data-src' : 'data-lazy-src';
+      } else {
+        // No <img> found — check for background-image in inline styles
+        const bgEls = Array.from(sampleContainer.querySelectorAll('[style*="background"]'));
+        const bgEl = bgEls.find(el => /background(-image)?\s*:.*url\(/i.test(el.getAttribute('style') || ''));
+        if (bgEl) {
+          fieldSelectors.cover = getSelector(bgEl) || bgEl.tagName.toLowerCase();
+          fieldSelectors.cover_attr = 'style';
+          fieldSelectors.cover_needs_extraction = true;
+          fieldSelectors.cover_css_sample = (bgEl.getAttribute('style') || '').slice(0, 200);
+        }
       }
 
       const loopBase = isConsecutive

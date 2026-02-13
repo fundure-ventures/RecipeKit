@@ -229,9 +229,54 @@ Return **ONLY** valid JSON. No markdown, no explanations.
 For each result (using `$i`):
 - `TITLE$i` (required) - The result title
 - `URL$i` (required) - Absolute URL to detail page  
-- `COVER$i` (required) - Thumbnail image URL
+- `COVER$i` (required) - Thumbnail image URL (**must be a clean `https://` URL**, never CSS syntax)
 - `SUBTITLE$i` (optional) - Secondary info (year, price, etc.)
 </required-variables>
+
+<cover-extraction>
+## COVER Extraction — Getting a Clean Image URL
+
+COVER must be a **clean, absolute `https://` URL** pointing directly to an image. The engine validates this and will reject values containing CSS syntax like `background-image: url(...)`.
+
+### Preferred sources (in order of reliability)
+1. `img` element → `store_attribute` with `attribute_name: "src"` or `"data-src"`
+2. `meta[property="og:image"]` → `store_attribute` with `attribute_name: "content"` (only on detail/url pages)
+
+### When `fieldSelectors.cover_needs_extraction` is true
+
+This means the site uses CSS `background-image` instead of `<img>` tags. You **MUST** add a regex step to extract the URL from the CSS value:
+
+```json
+{
+  "command": "store_attribute",
+  "locator": "{loopBase} {fieldSelectors.cover}",
+  "attribute_name": "style",
+  "output": { "name": "RAW_COVER$i" },
+  "config": { "loop": { "index": "i", "from": 1, "to": 9, "step": 1 } },
+  "description": "Extract raw style containing background-image"
+},
+{
+  "command": "regex",
+  "input": "$RAW_COVER$i",
+  "expression": "url\\(([^)]+)\\)",
+  "output": { "name": "COVER$i" },
+  "config": { "loop": { "index": "i", "from": 1, "to": 9, "step": 1 } },
+  "description": "Extract image URL from CSS background-image"
+}
+```
+
+### If the extracted URL is relative
+Add a `store` step to make it absolute:
+```json
+{
+  "command": "store",
+  "input": "https://hostname$COVER$i",
+  "output": { "name": "COVER$i" },
+  "config": { "loop": { "index": "i", "from": 1, "to": 9, "step": 1 } },
+  "description": "Make cover URL absolute"
+}
+```
+</cover-extraction>
 
 <commands-reference>
 ## Available Commands

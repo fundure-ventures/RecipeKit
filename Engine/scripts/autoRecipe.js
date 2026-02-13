@@ -3382,11 +3382,23 @@ class AutoRecipe {
         }
       }
       
-      // Check COVER (mandatory)
+      // Check COVER (mandatory, must be a clean https:// URL)
       if (!r.COVER || r.COVER.trim() === '') {
         resultIssues.push('COVER is empty');
       } else if (/\$[A-Z_]+\$?i?\b/.test(r.COVER)) {
         resultIssues.push(`COVER contains unreplaced variable: "${r.COVER}"`);
+      } else if (!r.COVER.startsWith('https://')) {
+        if (r.COVER.includes('url(') || r.COVER.includes('background-image') || r.COVER.includes('background:')) {
+          resultIssues.push(`COVER contains CSS syntax instead of a clean image URL: "${r.COVER.slice(0, 100)}". Extract the URL from inside "url(...)" using a regex step with expression "url\\(([^)]+)\\)", or use a different selector targeting an <img> src or og:image meta tag.`);
+        } else if (r.COVER.startsWith('//')) {
+          resultIssues.push(`COVER is protocol-relative ("${r.COVER.slice(0, 80)}"). Add a store step to prepend "https:".`);
+        } else if (r.COVER.startsWith('/')) {
+          resultIssues.push(`COVER is a relative path ("${r.COVER.slice(0, 80)}"). Add a store step to prepend the site base URL.`);
+        } else if (r.COVER.startsWith('http://')) {
+          resultIssues.push(`COVER uses http:// instead of https://. Add a store or regex step to fix the scheme.`);
+        } else {
+          resultIssues.push(`COVER is not a valid https:// URL ("${r.COVER.slice(0, 100)}"). COVER must be an absolute https:// URL pointing to an image.`);
+        }
       }
       
       // Check other fields for unreplaced variables

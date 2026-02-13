@@ -328,6 +328,8 @@ Without all three, the recipe will fail validation.
 
 ## COVER Extraction — Getting a Clean Image URL
 
+**⚠️ COVER is validated: values that don't start with `https://` will be rejected.** CSS syntax like `background-image: url(...)` will cause a validation failure.
+
 COVER must be a **clean, absolute `https://` URL** pointing directly to an image file. Common pitfalls and how to solve them:
 
 ### Preferred sources (in order of reliability)
