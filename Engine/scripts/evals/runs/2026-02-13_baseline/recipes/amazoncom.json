@@ -1,0 +1,153 @@
+{
+  "recipe_shortcut": "amazoncom",
+  "list_type": "generic",
+  "engine_version": 20,
+  "title": "Amazon.com",
+  "description": "Retrieve generic from amazon.com",
+  "urls": [
+    "https://amazon.com",
+    "https://www.amazon.com"
+  ],
+  "headers": {
+    "Accept-Language": "en-UK,en",
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.113 Safari/537.36"
+  },
+  "autocomplete_steps": [],
+  "url_steps": [
+    {
+      "command": "load",
+      "url": "$INPUT",
+      "config": {
+        "js": true,
+        "timeout": 10000
+      },
+      "description": "Load Amazon product page"
+    },
+    {
+      "command": "store_url",
+      "output": {
+        "name": "URL"
+      },
+      "description": "Save the current URL"
+    },
+    {
+      "command": "store_text",
+      "locator": "span#productTitle",
+      "output": {
+        "name": "TITLE",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract product title"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "meta[name='description']",
+      "attribute_name": "content",
+      "output": {
+        "name": "META_DESC",
+        "type": "string"
+      },
+      "description": "Extract meta description as fallback"
+    },
+    {
+      "command": "store_text",
+      "locator": "#feature-bullets",
+      "output": {
+        "name": "BULLETS",
+        "type": "string"
+      },
+      "description": "Extract feature bullets text"
+    },
+    {
+      "command": "store_text",
+      "locator": "#productDescription",
+      "output": {
+        "name": "PROD_DESC",
+        "type": "string"
+      },
+      "description": "Extract product description text"
+    },
+    {
+      "command": "store",
+      "input": "$BULLETS $PROD_DESC",
+      "output": {
+        "name": "DESCRIPTION",
+        "type": "string",
+        "show": true
+      },
+      "description": "Combine bullet points and product description"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "link[rel='shortcut icon'], link[rel='icon']",
+      "attribute_name": "href",
+      "output": {
+        "name": "RAW_FAVICON",
+        "type": "string"
+      },
+      "description": "Extract favicon href"
+    },
+    {
+      "command": "store",
+      "input": "https://www.amazon.com/favicon.ico",
+      "output": {
+        "name": "FAVICON",
+        "type": "string",
+        "show": true
+      },
+      "description": "Use Amazon favicon URL"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "#landingImage, #imgBlkFront, #ebooksImgBlkFront",
+      "attribute_name": "src",
+      "output": {
+        "name": "COVER",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract main product image"
+    },
+    {
+      "command": "store_text",
+      "locator": "#acrPopover span.a-icon-alt",
+      "output": {
+        "name": "RAW_RATING",
+        "type": "string"
+      },
+      "description": "Extract rating text"
+    },
+    {
+      "command": "regex",
+      "input": "$RAW_RATING",
+      "expression": "([\\d.]+)",
+      "output": {
+        "name": "RATING",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract numeric rating value"
+    },
+    {
+      "command": "store_text",
+      "locator": "span.a-price > span.a-offscreen",
+      "output": {
+        "name": "PRICE",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract product price"
+    },
+    {
+      "command": "store_text",
+      "locator": "#bylineInfo",
+      "output": {
+        "name": "BRAND",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract brand or seller name"
+    }
+  ]
+}

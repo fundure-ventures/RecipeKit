@@ -1,0 +1,13 @@
+{
+  "id": "footballkitarchive",
+  "description": "Football Kit Archive — historical football kits database",
+  "mode": "url",
+  "url": "https://www.footballkitarchive.com",
+  "test_url": "https://www.footballkitarchive.com/real-madrid-2024-25-home-kit/",
+  "test_query": "real madrid",
+  "expected_fields": ["TITLE", "COVER", "DESCRIPTION"],
+  "expected_field_patterns": {
+    "COVER": "^https://"
+  },
+  "tags": ["sports", "default"]
+}

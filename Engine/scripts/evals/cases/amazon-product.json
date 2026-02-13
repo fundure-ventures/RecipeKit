@@ -1,0 +1,12 @@
+{
+  "id": "amazon-product",
+  "description": "Amazon product detail page — RAM module",
+  "mode": "url-only",
+  "url": "https://www.amazon.com/GIGASTONE-Desktop-DDR4-3200MHz-PC4-25600-Unbuffered/dp/B0CB2TZKCG",
+  "expected_fields": ["TITLE", "COVER", "DESCRIPTION"],
+  "expected_field_patterns": {
+    "TITLE": "GIGASTONE",
+    "COVER": "^https://"
+  },
+  "tags": ["ecommerce", "detail-page", "default"]
+}
