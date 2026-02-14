@@ -49,7 +49,7 @@
       "command": "store_text",
       "locator": "[data-testid='tweetText']",
       "output": {
-        "name": "SUMMARY",
+        "name": "DESCRIPTION",
         "type": "string",
         "show": true
       }
