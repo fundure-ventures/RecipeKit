@@ -5,8 +5,8 @@
   "title": "Perfumes and Colognes Magazine, Perfume Reviews and Online Community—Fragrantica.com",
   "description": "Retrieve generic from fragrantica.com",
   "urls": [
-    "https://fragrantica.com",
-    "https://www.fragrantica.com"
+    "https://fragrantica.*",
+    "https://www.fragrantica.*"
   ],
   "headers": {
     "Accept-Language": "en-UK,en",
