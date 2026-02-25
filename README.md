@@ -344,59 +344,85 @@ URL-encodes a string for use in URLs.
 }
 ```
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `name` | string | Variable name to store the value |
-| `type` | string | Data type: `string`, `float`, `integer`, `date` |
-| `format` | string | Date format (e.g., `YYYY` for year only) |
-| `show` | boolean | Whether to include in final output |
+| Property | Type | Required | Description |
+|----------|------|----------|-------------|
+| `name` | string | Yes | Variable name to store the value |
+| `type` | string | No | Data type: `string`, `float`, `integer`, `date` |
+| `format` | string | No | Date format (e.g., `YYYY` for year only) |
+| `show` | boolean | **Yes** | Must be explicitly `true` or `false`. `true` = include in final output; `false` = internal/intermediate value only |
 
-### Standard Field Names
+### Field Schema & Validation
 
-#### Autocomplete Results (indexed with `$i`)
+All recognized output field names are defined in [`schema/fields.json`](schema/fields.json). The engine validates output keys at runtime:
 
-| Field | Required | Description |
-|-------|----------|-------------|
-| `TITLE$i` | **Yes** | Result title |
-| `URL$i` | **Yes** | Link to detail page (must be absolute) |
-| `COVER$i` | **Yes** | Thumbnail image URL |
-| `SUBTITLE$i` | No | Secondary info (year, author, etc.) |
+1. If `show` is **not defined** → engine throws an error (it is a required field)
+2. If `show: true` and the key **exists** in the schema → process normally (store and display in UI)
+3. If `show: true` and the key **does NOT exist** → ignore the value and log a warning
+4. If `show: false` → no validation; any key name is allowed for internal/intermediate values
 
-#### URL Details (single item)
+### Two Rendering Contexts
 
-| Field | Description | Example |
-|-------|-------------|---------|
-| `TITLE` | Item title | "Inception" |
-| `DESCRIPTION` | Full description | "A thief who steals..." |
-| `COVER` | Main image URL | "https://..." |
-| `RATING` | Numeric rating | 8.8 |
-| `DATE` | Release/publish date | "2010" |
-| `AUTHOR` | Creator/director/artist | "Christopher Nolan" |
-| `TIME` | Duration | "148 min" |
-| `TAGS` | Categories/genres (array) | ["Action", "Sci-Fi"] |
-| `PRICE` | Price | "$9.99" |
-| `URL` | Canonical URL | "https://..." |
-| `URL_SALE` | Purchase link | "https://..." |
-| `FAVICON` | Site favicon | "https://..." |
-| `LATITUDE` | Location latitude | 40.7128 |
-| `LONGITUDE` | Location longitude | -74.0060 |
+Recipe steps operate in two distinct UI contexts, each with its own set of valid field names:
 
-#### Content-Specific Fields
+| Context | Step type | Keys use `$i` index | UI purpose |
+|---------|-----------|---------------------|------------|
+| **Suggestions** | `autocomplete_steps` | Yes (`TITLE$i`, `COVER$i`) | Search result list cells |
+| **Detail** | `url_steps` | No (`TITLE`, `AUTHOR`) | Item detail screen |
 
-| Field | Used In | Description |
-|-------|---------|-------------|
-| `GENRE` | movies, tv_shows | Genre classification |
-| `EPISODES` | tv_shows, anime | Number of episodes |
-| `PAGES` | books, manga | Page count |
-| `VOLUMES` | manga | Number of volumes |
-| `WINERY` | wines | Winery name |
-| `REGION` | wines, beers | Geographic region |
-| `VINTAGE` | wines | Wine vintage year |
-| `ALCOHOL` | beers, wines | Alcohol percentage |
-| `STYLE` | beers | Beer style |
-| `INGREDIENTS` | recipes, food | Ingredient list |
-| `ORIGINAL_TITLE` | movies, anime | Original language title |
-| `ICON` | software | App icon |
+The same key name (e.g., `TITLE`) maps to different UI components depending on context:
+- `TITLE$i` in autocomplete → suggestion cell title text
+- `TITLE` in url_steps → large bold header on the detail screen
+
+### UI Roles
+
+Each field in the schema has a `role` that determines how it renders in the app. See `schema/fields.json` → `roles` for full descriptions.
+
+| Role | UI rendering | Example keys |
+|------|-------------|--------------|
+| `suggestion_title` | Primary text in autocomplete result row | TITLE |
+| `suggestion_subtitle` | Secondary text in autocomplete result row | SUBTITLE |
+| `suggestion_image` | Thumbnail in autocomplete result row | COVER |
+| `suggestion_url` | Hidden navigation target | URL |
+| `title` | Large bold heading on detail screen | TITLE |
+| `subtitle` | Secondary text next to title | WINERY |
+| `cover` | Main image on detail screen | COVER, ICON, AVATAR |
+| `expandable_text` | 3-line preview that expands on tap | DESCRIPTION, SUMMARY |
+| `slide_badge` | Pill card in horizontal scroll row | RATING, DATE, DURATION, PRICE, YEAR, PLAYERS |
+| `attribute_label` | Key-value property row | AUTHOR, GENRE, TAGS, PAGES, EPISODES |
+| `favicon` | Small icon image | FAVICON |
+| `link` | Tappable URL | URL, WEBSITE |
+| `button` | Action button (e.g., Buy) | URL_SALE |
+| `tab_content` | Separate scrollable tab | INGREDIENTS, STEPS |
+| `map_view` | Interactive map with pin | COORDS, LATITUDE, LONGITUDE |
+
+### Autocomplete Fields (indexed with `$i`)
+
+| Field | Type | Role | Description |
+|-------|------|------|-------------|
+| `TITLE$i` | string | suggestion_title | Result title |
+| `SUBTITLE$i` | string | suggestion_subtitle | Secondary info (year, author, etc.) |
+| `COVER$i` | string | suggestion_image | Thumbnail image URL |
+| `URL$i` | string | suggestion_url | Link to detail page (must be absolute) |
+
+### URL Detail Fields
+
+The full list of 48 recognized detail fields is defined in `schema/fields.json` → `url_fields`. Common fields:
+
+| Field | Type | Role | Description |
+|-------|------|------|-------------|
+| `TITLE` | string | title | Item title |
+| `COVER` | string | cover | Main image URL |
+| `DESCRIPTION` | string | expandable_text | Full description text |
+| `RATING` | float | slide_badge | Numeric rating |
+| `DATE` | date | slide_badge | Release/publish date |
+| `AUTHOR` | string | attribute_label | Creator/director/artist |
+| `TAGS` | string | attribute_label | Categories/genres |
+| `PRICE` | float | slide_badge | Price |
+| `URL` | string | link | Canonical URL |
+| `URL_SALE` | string | button | Purchase link |
+| `FAVICON` | string | favicon | Site favicon |
+
+For content-specific fields (wines, recipes, restaurants, etc.), refer to `schema/fields.json`.
 
 ---
 
