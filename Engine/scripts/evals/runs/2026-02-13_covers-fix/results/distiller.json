@@ -1,0 +1,683 @@
+{
+  "caseId": "distiller",
+  "testCase": {
+    "id": "distiller",
+    "description": "Distiller — spirits and whiskey database",
+    "mode": "url",
+    "url": "https://www.distiller.com",
+    "test_url": "https://distiller.com/spirits/george-t-stagg-bourbon-fall-2019",
+    "test_query": "bourbon",
+    "expected_fields": [
+      "TITLE",
+      "COVER",
+      "DESCRIPTION"
+    ],
+    "expected_field_patterns": {
+      "COVER": "^https://"
+    },
+    "tags": [
+      "spirits",
+      "default"
+    ]
+  },
+  "score": {
+    "score": 100,
+    "metrics": {
+      "fields_present": 100,
+      "urls_valid": 100,
+      "patterns_match": 100,
+      "no_errors": 100
+    },
+    "passed": true,
+    "details": {
+      "fields_present": {
+        "presentFields": [
+          "TITLE",
+          "COVER",
+          "DESCRIPTION"
+        ],
+        "missingFields": [],
+        "total": 3
+      },
+      "urls_valid": {
+        "checks": [
+          {
+            "field": "COVER",
+            "value": "https://ip-distiller.imgix.net/images/spirits/96133fd0-b701-0137-c627-0a8f7e82b852/btac_gts_2019_original.jpg?w=640&h=28",
+            "valid": true
+          }
+        ],
+        "valid": 1,
+        "total": 1
+      },
+      "patterns_match": {
+        "checks": [
+          {
+            "field": "COVER",
+            "pattern": "^https://",
+            "value": "https://ip-distiller.imgix.net/images/spirits/96133fd0-b701-0137-c627-0a8f7e82b852/btac_gts_2019_original.jpg?w=640&h=28",
+            "matched": true
+          }
+        ],
+        "matched": 1,
+        "total": 1
+      },
+      "no_errors": {
+        "hadErrors": false,
+        "success": true
+      }
+    },
+    "threshold": 70
+  },
+  "urlResults": {
+    "TITLE": "George T. Stagg Bourbon (Fall 2019)",
+    "DESCRIPTION": "George T. Stagg Bourbon (Fall 2019) is an uncut, unfiltered Kentucky Straight Bourbon Whiskey and is one of the five bottlings in the Buffalo Trace...",
+    "COVER": "https://ip-distiller.imgix.net/images/spirits/96133fd0-b701-0137-c627-0a8f7e82b852/btac_gts_2019_original.jpg?w=640&h=280&mark-w=70&mark-h=70&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=",
+    "RATING": "Score98",
+    "STYLE": "BourbonProduced anywhere in USA; Mash bill of at least 51% corn; aged in new, charred oak containers.",
+    "COUNTRY": "George T. Stagg // Kentucky, USA",
+    "COMMUNITY_RATING": "4.6"
+  },
+  "autocompleteResults": [
+    {
+      "TITLE": "Buffalo Trace Bourbon",
+      "URL": "https://distiller.com/spirits/buffalo-trace-bourbon",
+      "COVER": "https://ip-distiller.imgix.net/images/spirits/7835c5b1-c104-4846-af20-69afba81c6c0/buffalo_trace_bourbbon_original.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=",
+      "SUBTITLE": "Bourbon,Kentucky, USA"
+    },
+    {
+      "TITLE": "Eagle Rare 10 Year Bourbon",
+      "URL": "https://distiller.com/spirits/eagle-rare-10-year",
+      "COVER": "https://ip-distiller.imgix.net/images/spirits/0d8bd475-ac66-4f37-9ee6-dd7b5da7bf40/eagle_rare_10_yr_original.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=",
+      "SUBTITLE": "Bourbon,Kentucky, USA"
+    },
+    {
+      "TITLE": "Woodford Reserve Bourbon",
+      "URL": "https://distiller.com/spirits/woodford-reserve-bourbon",
+      "COVER": "https://ip-distiller.imgix.net/images/spirits/634e943c-b937-48ec-bc60-431a28f62924/woodford_reserve_bourbon_original.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=",
+      "SUBTITLE": "Bourbon,Kentucky, USA"
+    },
+    {
+      "TITLE": "Bulleit Bourbon",
+      "URL": "https://distiller.com/spirits/bulleit-bourbon",
+      "COVER": "https://ip-distiller.imgix.net/images/spirits/98226c9e-12cd-41a5-a377-5e0a34fa8873/bulleit_bourbon_original.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=",
+      "SUBTITLE": "Bourbon,Kentucky, USA"
+    },
+    {
+      "TITLE": "",
+      "URL": "https://distiller.com/join-pro",
+      "COVER": "",
+      "SUBTITLE": ""
+    },
+    {
+      "TITLE": "Maker's Mark Bourbon",
+      "URL": "https://distiller.com/spirits/maker-s-mark",
+      "COVER": "https://ip-distiller.imgix.net/images/spirits/9696a0b9-166c-464e-9c49-81fa7385c814/makers_mark_original.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=",
+      "SUBTITLE": "Bourbon,Kentucky, USA"
+    },
+    {
+      "TITLE": "Four Roses Single Barrel Bourbon",
+      "URL": "https://distiller.com/spirits/four-roses-single-barrel-bourbon",
+      "COVER": "https://ip-distiller.imgix.net/images/spirits/0bf4fe42-abee-4202-8ef7-bc30fc112dfa/four_roses_single_barrel_original-1687469915.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=",
+      "SUBTITLE": "Bourbon,Kentucky, USA"
+    },
+    {
+      "TITLE": "Basil Hayden Bourbon",
+      "URL": "https://distiller.com/spirits/basil-hayden-s-bourbon",
+      "COVER": "https://ip-distiller.imgix.net/images/spirits/d6f849b4-c1dc-4da4-949f-bffe74ba15db/basil_hayden_bourbon_update_original-1663719414.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=",
+      "SUBTITLE": "Bourbon,Kentucky, USA"
+    },
+    {
+      "TITLE": "Elijah Craig Small Batch Bourbon",
+      "URL": "https://distiller.com/spirits/elijah-craig-small-batch",
+      "COVER": "https://ip-distiller.imgix.net/images/spirits/8583aed0-a5cb-0133-e0c8-0232699e90e1/elijah_craig_small_batch_1789_original.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=",
+      "SUBTITLE": "Bourbon,Kentucky, USA"
+    }
+  ],
+  "agentTurns": [
+    {
+      "agent": "author",
+      "type": "session_create",
+      "model": "claude-opus-4.6",
+      "raw": "DEBUG: Creating new author session with model claude-opus-4.6"
+    },
+    {
+      "agent": "querytest",
+      "type": "session_create",
+      "model": "claude-opus-4.6",
+      "raw": "DEBUG: Creating new querytest session with model claude-opus-4.6"
+    },
+    {
+      "agent": "querytest",
+      "type": "send",
+      "raw": "DEBUG: [querytest] Sending task..."
+    },
+    {
+      "agent": "querytest",
+      "type": "receive",
+      "chars": 340,
+      "raw": "DEBUG: [querytest] Response received (340 chars)"
+    },
+    {
+      "agent": "author",
+      "type": "send",
+      "raw": "DEBUG: [author] Sending task..."
+    },
+    {
+      "agent": "author",
+      "type": "receive",
+      "chars": 2583,
+      "raw": "DEBUG: [author] Response received (2583 chars)"
+    },
+    {
+      "agent": "author",
+      "type": "send",
+      "raw": "DEBUG: [author] Sending task..."
+    },
+    {
+      "agent": "author",
+      "type": "receive",
+      "chars": 3413,
+      "raw": "DEBUG: [author] Response received (3413 chars)"
+    },
+    {
+      "agent": "fixer",
+      "type": "session_create",
+      "model": "claude-opus-4.6",
+      "raw": "DEBUG: Creating new fixer session with model claude-opus-4.6"
+    },
+    {
+      "agent": "fixer",
+      "type": "send",
+      "raw": "DEBUG: [fixer] Sending task..."
+    },
+    {
+      "agent": "fixer",
+      "type": "receive",
+      "chars": 1217,
+      "raw": "DEBUG: [fixer] Response received (1217 chars)"
+    },
+    {
+      "agent": "fixer",
+      "type": "receive",
+      "chars": 1487,
+      "raw": "DEBUG: [fixer] Response received (1487 chars)"
+    }
+  ],
+  "events": [
+    {
+      "type": "case_start",
+      "time": "2026-02-13T21:39:18.658Z",
+      "case_id": "distiller",
+      "mode": "url"
+    },
+    {
+      "type": "autorecipe_start",
+      "time": "2026-02-13T21:39:18.658Z"
+    },
+    {
+      "type": "autorecipe_end",
+      "time": "2026-02-13T21:42:25.276Z",
+      "exitCode": 0,
+      "duration_ms": 186617,
+      "stdout": "ℹ Starting autoRecipe for https://www.distiller.com\n→ Launching browser...\n→ Initializing AgentOrchestrator...\n✓ AgentOrchestrator initialized\n  DEBUG: Creating new author session with model claude-opus-4.6\n  DEBUG: Creating new querytest session with model claude-opus-4.6\n→ Probing https://www.distiller.com...\n  DEBUG: {\n  \"input_url\": \"https://www.distiller.com\",\n  \"final_url\": \"https://distiller.com/\",\n  \"hostname\": \"distiller.com\",\n  \"title\": \"World’s Largest Spirits Community. Reviews, Tasting Notes, Collection Tracking\",\n  \"meta_description\": \"Distiller is filled with expert reviews of liquor from all over the world so your next purchase, bar order, or gift, will be the right one!\",\n  \"h1\": \"distiller_headline\",\n  \"jsonld_types\": [\n    \"WebSite\"\n  ],\n  \"links_sample\": [\n    {\n      \"text\": \"Skip to navigation\",\n      \"href\": \"https://distiller.com/#global-menu\"\n    },\n    {\n      \"text\": \"Skip to main content\",\n      \"href\": \"https://distiller.com/#main-content\"\n    },\n    {\n      \"text\": \"Skip to footer\",\n      \"href\": \"https://distiller.com/#global-footer\"\n    },\n    {\n      \"text\": \"Create Account\",\n      \"href\": \"https://distiller.com/users/sign_up\"\n    },\n    {\n      \"text\": \"Sign in\",\n      \"href\": \"https://distiller.com/users/sign_in\"\n    },\n    {\n      \"text\": \"free distiller app\",\n      \"href\": \"https://itunes.apple.com/us/app/distiller-your-whiskey-companion/id784925833?mt=8&uo=4\"\n    },\n    {\n      \"text\": \"Download Now\",\n      \"href\": \"https://itunes.apple.com/us/app/distiller-your-whiskey-companion/id784925833?mt=8&uo=4\"\n    },\n    {\n      \"text\": \"free distiller app\",\n      \"href\": \"https://itunes.apple.com/us/app/distiller-your-whiskey-companion/id784925833?mt=8&uo=4\"\n    },\n    {\n      \"text\": \"Learn More About Cookies\",\n      \"href\": \"https://distiller.com/cookie-policy\"\n    },\n    {\n      \"text\": \"Search\",\n      \"href\": \"https://distiller.com/search\"\n    },\n    {\n      \"text\": \"Distiller Home\",\n      \"href\": \"https://distiller.com/\"\n    },\n    {\n      \"text\": \"Search\",\n      \"href\": \"https://distiller.com/search\"\n    },\n    {\n      \"text\": \"Find People\",\n      \"href\": \"https://distiller.com/user_search\"\n    },\n    {\n      \"text\": \"Join Pro\",\n      \"href\": \"https://distiller.com/join-pro\"\n    },\n    {\n      \"text\": \"Recommend\",\n      \"href\": \"https://distiller.com/recommend\"\n    },\n    {\n      \"text\": \"Articles\",\n      \"href\": \"https://distiller.com/articles\"\n    }\n  ],\n  \"search\": {\n    \"has_search\": false,\n    \"search_box_locator\": null,\n    \"search_form_action\": null\n  }\n}\nℹ Using list_type: generic (classification skipped)\nℹ Phase 2: Generating autocomplete_steps...\n→ Inferring optimal test query...\n  DEBUG: [querytest] Sending task...\n  DEBUG: [querytest] Event: pending_messages.modified\n  DEBUG: [querytest] Event: pending_messages.modified\n  DEBUG: [querytest] Event: user.message\n  DEBUG: [querytest] Event: assistant.turn_start\n  DEBUG: [querytest] Event: assistant.usage\n  DEBUG: [querytest] Event: assistant.message\n  DEBUG: [querytest] Event: assistant.turn_end\n  DEBUG: [querytest] Event: session.idle\n  DEBUG: [querytest] Response received (340 chars)\n✓ Using test query: \"bourbon\" (other)\n  DEBUG: Reasoning: Distiller.com is a spirits review community. The app is described as 'your whiskey companion' and the site covers liquor reviews. 'bourbon' is a major whiskey category certain to return many results.\n  DEBUG: Alternatives: whiskey, scotch, rye\nℹ Trying search URL pattern: https://distiller.com/search?q=bourbon\n→ Probing search results for \"bourbon\"...\nℹ Loading search URL: https://distiller.com/search?q=bourbon\n  DEBUG: Captured search API: GET https://ads.adthrive.com/api/v1/marmalade?siteid=606c5a9360a4830c06758746&url=ht...\n  DEBUG: Dismissed cookie banner via: button[id*=\"accept\"]\nℹ Found consecutive parent: div.content-container > div:nth-of-type($i)\n  DEBUG: searchEvidence.api: null\n  DEBUG: searchEvidence.search_type: url_query\n  DEBUG: [author] Sending task...\n  DEBUG: [author] Event: pending_messages.modified\n  DEBUG: [author] Event: pending_messages.modified\n  DEBUG: [author] Event: user.message\n  DEBUG: [author] Event: assistant.turn_start\n  DEBUG: [author] Event: assistant.usage\n  DEBUG: [author] Event: assistant.message\n  DEBUG: [author] Event: assistant.reasoning\n  DEBUG: [author] Event: tool.execution_start\n  DEBUG: [author] Event: tool.execution_start\n  DEBUG: [author] Event: tool.execution_complete\n  DEBUG: [author] Event: tool.execution_complete\n  DEBUG: [author] Event: assistant.turn_end\n  DEBUG: [author] Event: assistant.turn_start\n  DEBUG: [author] Event: assistant.usage\n  DEBUG: [author] Event: assistant.message\n  DEBUG: [author] Event: assistant.reasoning\n  DEBUG: [author] Event: tool.execution_start\n  DEBUG: [author] Event: tool.execution_complete\n  DEBUG: [author] Event: assistant.turn_end\n  DEBUG: [author] Event: assistant.turn_start\n  DEBUG: [author] Event: assistant.usage\n  DEBUG: [author] Event: assistant.message\n  DEBUG: [author] Event: tool.execution_start\n  DEBUG: [author] Event: tool.execution_complete\n  DEBUG: [author] Event: assistant.turn_end\n  DEBUG: [author] Event: assistant.turn_start\n  DEBUG: [author] Event: assistant.usage\n  DEBUG: [author] Event: assistant.message\n  DEBUG: [author] Event: tool.execution_start\n  DEBUG: [author] Event: tool.execution_complete\n  DEBUG: [author] Event: assistant.turn_end\n  DEBUG: [author] Event: assistant.turn_start\n  DEBUG: [author] Event: assistant.usage\n  DEBUG: [author] Event: assistant.message\n  DEBUG: [author] Event: assistant.reasoning\n  DEBUG: [author] Event: assistant.turn_end\n  DEBUG: [author] Event: session.idle\n  DEBUG: [author] Response received (2583 chars)\n✓ Wrote recipe: /Users/ismael/Developer/listy-recipekit/Engine/scripts/evals/runs/2026-02-13_covers-fix/recipes/distillercom.json\nℹ Testing autocomplete_steps...\nℹ Starting debug-first repair loop for autocomplete_steps...\n→ Repair iteration 1/5...\n→ Running engine: autocomplete with input \"bourbon...\"\n✓ Recipe working after 0 iteration(s)!\nℹ   → Got 9 results\n→ Running engine: autocomplete with input \"bourbon...\"\n✓ Autocomplete working: 8 valid results\nℹ   Sample: \"Buffalo Trace Bourbon\" → https://distiller.com/spirits/buffalo-trace-bourbo...\n⚠   Result 5: SUBTITLE is empty (optional)\n✓ ✓ Semantic match: 8/9 results contain \"bourbon\"\nℹ Phase 3: Generating url_steps...\n→ Probing detail page https://distiller.com/spirits/buffalo-trace-bourbon...\n  DEBUG: [author] Sending task...\n  DEBUG: [author] Event: pending_messages.modified\n  DEBUG: [author] Event: pending_messages.modified\n  DEBUG: [author] Event: user.message\n  DEBUG: [author] Event: assistant.turn_start\n  DEBUG: [author] Event: assistant.usage\n  DEBUG: [author] Event: assistant.message\n  DEBUG: [author] Event: assistant.turn_end\n  DEBUG: [author] Event: session.idle\n  DEBUG: [author] Response received (3413 chars)\nℹ Testing url_steps...\nℹ Starting debug-first repair loop for url_steps...\n→ Repair iteration 1/5...\n→ Running engine: url with input \"https://distiller.com/spirits/buffalo-trace-bourbo...\"\n⚠ Fields with empty values: FAVICON, STYLE, COUNTRY, COMMUNITY_RATING\n⚠ Engine output not as expected. Debugging recipe steps with Puppeteer...\n→ Debugging url_steps steps on https://distiller.com/spirits/buffalo-trace-bourbon...\nℹ Debug results: 4 working, 4 failed\n✗   Step 5: \"Extract favicon\" - selector \"link[rel='icon']\" found 0 elements\n✗   Step 7: \"Extract spirit style/category\" - selector \"span.accented-text\" found 0 elements\n✗   Step 8: \"Extract country of origin\" - selector \"span.location\" found 0 elements\n✗   Step 9: \"Extract community rating text\" - selector \"div.community-rating\" found 0 elements\nℹ     → Suggested alternative: \"[class*=\"stars\"]\" (found 1)\n  DEBUG: Creating new fixer session with model claude-opus-4.6\n  DEBUG: [fixer] Sending task...\n  DEBUG: [fixer] Event: pending_messages.modified\n  DEBUG: [fixer] Event: pending_messages.modified\n  DEBUG: [fixer] Event: user.message\n  DEBUG: [fixer] Event: assistant.turn_start\n  DEBUG: [fixer] Event: assistant.usage\n  DEBUG: [fixer] Event: assistant.message\n  DEBUG: [fixer] Event: assistant.turn_end\n  DEBUG: [fixer] Event: session.idle\n  DEBUG: [fixer] Response received (1217 chars)\n✓ Applied 5 patches: Fixed failed selectors: FAVICON uses broader link selector, STYLE/COUNTRY use attribute-contains selectors since original classes not found, COMMUNITY_RATING uses itemprop='ratingValue' which returns clean '3.71' per evidence alternatives\nℹ Recipe updated. Retrying...\n→ Repair iteration 2/5...\n→ Running engine: url with input \"https://distiller.com/spirits/buffalo-trace-bourbo...\"\n⚠ Fields with empty values: FAVICON\n⚠ Engine output not as expected. Debugging recipe steps with Puppeteer...\n→ Debugging url_steps steps on https://distiller.com/spirits/buffalo-trace-bourbon...\nℹ Debug results: 7 working, 1 failed\n✗   Step 5: \"Extract favicon\" - selector \"link[rel='shortcut icon'], link[rel='icon'], link[type='image/x-icon']\" found 0 elements\n  DEBUG: [fixer] Event: pending_messages.modified\n  DEBUG: [fixer] Event: pending_messages.modified\n  DEBUG: [fixer] Event: user.message\n  DEBUG: [fixer] Event: assistant.turn_start\n  DEBUG: [fixer] Event: assistant.usage\n  DEBUG: [fixer] Event: assistant.message\n  DEBUG: [fixer] Event: assistant.turn_end\n  DEBUG: [fixer] Event: session.idle\n  DEBUG: [fixer] Response received (1487 chars)\n✓ Applied 6 patches: FAVICON has no link[rel=icon] on page - reuse og:image as fallback so it's not empty. Simplified STYLE selector to target li.detail.whiskey-style directly, and COUNTRY to p.location. The engine reports 'empty_results' likely because FAVICON is empty string - providing a fallback value should fix this.\nℹ Recipe updated. Retrying...\n→ Repair iteration 3/5...\n→ Running engine: url with input \"https://distiller.com/spirits/buffalo-trace-bourbo...\"\n✓ Recipe working after 2 iteration(s)!\nℹ   → Got fields: TITLE, DESCRIPTION, COVER, RATING, STYLE, COUNTRY, COMMUNITY_RATING\n→ Running engine: url with input \"https://distiller.com/spirits/buffalo-trace-bourbo...\"\n✓ URL steps working: TITLE, DESCRIPTION, COVER, RATING, STYLE, COUNTRY, COMMUNITY_RATING\nℹ Phase 4: Generating test file...\n✓ Wrote test: /Users/ismael/Developer/listy-recipekit/Engine/scripts/evals/runs/2026-02-13_covers-fix/recipes/distillercom.test.js\n✓ ✓ Recipe is fully functional!\n  DEBUG: Closing AgentOrchestrator...\n  DEBUG: Destroyed author session\n  DEBUG: Destroyed querytest session\n  DEBUG: Destroyed fixer session\n  DEBUG: AgentOrchestrator closed\n\n⏱  Timing:\n  Phase 1 (probe site):     8.5s\n  Phase 2 (autocomplete):   115.8s\n  Phase 3 (url_steps):      62.1s\n  Phase 4 (test gen):       0ms\n  ────────────────────────────────────\n  Total:                    186.4s\n\n📊 Copilot Usage:\n  Requests: 5\n  By agent:\n    author: 2 req, 0 tokens (claude-opus-4.6)\n    querytest: 1 req, 0 tokens (claude-opus-4.6)\n    fixer: 2 req, 0 tokens (claude-opus-4.6)\n\n✓ Recipe created successfully!\n  Recipe: /Users/ismael/Developer/listy-recipekit/Engine/scripts/evals/runs/2026-02-13_covers-fix/recipes/distillercom.json\n  Test: /Users/ismael/Developer/listy-recipekit/Engine/scripts/evals/runs/2026-02-13_covers-fix/recipes/distillercom.test.js\n",
+      "stderr": ""
+    },
+    {
+      "type": "agent_turns",
+      "time": "2026-02-13T21:42:25.276Z",
+      "turns": [
+        {
+          "agent": "author",
+          "type": "session_create",
+          "model": "claude-opus-4.6",
+          "raw": "DEBUG: Creating new author session with model claude-opus-4.6"
+        },
+        {
+          "agent": "querytest",
+          "type": "session_create",
+          "model": "claude-opus-4.6",
+          "raw": "DEBUG: Creating new querytest session with model claude-opus-4.6"
+        },
+        {
+          "agent": "querytest",
+          "type": "send",
+          "raw": "DEBUG: [querytest] Sending task..."
+        },
+        {
+          "agent": "querytest",
+          "type": "receive",
+          "chars": 340,
+          "raw": "DEBUG: [querytest] Response received (340 chars)"
+        },
+        {
+          "agent": "author",
+          "type": "send",
+          "raw": "DEBUG: [author] Sending task..."
+        },
+        {
+          "agent": "author",
+          "type": "receive",
+          "chars": 2583,
+          "raw": "DEBUG: [author] Response received (2583 chars)"
+        },
+        {
+          "agent": "author",
+          "type": "send",
+          "raw": "DEBUG: [author] Sending task..."
+        },
+        {
+          "agent": "author",
+          "type": "receive",
+          "chars": 3413,
+          "raw": "DEBUG: [author] Response received (3413 chars)"
+        },
+        {
+          "agent": "fixer",
+          "type": "session_create",
+          "model": "claude-opus-4.6",
+          "raw": "DEBUG: Creating new fixer session with model claude-opus-4.6"
+        },
+        {
+          "agent": "fixer",
+          "type": "send",
+          "raw": "DEBUG: [fixer] Sending task..."
+        },
+        {
+          "agent": "fixer",
+          "type": "receive",
+          "chars": 1217,
+          "raw": "DEBUG: [fixer] Response received (1217 chars)"
+        },
+        {
+          "agent": "fixer",
+          "type": "receive",
+          "chars": 1487,
+          "raw": "DEBUG: [fixer] Response received (1487 chars)"
+        }
+      ]
+    },
+    {
+      "type": "engine_url_start",
+      "time": "2026-02-13T21:42:25.276Z"
+    },
+    {
+      "type": "engine_url_end",
+      "time": "2026-02-13T21:42:28.643Z",
+      "success": true,
+      "results": {
+        "TITLE": "George T. Stagg Bourbon (Fall 2019)",
+        "DESCRIPTION": "George T. Stagg Bourbon (Fall 2019) is an uncut, unfiltered Kentucky Straight Bourbon Whiskey and is one of the five bottlings in the Buffalo Trace...",
+        "COVER": "https://ip-distiller.imgix.net/images/spirits/96133fd0-b701-0137-c627-0a8f7e82b852/btac_gts_2019_original.jpg?w=640&h=280&mark-w=70&mark-h=70&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=",
+        "RATING": "Score98",
+        "STYLE": "BourbonProduced anywhere in USA; Mash bill of at least 51% corn; aged in new, charred oak containers.",
+        "COUNTRY": "George T. Stagg // Kentucky, USA",
+        "COMMUNITY_RATING": "4.6"
+      }
+    },
+    {
+      "type": "engine_autocomplete_start",
+      "time": "2026-02-13T21:42:28.643Z"
+    },
+    {
+      "type": "engine_autocomplete_end",
+      "time": "2026-02-13T21:42:34.015Z",
+      "success": true,
+      "results": [
+        {
+          "TITLE": "Buffalo Trace Bourbon",
+          "URL": "https://distiller.com/spirits/buffalo-trace-bourbon",
+          "COVER": "https://ip-distiller.imgix.net/images/spirits/7835c5b1-c104-4846-af20-69afba81c6c0/buffalo_trace_bourbbon_original.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=",
+          "SUBTITLE": "Bourbon,Kentucky, USA"
+        },
+        {
+          "TITLE": "Eagle Rare 10 Year Bourbon",
+          "URL": "https://distiller.com/spirits/eagle-rare-10-year",
+          "COVER": "https://ip-distiller.imgix.net/images/spirits/0d8bd475-ac66-4f37-9ee6-dd7b5da7bf40/eagle_rare_10_yr_original.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=",
+          "SUBTITLE": "Bourbon,Kentucky, USA"
+        },
+        {
+          "TITLE": "Woodford Reserve Bourbon",
+          "URL": "https://distiller.com/spirits/woodford-reserve-bourbon",
+          "COVER": "https://ip-distiller.imgix.net/images/spirits/634e943c-b937-48ec-bc60-431a28f62924/woodford_reserve_bourbon_original.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=",
+          "SUBTITLE": "Bourbon,Kentucky, USA"
+        },
+        {
+          "TITLE": "Bulleit Bourbon",
+          "URL": "https://distiller.com/spirits/bulleit-bourbon",
+          "COVER": "https://ip-distiller.imgix.net/images/spirits/98226c9e-12cd-41a5-a377-5e0a34fa8873/bulleit_bourbon_original.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=",
+          "SUBTITLE": "Bourbon,Kentucky, USA"
+        },
+        {
+          "TITLE": "",
+          "URL": "https://distiller.com/join-pro",
+          "COVER": "",
+          "SUBTITLE": ""
+        },
+        {
+          "TITLE": "Maker's Mark Bourbon",
+          "URL": "https://distiller.com/spirits/maker-s-mark",
+          "COVER": "https://ip-distiller.imgix.net/images/spirits/9696a0b9-166c-464e-9c49-81fa7385c814/makers_mark_original.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=",
+          "SUBTITLE": "Bourbon,Kentucky, USA"
+        },
+        {
+          "TITLE": "Four Roses Single Barrel Bourbon",
+          "URL": "https://distiller.com/spirits/four-roses-single-barrel-bourbon",
+          "COVER": "https://ip-distiller.imgix.net/images/spirits/0bf4fe42-abee-4202-8ef7-bc30fc112dfa/four_roses_single_barrel_original-1687469915.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=",
+          "SUBTITLE": "Bourbon,Kentucky, USA"
+        },
+        {
+          "TITLE": "Basil Hayden Bourbon",
+          "URL": "https://distiller.com/spirits/basil-hayden-s-bourbon",
+          "COVER": "https://ip-distiller.imgix.net/images/spirits/d6f849b4-c1dc-4da4-949f-bffe74ba15db/basil_hayden_bourbon_update_original-1663719414.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=",
+          "SUBTITLE": "Bourbon,Kentucky, USA"
+        },
+        {
+          "TITLE": "Elijah Craig Small Batch Bourbon",
+          "URL": "https://distiller.com/spirits/elijah-craig-small-batch",
+          "COVER": "https://ip-distiller.imgix.net/images/spirits/8583aed0-a5cb-0133-e0c8-0232699e90e1/elijah_craig_small_batch_1789_original.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=",
+          "SUBTITLE": "Bourbon,Kentucky, USA"
+        }
+      ]
+    },
+    {
+      "type": "recipe_content",
+      "time": "2026-02-13T21:42:34.015Z",
+      "recipe": {
+        "recipe_shortcut": "distillercom",
+        "list_type": "generic",
+        "engine_version": 20,
+        "title": "Distiller.com",
+        "description": "Retrieve generic from distiller.com",
+        "urls": [
+          "https://distiller.com",
+          "https://www.distiller.com"
+        ],
+        "headers": {
+          "Accept-Language": "en-UK,en",
+          "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.113 Safari/537.36"
+        },
+        "autocomplete_steps": [
+          {
+            "command": "load",
+            "url": "https://distiller.com/search?term=$INPUT",
+            "config": {
+              "js": true,
+              "timeout": 5000
+            },
+            "description": "Load search results page"
+          },
+          {
+            "command": "store_text",
+            "locator": "ol.spirits > li:nth-child($i) div.name",
+            "output": {
+              "name": "TITLE$i"
+            },
+            "config": {
+              "loop": {
+                "index": "i",
+                "from": 1,
+                "to": 9,
+                "step": 1
+              }
+            },
+            "description": "Extract spirit names"
+          },
+          {
+            "command": "store_attribute",
+            "locator": "ol.spirits > li:nth-child($i) a",
+            "attribute_name": "href",
+            "output": {
+              "name": "URL$i"
+            },
+            "config": {
+              "loop": {
+                "index": "i",
+                "from": 1,
+                "to": 9,
+                "step": 1
+              }
+            },
+            "description": "Extract spirit URLs"
+          },
+          {
+            "command": "store",
+            "input": "https://distiller.com$URL$i",
+            "output": {
+              "name": "URL$i"
+            },
+            "config": {
+              "loop": {
+                "index": "i",
+                "from": 1,
+                "to": 9,
+                "step": 1
+              }
+            },
+            "description": "Make URLs absolute"
+          },
+          {
+            "command": "store_attribute",
+            "locator": "ol.spirits > li:nth-child($i) div.image",
+            "attribute_name": "style",
+            "output": {
+              "name": "RAW_COVER$i"
+            },
+            "config": {
+              "loop": {
+                "index": "i",
+                "from": 1,
+                "to": 9,
+                "step": 1
+              }
+            },
+            "description": "Extract raw style containing background-image"
+          },
+          {
+            "command": "regex",
+            "input": "$RAW_COVER$i",
+            "expression": "url\\(([^)]+)\\)",
+            "output": {
+              "name": "COVER$i"
+            },
+            "config": {
+              "loop": {
+                "index": "i",
+                "from": 1,
+                "to": 9,
+                "step": 1
+              }
+            },
+            "description": "Extract image URL from CSS background-image"
+          },
+          {
+            "command": "store_text",
+            "locator": "ol.spirits > li:nth-child($i) p.origin",
+            "output": {
+              "name": "SUBTITLE$i"
+            },
+            "config": {
+              "loop": {
+                "index": "i",
+                "from": 1,
+                "to": 9,
+                "step": 1
+              }
+            },
+            "description": "Extract spirit category and origin"
+          }
+        ],
+        "url_steps": [
+          {
+            "command": "load",
+            "url": "$INPUT",
+            "config": {
+              "js": true,
+              "timeout": 5000
+            },
+            "description": "Load spirit detail page"
+          },
+          {
+            "command": "store_url",
+            "output": {
+              "name": "URL"
+            },
+            "description": "Save the current URL"
+          },
+          {
+            "command": "store_text",
+            "locator": "h1",
+            "output": {
+              "name": "TITLE",
+              "type": "string",
+              "show": true
+            },
+            "description": "Extract spirit name from h1"
+          },
+          {
+            "command": "store_attribute",
+            "locator": "meta[property='og:description']",
+            "attribute_name": "content",
+            "output": {
+              "name": "DESCRIPTION",
+              "type": "string",
+              "show": true
+            },
+            "description": "Extract description from og:description"
+          },
+          {
+            "command": "store_attribute",
+            "locator": "meta[property='og:image']",
+            "attribute_name": "content",
+            "output": {
+              "name": "COVER",
+              "type": "string",
+              "show": true
+            },
+            "description": "Extract cover image from og:image"
+          },
+          {
+            "command": "store_attribute",
+            "locator": "meta[property='og:image']",
+            "attribute_name": "content",
+            "output": {
+              "name": "FAVICON",
+              "type": "string",
+              "show": false
+            },
+            "description": "Extract favicon"
+          },
+          {
+            "command": "store_text",
+            "locator": "div.distiller-score",
+            "output": {
+              "name": "RATING",
+              "type": "string",
+              "show": true
+            },
+            "description": "Extract Distiller score"
+          },
+          {
+            "command": "store_text",
+            "locator": "li.detail.whiskey-style",
+            "output": {
+              "name": "STYLE",
+              "type": "string",
+              "show": true
+            },
+            "description": "Extract spirit style/category"
+          },
+          {
+            "command": "store_text",
+            "locator": "p.location",
+            "output": {
+              "name": "COUNTRY",
+              "type": "string",
+              "show": true
+            },
+            "description": "Extract country of origin"
+          },
+          {
+            "command": "store_text",
+            "locator": "[itemprop='ratingValue']",
+            "output": {
+              "name": "RAW_COMMUNITY_RATING",
+              "type": "string"
+            },
+            "description": "Extract community rating text"
+          },
+          {
+            "command": "regex",
+            "input": "$RAW_COMMUNITY_RATING",
+            "expression": "([\\d.]+)",
+            "output": {
+              "name": "COMMUNITY_RATING",
+              "type": "string",
+              "show": true
+            },
+            "description": "Clean community rating number"
+          }
+        ]
+      }
+    },
+    {
+      "type": "score",
+      "time": "2026-02-13T21:42:34.016Z",
+      "score": {
+        "score": 100,
+        "metrics": {
+          "fields_present": 100,
+          "urls_valid": 100,
+          "patterns_match": 100,
+          "no_errors": 100
+        },
+        "passed": true,
+        "details": {
+          "fields_present": {
+            "presentFields": [
+              "TITLE",
+              "COVER",
+              "DESCRIPTION"
+            ],
+            "missingFields": [],
+            "total": 3
+          },
+          "urls_valid": {
+            "checks": [
+              {
+                "field": "COVER",
+                "value": "https://ip-distiller.imgix.net/images/spirits/96133fd0-b701-0137-c627-0a8f7e82b852/btac_gts_2019_original.jpg?w=640&h=28",
+                "valid": true
+              }
+            ],
+            "valid": 1,
+            "total": 1
+          },
+          "patterns_match": {
+            "checks": [
+              {
+                "field": "COVER",
+                "pattern": "^https://",
+                "value": "https://ip-distiller.imgix.net/images/spirits/96133fd0-b701-0137-c627-0a8f7e82b852/btac_gts_2019_original.jpg?w=640&h=28",
+                "matched": true
+              }
+            ],
+            "matched": 1,
+            "total": 1
+          },
+          "no_errors": {
+            "hadErrors": false,
+            "success": true
+          }
+        },
+        "threshold": 70
+      }
+    },
+    {
+      "type": "case_end",
+      "time": "2026-02-13T21:42:34.016Z",
+      "case_id": "distiller"
+    }
+  ],
+  "duration_ms": 186617
+}

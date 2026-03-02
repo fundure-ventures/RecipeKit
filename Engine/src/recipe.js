@@ -62,12 +62,24 @@ export class RecipeEngine {
       return str;
     }
     
-    // Replace all occurrences of each variable using global regex
-    return Object.keys(this.variables).reduce((result, variable) => {
-      const regex = new RegExp(`\\$${variable.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g');
-      const value = this.get(variable);
-      return result.replace(regex, value);
-    }, str);
+    // Sort variables by length descending to prevent partial matches
+    // (e.g., $URL1 matching inside $URL10)
+    const sortedKeys = Object.keys(this.variables)
+      .sort((a, b) => b.length - a.length);
+
+    const doReplace = (input) =>
+      sortedKeys.reduce((result, variable) => {
+        const regex = new RegExp(`\\$${variable.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g');
+        const value = this.get(variable);
+        return result.replace(regex, value);
+      }, input);
+
+    // Two passes: resolves chained vars like $YEAR$i → $YEAR0 → "1991"
+    let result = doReplace(str);
+    if (result.includes('$')) {
+      result = doReplace(result);
+    }
+    return result;
   } 
 
   async initialize() {

@@ -1,0 +1,13 @@
+{
+  "id": "distiller",
+  "description": "Distiller — spirits and whiskey database",
+  "mode": "url",
+  "url": "https://www.distiller.com",
+  "test_url": "https://distiller.com/spirits/george-t-stagg-bourbon-fall-2019",
+  "test_query": "bourbon",
+  "expected_fields": ["TITLE", "COVER", "DESCRIPTION"],
+  "expected_field_patterns": {
+    "COVER": "^https://"
+  },
+  "tags": ["spirits", "default"]
+}

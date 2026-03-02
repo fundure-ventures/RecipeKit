@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "workspaces": [
+    "Engine"
+  ],
+  "scripts": {
+    "test:engine": "bun test Engine/tests/",
+    "test:recipes": "bun test albums/albums.test.js anime/anime.test.js artists/artists.test.js beers/beers.test.js boardgames/boardgames.test.js books/books.test.js generic/allaboutbirdsorg.test.js generic/amazoncom.test.js generic/distillercom.test.js generic/footballkitarchivecom.test.js generic/fragranticacom.test.js generic/funkocom.test.js generic/generic.test.js manga/manga.test.js movies/movies.test.js podcasts/podcasts.test.js recipes/recipes.test.js software/software.test.js songs/songs.test.js tv_shows/tv_shows.test.js videogames/videogames.test.js wines/wines.test.js"
+  }
+}

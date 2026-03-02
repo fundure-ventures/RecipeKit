@@ -1,0 +1,13 @@
+{
+  "id": "fragrantica",
+  "description": "Fragrantica — perfume and fragrance database",
+  "mode": "url",
+  "url": "https://www.fragrantica.com",
+  "test_url": "https://www.fragrantica.com/perfume/Dior/Sauvage-31861.html",
+  "test_query": "sauvage",
+  "expected_fields": ["TITLE", "COVER", "DESCRIPTION"],
+  "expected_field_patterns": {
+    "COVER": "^https://"
+  },
+  "tags": ["fragrances", "default"]
+}

@@ -1,0 +1,458 @@
+{
+  "caseId": "distiller",
+  "testCase": {
+    "id": "distiller",
+    "description": "Distiller — spirits and whiskey database",
+    "mode": "url",
+    "url": "https://www.distiller.com",
+    "test_url": "https://distiller.com/spirits/george-t-stagg-bourbon-fall-2019",
+    "test_query": "bourbon",
+    "expected_fields": [
+      "TITLE",
+      "COVER",
+      "DESCRIPTION"
+    ],
+    "expected_field_patterns": {
+      "COVER": "^https://"
+    },
+    "tags": [
+      "spirits",
+      "default"
+    ]
+  },
+  "score": {
+    "score": 20,
+    "metrics": {
+      "fields_present": 0,
+      "urls_valid": 100,
+      "patterns_match": 0,
+      "no_errors": 0
+    },
+    "passed": false,
+    "details": {
+      "fields_present": {
+        "presentFields": [],
+        "missingFields": [
+          "TITLE",
+          "COVER",
+          "DESCRIPTION"
+        ],
+        "total": 3
+      },
+      "urls_valid": {
+        "checks": [],
+        "valid": 0,
+        "total": 0
+      },
+      "patterns_match": {
+        "checks": [
+          {
+            "field": "COVER",
+            "pattern": "^https://",
+            "value": "(empty)"
+          }
+        ],
+        "matched": 0,
+        "total": 1
+      },
+      "no_errors": {
+        "hadErrors": true,
+        "success": false
+      }
+    },
+    "threshold": 70
+  },
+  "urlResults": {},
+  "autocompleteResults": [
+    {
+      "TITLE": "Monkey 47 Dry Gin",
+      "URL": "https://distiller.com/spirits/monkey-47-schwarzwald-dry-gin",
+      "COVER": "background-image: url(https://ip-distiller.imgix.net/images/spirits/22c95ea0-6baf-0134-c69b-5ab98231182e/monkey_47_schwarzwald_dry_gin_original.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=)",
+      "SUBTITLE": "99"
+    },
+    {
+      "TITLE": "Eric Bordelet Selection \"Henri Bernard Beudin\" 1997 Single Cask Calvados",
+      "URL": "https://distiller.com/spirits/eric-bordelet-selection-henri-bernard-beudin-1997-single-cask-calvados",
+      "COVER": "background-image: url(https://ip-distiller.imgix.net/images/spirits/72a1b540-867b-0133-ab7b-4e403cbf2cb9/eric_bordelet_selection_henri_bernard_beudin_1997_single_cask_calvados_original.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=)",
+      "SUBTITLE": "99"
+    },
+    {
+      "TITLE": "Rémy Martin Louis XIII Cognac",
+      "URL": "https://distiller.com/spirits/remy-martin-louis-xiii-cognac",
+      "COVER": "background-image: url(https://ip-distiller.imgix.net/images/spirits/d11a60b0-7544-0133-dedd-62b978720717/remy_martin_louis_xiii_cognac_original.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=)",
+      "SUBTITLE": "99"
+    },
+    {
+      "TITLE": "Cognac Dudognon Heritage",
+      "URL": "https://distiller.com/spirits/cognac-dudognon-heritage",
+      "COVER": "background-image: url(https://ip-distiller.imgix.net/images/spirits/ce6fb5a0-6bd4-0133-13c4-16d3e9a61cc7/cognac_dudognon_heritage_original.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=)",
+      "SUBTITLE": "99"
+    },
+    {
+      "TITLE": "",
+      "URL": "https://distiller.com/join-pro",
+      "COVER": "",
+      "SUBTITLE": ""
+    },
+    {
+      "TITLE": "Hibiki 21 Year",
+      "URL": "https://distiller.com/spirits/hibiki-21-year",
+      "COVER": "background-image: url(https://ip-distiller.imgix.net/images/spirits/42372d30-4dbf-0132-ff20-4a02559918a4/hibiki-21_original.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=)",
+      "SUBTITLE": "99"
+    },
+    {
+      "TITLE": "Highland Park 18 Year",
+      "URL": "https://distiller.com/spirits/highland-park-18",
+      "COVER": "background-image: url(https://ip-distiller.imgix.net/images/spirits/0755d5c9-c3c7-41e2-9dbe-401070ab6f19/highland-park-18-year_original-1747951347.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=)",
+      "SUBTITLE": "99"
+    },
+    {
+      "TITLE": "Michter's 20 Year Kentucky Straight Bourbon (2021 Release)",
+      "URL": "https://distiller.com/spirits/michter-s-20-year-kentucky-straight-bourbon-2021-release",
+      "COVER": "background-image: url(https://ip-distiller.imgix.net/images/spirits/c03d5430-18a8-013a-6798-4637613bb8aa/michters_20_year_2018_original_original_original.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=)",
+      "SUBTITLE": "98"
+    },
+    {
+      "TITLE": "George T. Stagg Bourbon (Fall 2019)",
+      "URL": "https://distiller.com/spirits/george-t-stagg-bourbon-fall-2019",
+      "COVER": "background-image: url(https://ip-distiller.imgix.net/images/spirits/96133fd0-b701-0137-c627-0a8f7e82b852/btac_gts_2019_original.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=)",
+      "SUBTITLE": "98"
+    }
+  ],
+  "agentTurns": [
+    {
+      "agent": "author",
+      "type": "session_create",
+      "model": "claude-opus-4.6",
+      "raw": "DEBUG: Creating new author session with model claude-opus-4.6"
+    },
+    {
+      "agent": "querytest",
+      "type": "session_create",
+      "model": "claude-opus-4.6",
+      "raw": "DEBUG: Creating new querytest session with model claude-opus-4.6"
+    },
+    {
+      "agent": "querytest",
+      "type": "send",
+      "raw": "DEBUG: [querytest] Sending task..."
+    },
+    {
+      "agent": "querytest",
+      "type": "receive",
+      "chars": 338,
+      "raw": "DEBUG: [querytest] Response received (338 chars)"
+    },
+    {
+      "agent": "author",
+      "type": "send",
+      "raw": "DEBUG: [author] Sending task..."
+    },
+    {
+      "agent": "author",
+      "type": "receive",
+      "chars": 2113,
+      "raw": "DEBUG: [author] Response received (2113 chars)"
+    }
+  ],
+  "events": [
+    {
+      "type": "case_start",
+      "time": "2026-02-13T08:14:50.232Z",
+      "case_id": "distiller",
+      "mode": "url"
+    },
+    {
+      "type": "autorecipe_start",
+      "time": "2026-02-13T08:14:50.232Z"
+    },
+    {
+      "type": "autorecipe_end",
+      "time": "2026-02-13T08:17:38.721Z",
+      "exitCode": 1,
+      "duration_ms": 168489,
+      "stdout": "ℹ Starting autoRecipe for https://www.distiller.com\n→ Launching browser...\n→ Initializing AgentOrchestrator...\n✓ AgentOrchestrator initialized\n  DEBUG: Creating new author session with model claude-opus-4.6\n  DEBUG: Creating new querytest session with model claude-opus-4.6\n→ Probing https://www.distiller.com...\n  DEBUG: {\n  \"input_url\": \"https://www.distiller.com\",\n  \"final_url\": \"https://distiller.com/\",\n  \"hostname\": \"distiller.com\",\n  \"title\": \"World’s Largest Spirits Community. Reviews, Tasting Notes, Collection Tracking\",\n  \"meta_description\": \"Distiller is filled with expert reviews of liquor from all over the world so your next purchase, bar order, or gift, will be the right one!\",\n  \"h1\": \"distiller_headline\",\n  \"jsonld_types\": [\n    \"WebSite\"\n  ],\n  \"links_sample\": [\n    {\n      \"text\": \"Skip to navigation\",\n      \"href\": \"https://distiller.com/#global-menu\"\n    },\n    {\n      \"text\": \"Skip to main content\",\n      \"href\": \"https://distiller.com/#main-content\"\n    },\n    {\n      \"text\": \"Skip to footer\",\n      \"href\": \"https://distiller.com/#global-footer\"\n    },\n    {\n      \"text\": \"Create Account\",\n      \"href\": \"https://distiller.com/users/sign_up\"\n    },\n    {\n      \"text\": \"Sign in\",\n      \"href\": \"https://distiller.com/users/sign_in\"\n    },\n    {\n      \"text\": \"free distiller app\",\n      \"href\": \"https://itunes.apple.com/us/app/distiller-your-whiskey-companion/id784925833?mt=8&uo=4\"\n    },\n    {\n      \"text\": \"Download Now\",\n      \"href\": \"https://itunes.apple.com/us/app/distiller-your-whiskey-companion/id784925833?mt=8&uo=4\"\n    },\n    {\n      \"text\": \"free distiller app\",\n      \"href\": \"https://itunes.apple.com/us/app/distiller-your-whiskey-companion/id784925833?mt=8&uo=4\"\n    },\n    {\n      \"text\": \"Learn More About Cookies\",\n      \"href\": \"https://distiller.com/cookie-policy\"\n    },\n    {\n      \"text\": \"Search\",\n      \"href\": \"https://distiller.com/search\"\n    },\n    {\n      \"text\": \"Distiller Home\",\n      \"href\": \"https://distiller.com/\"\n    },\n    {\n      \"text\": \"Search\",\n      \"href\": \"https://distiller.com/search\"\n    },\n    {\n      \"text\": \"Find People\",\n      \"href\": \"https://distiller.com/user_search\"\n    },\n    {\n      \"text\": \"Join Pro\",\n      \"href\": \"https://distiller.com/join-pro\"\n    },\n    {\n      \"text\": \"Recommend\",\n      \"href\": \"https://distiller.com/recommend\"\n    },\n    {\n      \"text\": \"Articles\",\n      \"href\": \"https://distiller.com/articles\"\n    }\n  ],\n  \"search\": {\n    \"has_search\": false,\n    \"search_box_locator\": null,\n    \"search_form_action\": null\n  }\n}\nℹ Using list_type: generic (classification skipped)\nℹ Phase 2: Generating autocomplete_steps...\n→ Inferring optimal test query...\n  DEBUG: [querytest] Sending task...\n  DEBUG: [querytest] Event: pending_messages.modified\n  DEBUG: [querytest] Event: pending_messages.modified\n  DEBUG: [querytest] Event: user.message\n  DEBUG: [querytest] Event: assistant.turn_start\n  DEBUG: [querytest] Event: assistant.usage\n  DEBUG: [querytest] Event: assistant.message\n  DEBUG: [querytest] Event: assistant.turn_end\n  DEBUG: [querytest] Event: session.idle\n  DEBUG: [querytest] Response received (338 chars)\n✓ Using test query: \"bourbon\" (other)\n  DEBUG: Reasoning: Distiller.com is a spirits review community. The app is described as 'your whiskey companion' and the site covers liquor reviews. 'bourbon' is a major whiskey category certain to have many results.\n  DEBUG: Alternatives: whiskey, scotch, rye\nℹ Trying search URL pattern: https://distiller.com/search?q=bourbon\n→ Probing search results for \"bourbon\"...\nℹ Loading search URL: https://distiller.com/search?q=bourbon\n  DEBUG: Captured search API: GET https://ads.adthrive.com/api/v1/marmalade?siteid=606c5a9360a4830c06758746&url=ht...\n  DEBUG: Dismissed cookie banner via: button[id*=\"accept\"]\nℹ Found consecutive parent: div.content-container > div:nth-of-type($i)\n  DEBUG: searchEvidence.api: null\n  DEBUG: searchEvidence.search_type: url_query\n  DEBUG: [author] Sending task...\n  DEBUG: [author] Event: pending_messages.modified\n  DEBUG: [author] Event: pending_messages.modified\n  DEBUG: [author] Event: user.message\n  DEBUG: [author] Event: assistant.turn_start\n  DEBUG: [author] Event: assistant.usage\n  DEBUG: [author] Event: assistant.message\n  DEBUG: [author] Event: assistant.reasoning\n  DEBUG: [author] Event: tool.execution_start\n  DEBUG: [author] Event: tool.execution_start\n  DEBUG: [author] Event: tool.execution_complete\n  DEBUG: [author] Event: tool.execution_complete\n  DEBUG: [author] Event: assistant.turn_end\n  DEBUG: [author] Event: assistant.turn_start\n  DEBUG: [author] Event: assistant.usage\n  DEBUG: [author] Event: assistant.message\n  DEBUG: [author] Event: tool.execution_start\n  DEBUG: [author] Event: tool.execution_complete\n  DEBUG: [author] Event: assistant.turn_end\n  DEBUG: [author] Event: assistant.turn_start\n  DEBUG: [author] Event: assistant.usage\n  DEBUG: [author] Event: assistant.message\n  DEBUG: [author] Event: assistant.turn_end\n  DEBUG: [author] Event: session.idle\n  DEBUG: [author] Response received (2113 chars)\n⚠ LLM may have used wrong selector pattern. Expected to include: div\n⚠ Got: ol.spirits > li:nth-child($i) h5.name-content\nℹ Suggested base: div.content-container > div:nth-of-type($i)\n✓ Wrote recipe: /Users/basiclines/Developer/basiclines/RecipeKit/Engine/scripts/evals/runs/2026-02-13_baseline/recipes/distillercom.json\nℹ Testing autocomplete_steps...\nℹ Starting debug-first repair loop for autocomplete_steps...\n→ Repair iteration 1/5...\n→ Running engine: autocomplete with input \"bourbon...\"\n✓ Recipe working after 0 iteration(s)!\nℹ   → Got 9 results\n→ Running engine: autocomplete with input \"bourbon...\"\n✓ Autocomplete working: 8 valid results\nℹ   Sample: \"Monkey 47 Dry Gin\" → https://distiller.com/spirits/monkey-47-schwarzwal...\n⚠   Result 5: SUBTITLE is empty (optional)\n⚠ ⚠ Semantic mismatch: Only 2/9 results match query (need 30%)\n⚠   Results don't match query \"bourbon\" - might be a false positive\n⚠   Non-matching: \"Monkey 47 Dry Gin\"\n⚠   Non-matching: \"Eric Bordelet Selection \"Henri Bernard Beudin\" 1997 Single Cask Calvados\"\n⚠   Non-matching: \"Rémy Martin Louis XIII Cognac\"\nℹ → Verifying with second query \"Chanel\"...\n→ Running engine: autocomplete with input \"Chanel...\"\n✗ ❌ FALSE POSITIVE DETECTED: Both \"bourbon\" and \"Chanel\" return same results\n✗   Recipe is returning static content, not search results\nℹ → Attempting API interception for JavaScript-powered search...\nℹ   Probing 5 search URL patterns for API calls...\nℹ   Trying: https://www.distiller.com/search/?query=bourbon...\n  DEBUG:     Navigating to https://www.distiller.com/search/?query=bourbon...\n  DEBUG:     Total responses seen: 134\n  DEBUG:     API capture timeout - no Algolia responses found\nℹ   Trying: https://www.distiller.com/search?query=bourbon...\n  DEBUG:     Navigating to https://www.distiller.com/search?query=bourbon...\n  DEBUG:     Total responses seen: 128\n  DEBUG:     API capture timeout - no Algolia responses found\nℹ   Trying: https://www.distiller.com/search?q=bourbon...\n  DEBUG:     Navigating to https://www.distiller.com/search?q=bourbon...\n  DEBUG:     Total responses seen: 147\n  DEBUG:     API capture timeout - no Algolia responses found\nℹ   Trying: https://www.distiller.com/?s=bourbon...\n  DEBUG:     Navigating to https://www.distiller.com/?s=bourbon...\n  DEBUG:     Total responses seen: 138\n  DEBUG:     API capture timeout - no Algolia responses found\nℹ   Trying: https://www.distiller.com/search/bourbon...\n  DEBUG:     Navigating to https://www.distiller.com/search/bourbon...\n  DEBUG:     Total responses seen: 112\n  DEBUG:     API capture timeout - no Algolia responses found\n⚠ API interception failed - site may require manual recipe authoring.\nℹ Phase 4: Generating test file (for debugging)...\n✓ Wrote test: /Users/basiclines/Developer/basiclines/RecipeKit/Engine/scripts/evals/runs/2026-02-13_baseline/recipes/distillercom.test.js\n⚠ Recipe created but returns static content instead of search results. Manual review needed.\n  DEBUG: Closing AgentOrchestrator...\n  DEBUG: Destroyed author session\n  DEBUG: Destroyed querytest session\n  DEBUG: AgentOrchestrator closed\n\n⏱  Timing:\n  Phase 1 (probe site):     9.5s\n  Phase 2 (autocomplete):   skipped\n  Phase 3 (url_steps):      0ms\n  Phase 4 (test gen):       0ms\n  ────────────────────────────────────\n  Total:                    168.0s\n\n📊 Copilot Usage:\n  Requests: 2\n  By agent:\n    author: 1 req, 0 tokens (claude-opus-4.6)\n    querytest: 1 req, 0 tokens (claude-opus-4.6)\n\n⚠ Recipe created but tests failed. Manual review needed.\n",
+      "stderr": ""
+    },
+    {
+      "type": "agent_turns",
+      "time": "2026-02-13T08:17:38.721Z",
+      "turns": [
+        {
+          "agent": "author",
+          "type": "session_create",
+          "model": "claude-opus-4.6",
+          "raw": "DEBUG: Creating new author session with model claude-opus-4.6"
+        },
+        {
+          "agent": "querytest",
+          "type": "session_create",
+          "model": "claude-opus-4.6",
+          "raw": "DEBUG: Creating new querytest session with model claude-opus-4.6"
+        },
+        {
+          "agent": "querytest",
+          "type": "send",
+          "raw": "DEBUG: [querytest] Sending task..."
+        },
+        {
+          "agent": "querytest",
+          "type": "receive",
+          "chars": 338,
+          "raw": "DEBUG: [querytest] Response received (338 chars)"
+        },
+        {
+          "agent": "author",
+          "type": "send",
+          "raw": "DEBUG: [author] Sending task..."
+        },
+        {
+          "agent": "author",
+          "type": "receive",
+          "chars": 2113,
+          "raw": "DEBUG: [author] Response received (2113 chars)"
+        }
+      ]
+    },
+    {
+      "type": "engine_url_start",
+      "time": "2026-02-13T08:17:38.721Z"
+    },
+    {
+      "type": "engine_url_end",
+      "time": "2026-02-13T08:17:39.330Z",
+      "success": true,
+      "results": {}
+    },
+    {
+      "type": "engine_autocomplete_start",
+      "time": "2026-02-13T08:17:39.330Z"
+    },
+    {
+      "type": "engine_autocomplete_end",
+      "time": "2026-02-13T08:17:46.785Z",
+      "success": true,
+      "results": [
+        {
+          "TITLE": "Monkey 47 Dry Gin",
+          "URL": "https://distiller.com/spirits/monkey-47-schwarzwald-dry-gin",
+          "COVER": "background-image: url(https://ip-distiller.imgix.net/images/spirits/22c95ea0-6baf-0134-c69b-5ab98231182e/monkey_47_schwarzwald_dry_gin_original.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=)",
+          "SUBTITLE": "99"
+        },
+        {
+          "TITLE": "Eric Bordelet Selection \"Henri Bernard Beudin\" 1997 Single Cask Calvados",
+          "URL": "https://distiller.com/spirits/eric-bordelet-selection-henri-bernard-beudin-1997-single-cask-calvados",
+          "COVER": "background-image: url(https://ip-distiller.imgix.net/images/spirits/72a1b540-867b-0133-ab7b-4e403cbf2cb9/eric_bordelet_selection_henri_bernard_beudin_1997_single_cask_calvados_original.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=)",
+          "SUBTITLE": "99"
+        },
+        {
+          "TITLE": "Rémy Martin Louis XIII Cognac",
+          "URL": "https://distiller.com/spirits/remy-martin-louis-xiii-cognac",
+          "COVER": "background-image: url(https://ip-distiller.imgix.net/images/spirits/d11a60b0-7544-0133-dedd-62b978720717/remy_martin_louis_xiii_cognac_original.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=)",
+          "SUBTITLE": "99"
+        },
+        {
+          "TITLE": "Cognac Dudognon Heritage",
+          "URL": "https://distiller.com/spirits/cognac-dudognon-heritage",
+          "COVER": "background-image: url(https://ip-distiller.imgix.net/images/spirits/ce6fb5a0-6bd4-0133-13c4-16d3e9a61cc7/cognac_dudognon_heritage_original.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=)",
+          "SUBTITLE": "99"
+        },
+        {
+          "TITLE": "",
+          "URL": "https://distiller.com/join-pro",
+          "COVER": "",
+          "SUBTITLE": ""
+        },
+        {
+          "TITLE": "Hibiki 21 Year",
+          "URL": "https://distiller.com/spirits/hibiki-21-year",
+          "COVER": "background-image: url(https://ip-distiller.imgix.net/images/spirits/42372d30-4dbf-0132-ff20-4a02559918a4/hibiki-21_original.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=)",
+          "SUBTITLE": "99"
+        },
+        {
+          "TITLE": "Highland Park 18 Year",
+          "URL": "https://distiller.com/spirits/highland-park-18",
+          "COVER": "background-image: url(https://ip-distiller.imgix.net/images/spirits/0755d5c9-c3c7-41e2-9dbe-401070ab6f19/highland-park-18-year_original-1747951347.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=)",
+          "SUBTITLE": "99"
+        },
+        {
+          "TITLE": "Michter's 20 Year Kentucky Straight Bourbon (2021 Release)",
+          "URL": "https://distiller.com/spirits/michter-s-20-year-kentucky-straight-bourbon-2021-release",
+          "COVER": "background-image: url(https://ip-distiller.imgix.net/images/spirits/c03d5430-18a8-013a-6798-4637613bb8aa/michters_20_year_2018_original_original_original.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=)",
+          "SUBTITLE": "98"
+        },
+        {
+          "TITLE": "George T. Stagg Bourbon (Fall 2019)",
+          "URL": "https://distiller.com/spirits/george-t-stagg-bourbon-fall-2019",
+          "COVER": "background-image: url(https://ip-distiller.imgix.net/images/spirits/96133fd0-b701-0137-c627-0a8f7e82b852/btac_gts_2019_original.jpg?w=120&h=120&mark-w=35&mark-h=35&fit=crop&crop=right&mark-align=top,left&mark-pad=0&mark=)",
+          "SUBTITLE": "98"
+        }
+      ]
+    },
+    {
+      "type": "recipe_content",
+      "time": "2026-02-13T08:17:46.785Z",
+      "recipe": {
+        "recipe_shortcut": "distillercom",
+        "list_type": "generic",
+        "engine_version": 20,
+        "title": "Distiller.com",
+        "description": "Retrieve generic from distiller.com",
+        "urls": [
+          "https://distiller.com",
+          "https://www.distiller.com"
+        ],
+        "headers": {
+          "Accept-Language": "en-UK,en",
+          "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.113 Safari/537.36"
+        },
+        "autocomplete_steps": [
+          {
+            "command": "load",
+            "url": "https://distiller.com/search?q=$INPUT",
+            "config": {
+              "js": true,
+              "timeout": 5000
+            },
+            "description": "Load search results from Distiller"
+          },
+          {
+            "command": "store_text",
+            "locator": "ol.spirits > li:nth-child($i) h5.name-content",
+            "output": {
+              "name": "TITLE$i"
+            },
+            "config": {
+              "loop": {
+                "index": "i",
+                "from": 1,
+                "to": 9,
+                "step": 1
+              }
+            },
+            "description": "Extract spirit names"
+          },
+          {
+            "command": "store_attribute",
+            "locator": "ol.spirits > li:nth-child($i) a",
+            "attribute_name": "href",
+            "output": {
+              "name": "URL$i"
+            },
+            "config": {
+              "loop": {
+                "index": "i",
+                "from": 1,
+                "to": 9,
+                "step": 1
+              }
+            },
+            "description": "Extract spirit detail URLs"
+          },
+          {
+            "command": "store",
+            "input": "https://distiller.com$URL$i",
+            "output": {
+              "name": "URL$i"
+            },
+            "config": {
+              "loop": {
+                "index": "i",
+                "from": 1,
+                "to": 9,
+                "step": 1
+              }
+            },
+            "description": "Make URLs absolute"
+          },
+          {
+            "command": "store_attribute",
+            "locator": "ol.spirits > li:nth-child($i) div.image",
+            "attribute_name": "style",
+            "output": {
+              "name": "COVER$i"
+            },
+            "config": {
+              "loop": {
+                "index": "i",
+                "from": 1,
+                "to": 9,
+                "step": 1
+              }
+            },
+            "description": "Extract spirit image style attribute"
+          },
+          {
+            "command": "store_text",
+            "locator": "ol.spirits > li:nth-child($i) div.distiller-score",
+            "output": {
+              "name": "SUBTITLE$i"
+            },
+            "config": {
+              "loop": {
+                "index": "i",
+                "from": 1,
+                "to": 9,
+                "step": 1
+              }
+            },
+            "description": "Extract distiller score as subtitle"
+          }
+        ],
+        "url_steps": null
+      }
+    },
+    {
+      "type": "score",
+      "time": "2026-02-13T08:17:46.786Z",
+      "score": {
+        "score": 20,
+        "metrics": {
+          "fields_present": 0,
+          "urls_valid": 100,
+          "patterns_match": 0,
+          "no_errors": 0
+        },
+        "passed": false,
+        "details": {
+          "fields_present": {
+            "presentFields": [],
+            "missingFields": [
+              "TITLE",
+              "COVER",
+              "DESCRIPTION"
+            ],
+            "total": 3
+          },
+          "urls_valid": {
+            "checks": [],
+            "valid": 0,
+            "total": 0
+          },
+          "patterns_match": {
+            "checks": [
+              {
+                "field": "COVER",
+                "pattern": "^https://",
+                "value": "(empty)"
+              }
+            ],
+            "matched": 0,
+            "total": 1
+          },
+          "no_errors": {
+            "hadErrors": true,
+            "success": false
+          }
+        },
+        "threshold": 70
+      }
+    },
+    {
+      "type": "case_end",
+      "time": "2026-02-13T08:17:46.786Z",
+      "case_id": "distiller"
+    }
+  ],
+  "duration_ms": 168489
+}

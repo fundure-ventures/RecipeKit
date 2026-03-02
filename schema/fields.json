@@ -1,0 +1,93 @@
+{
+  "version": 1,
+
+  "roles": {
+    "suggestion_title":    "Primary text in each autocomplete result row. Large, prominent text that identifies the item.",
+    "suggestion_subtitle": "Secondary text below the title in autocomplete results. Smaller, muted color. Shows supplementary info (year, author, etc.).",
+    "suggestion_image":    "Thumbnail image on the left side of each autocomplete result row. Small square or rounded image.",
+    "suggestion_url":      "Hidden field. The URL used to navigate to the item detail when the user taps a suggestion. Not displayed in UI.",
+    "title":               "Main item heading at the top of the detail screen. Large, bold text. One per item.",
+    "subtitle":            "Secondary text next to or below the title in the header area. Used for key identifying info (e.g., winery name for wines).",
+    "cover":               "Main image for the item at the top of the detail screen. Supports different aspect ratios (vertical for posters/books, square for albums/apps, flexible for links).",
+    "favicon":             "Small icon image, typically a website favicon. Displayed as a tiny square image near the URL or source info.",
+    "expandable_text":     "Long-form text with a 3-line preview that expands on tap. Supports markdown formatting. Used for descriptions and summaries.",
+    "slide_badge":         "Small pill-shaped card in a horizontal scrolling row. Shows a compact value, optionally with an icon (⭐ rating, 📅 date, 🕐 duration). Multiple badges scroll side by side.",
+    "attribute_label":     "Key-value property row. Displays a label and a value stacked vertically in the detail view. The most common role for topic-specific metadata.",
+    "link":                "Tappable URL that opens in a browser or in-app browser. Displayed as an action button or clickable text.",
+    "button":              "Action button in the toolbar or action area. Triggers a purchase flow or external action (e.g., Buy button).",
+    "tab_content":         "Content displayed in a separate tab within the detail screen. Used for long lists (ingredients, cooking steps) that deserve their own scrollable section.",
+    "map_view":            "Interactive map view showing a geographic location. Renders a MapKit/Google Maps embed with a pin at the specified coordinates."
+  },
+
+  "autocomplete_fields": {
+    "TITLE":    { "type": "string",  "role": "suggestion_title" },
+    "SUBTITLE": { "type": "string",  "role": "suggestion_subtitle" },
+    "COVER":    { "type": "string",  "role": "suggestion_image" },
+    "URL":      { "type": "string",  "role": "suggestion_url" }
+  },
+
+  "url_fields": {
+    "TITLE":            { "type": "string",  "role": "title" },
+    "COVER":            { "type": "string",  "role": "cover" },
+    "URL":              { "type": "string",  "role": "link" },
+    "URL_SALE":         { "type": "string",  "role": "button" },
+    "DESCRIPTION":      { "type": "string",  "role": "expandable_text" },
+    "RATING":           { "type": "float",   "role": "slide_badge" },
+    "DATE":             { "type": "date",    "role": "slide_badge" },
+    "PRICE":            { "type": "float",   "role": "slide_badge" },
+    "AUTHOR":           { "type": "string",  "role": "attribute_label" },
+    "TAGS":             { "type": "string",  "role": "attribute_label" },
+    "FAVICON":          { "type": "string",  "role": "favicon" },
+
+    "GENRE":            { "type": "string",  "role": "attribute_label" },
+    "DURATION":         { "type": "string",  "role": "slide_badge" },
+    "ORIGINAL_TITLE":   { "type": "string",  "role": "attribute_label" },
+    "EPISODES":         { "type": "integer", "role": "attribute_label" },
+    "YEAR":             { "type": "string",  "role": "slide_badge" },
+    "PAGES":            { "type": "string",  "role": "attribute_label" },
+    "VOLUMES":          { "type": "integer", "role": "attribute_label" },
+    "STYLE":            { "type": "string",  "role": "attribute_label" },
+    "ALBUM":            { "type": "string",  "role": "attribute_label" },
+
+    "CATEGORY":         { "type": "string",  "role": "attribute_label" },
+    "TIME":             { "type": "string",  "role": "attribute_label" },
+    "PLAYERS":          { "type": "string",  "role": "slide_badge" },
+
+    "WINERY":           { "type": "string",  "role": "subtitle" },
+    "GRAPES":           { "type": "string",  "role": "attribute_label" },
+    "REGION":           { "type": "string",  "role": "attribute_label" },
+    "VINTAGE":          { "type": "string",  "role": "attribute_label" },
+    "COUNTRY":          { "type": "string",  "role": "attribute_label" },
+    "ALCOHOL":          { "type": "string",  "role": "attribute_label" },
+    "PLACE":            { "type": "string",  "role": "attribute_label" },
+
+    "ICON":             { "type": "string",  "role": "cover" },
+
+    "ADDRESS":          { "type": "string",  "role": "attribute_label" },
+    "PHONE":            { "type": "string",  "role": "attribute_label" },
+    "WEBSITE":          { "type": "string",  "role": "link" },
+    "ORIENTATIVE_PRICE": { "type": "string", "role": "attribute_label" },
+    "COORDS":           { "type": "string",  "role": "map_view" },
+    "LATITUDE":         { "type": "float",   "role": "map_view" },
+    "LONGITUDE":        { "type": "float",   "role": "map_view" },
+
+    "COOKING_TIME":     { "type": "string",  "role": "attribute_label" },
+    "DINERS":           { "type": "string",  "role": "attribute_label" },
+    "INGREDIENTS":      { "type": "string",  "role": "tab_content" },
+    "STEPS":            { "type": "string",  "role": "tab_content" },
+
+    "BRAND":            { "type": "string",  "role": "attribute_label" },
+    "BARCODE":          { "type": "string",  "role": "attribute_label" },
+    "NUTRISCORE":       { "type": "string",  "role": "attribute_label" },
+    "ORIGIN":           { "type": "string",  "role": "attribute_label" },
+    "SIZE":             { "type": "string",  "role": "attribute_label" },
+    "STORES":           { "type": "string",  "role": "attribute_label" },
+
+    "AVATAR":           { "type": "string",  "role": "cover" },
+    "RETWEETS":         { "type": "string",  "role": "slide_badge" },
+    "FAVS":             { "type": "string",  "role": "slide_badge" },
+    "SCORE":            { "type": "string",  "role": "slide_badge" },
+    "SUMMARY":          { "type": "string",  "role": "expandable_text" },
+    "SKU":              { "type": "string",  "role": "attribute_label" }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "id": "funko",
+  "description": "Funko — collectible figures e-commerce",
+  "mode": "url",
+  "url": "https://www.funko.com",
+  "test_url": "https://funko.com/pop-super-saiyan-trunks/91825.html",
+  "test_query": "dragon ball",
+  "expected_fields": ["TITLE", "COVER", "DESCRIPTION"],
+  "expected_field_patterns": {
+    "COVER": "^https://"
+  },
+  "tags": ["ecommerce", "default"]
+}

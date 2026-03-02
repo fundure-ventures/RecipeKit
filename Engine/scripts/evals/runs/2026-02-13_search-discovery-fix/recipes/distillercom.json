@@ -1,0 +1,255 @@
+{
+  "recipe_shortcut": "distillercom",
+  "list_type": "generic",
+  "engine_version": 20,
+  "title": "Distiller.com",
+  "description": "Retrieve generic from distiller.com",
+  "urls": [
+    "https://distiller.com",
+    "https://www.distiller.com"
+  ],
+  "headers": {
+    "Accept-Language": "en-UK,en",
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.113 Safari/537.36"
+  },
+  "autocomplete_steps": [
+    {
+      "command": "load",
+      "url": "https://distiller.com/search?term=$INPUT",
+      "config": {
+        "js": true,
+        "timeout": 5000
+      },
+      "description": "Load search results"
+    },
+    {
+      "command": "store_text",
+      "locator": "ol.spirits > li:nth-child($i) div.name",
+      "output": {
+        "name": "TITLE$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 1,
+          "to": 9,
+          "step": 1
+        }
+      },
+      "description": "Extract spirit names"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "ol.spirits > li:nth-child($i) a",
+      "attribute_name": "href",
+      "output": {
+        "name": "URL$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 1,
+          "to": 9,
+          "step": 1
+        }
+      },
+      "description": "Extract spirit URLs"
+    },
+    {
+      "command": "store",
+      "input": "https://distiller.com$URL$i",
+      "output": {
+        "name": "URL$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 1,
+          "to": 9,
+          "step": 1
+        }
+      },
+      "description": "Make URLs absolute"
+    },
+    {
+      "command": "store_text",
+      "locator": "ol.spirits > li:nth-child($i) p.origin",
+      "output": {
+        "name": "SUBTITLE$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 1,
+          "to": 9,
+          "step": 1
+        }
+      },
+      "description": "Extract spirit origin info"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "ol.spirits > li:nth-child($i) div.image",
+      "attribute_name": "style",
+      "output": {
+        "name": "RAW_COVER$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 1,
+          "to": 9,
+          "step": 1
+        }
+      },
+      "description": "Extract raw style containing background-image"
+    },
+    {
+      "command": "regex",
+      "input": "$RAW_COVER$i",
+      "expression": "url\\(([^)]+)\\)",
+      "output": {
+        "name": "COVER$i"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 1,
+          "to": 9,
+          "step": 1
+        }
+      },
+      "description": "Extract image URL from CSS background-image"
+    }
+  ],
+  "url_steps": [
+    {
+      "command": "load",
+      "url": "$INPUT",
+      "config": {
+        "js": true,
+        "timeout": 5000
+      },
+      "description": "Load spirit detail page"
+    },
+    {
+      "command": "store_url",
+      "output": {
+        "name": "URL"
+      },
+      "description": "Save the current URL"
+    },
+    {
+      "command": "store_text",
+      "locator": "h1[itemprop='name']",
+      "output": {
+        "name": "TITLE",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract spirit name"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "meta[property='og:description']",
+      "attribute_name": "content",
+      "output": {
+        "name": "DESCRIPTION",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract description from og:description"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "meta[property='og:image']",
+      "attribute_name": "content",
+      "output": {
+        "name": "COVER",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract cover image from og:image"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "link[rel='apple-touch-icon']",
+      "attribute_name": "href",
+      "output": {
+        "name": "RAW_FAVICON",
+        "type": "string"
+      },
+      "description": "Extract favicon path"
+    },
+    {
+      "command": "store",
+      "input": "https://distiller.com$RAW_FAVICON",
+      "output": {
+        "name": "FAVICON",
+        "type": "string",
+        "show": true
+      },
+      "description": "Make favicon URL absolute"
+    },
+    {
+      "command": "store_text",
+      "locator": "span[itemprop='ratingValue']",
+      "output": {
+        "name": "RATING",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract community rating"
+    },
+    {
+      "command": "store_text",
+      "locator": "p.ultra-mini-headline.type",
+      "output": {
+        "name": "STYLE",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract spirit style (e.g. Bourbon)"
+    },
+    {
+      "command": "store_text",
+      "locator": "p[itemprop='brand_name']",
+      "output": {
+        "name": "BRAND",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract brand and origin"
+    },
+    {
+      "command": "store_text",
+      "locator": ".detail.abv .value",
+      "output": {
+        "name": "ALCOHOL",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract ABV percentage"
+    },
+    {
+      "command": "store_text",
+      "locator": ".detail.age .value",
+      "output": {
+        "name": "AGE",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract age statement"
+    },
+    {
+      "command": "store_text",
+      "locator": ".distiller-score span",
+      "output": {
+        "name": "SCORE",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract Distiller expert score"
+    }
+  ]
+}

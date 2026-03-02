@@ -5,6 +5,7 @@ import chalk from 'chalk';
 import { readFile } from 'fs/promises';
 import { RecipeEngine } from './src/recipe.js';
 import { Log } from './src/logger.js';
+import { validateRecipeFields } from './src/fieldValidator.js';
 
 class ArgumentParser {
   async parse() {
@@ -90,15 +91,16 @@ class Engine {
     return commandTypeMap[commandType] || commandType;
   }
 
-  restructureOutputByIndex(result) {
+  restructureOutputByIndex(result, ignoredFields = new Set()) {
     const debug = {};
     const results = [];
     const indexedVariables = {};
 
     for (const [key, value] of Object.entries(result)) {
-      const match = key.match(/^([A-Z]+)(\d+)$/);
+      const match = key.match(/^([A-Z_]+)(\d+)$/);
       if (match) {
         const [, prefix, index] = match;
+        if (ignoredFields.has(prefix)) continue;
         if (!indexedVariables[index]) {
           indexedVariables[index] = {};
         }
@@ -114,7 +116,7 @@ class Engine {
     return Log.isDebug ? { debug, results } : { results };
   }
 
-  restructureOutputByStepConfig(result, recipe) {
+  restructureOutputByStepConfig(result, recipe, ignoredFields = new Set()) {
     const debug = { ...result };
     const filteredResult = {};
 
@@ -122,6 +124,8 @@ class Engine {
       for (const step of recipe.url_steps) {
         if (step.output && step.output.name && step.output.show) {
           const outputName = step.output.name;
+          const fieldName = outputName.replace(/\$[a-zA-Z]+/g, '');
+          if (ignoredFields.has(fieldName)) continue;
           if (result.hasOwnProperty(outputName)) {
             filteredResult[outputName] = result[outputName];
           } else if (outputName.includes('$')) {
@@ -149,13 +153,15 @@ class Engine {
     await engine.initialize();
 
     try {
-      const rawResult = await engine.executeRecipe(recipe, this.getEngineCommandType(commandType), input);
+      const stepType = this.getEngineCommandType(commandType);
+      const rawResult = await engine.executeRecipe(recipe, stepType, input);
+      const ignoredFields = validateRecipeFields(recipe, stepType);
       let finalResult;
 
       if (commandType === 'autocomplete') {
-        finalResult = this.restructureOutputByIndex(rawResult);
+        finalResult = this.restructureOutputByIndex(rawResult, ignoredFields);
       } else if (commandType === 'url') {
-        finalResult = this.restructureOutputByStepConfig(rawResult, recipe);
+        finalResult = this.restructureOutputByStepConfig(rawResult, recipe, ignoredFields);
       } else {
         Log.error('Unknown command type:', commandType);
       }
