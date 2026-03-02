@@ -6,7 +6,9 @@
   "description": "A recipe to get a list of movies",
   "urls": [
     "https://m.imdb.com/title/",
-    "https://m.imdb.com/"
+    "https://m.imdb.com/",
+    "https://www.imdb.com/title/",
+    "https://www.imdb.com/"
   ],
   "headers": {
     "Accept-Language": "en-UK,en",
