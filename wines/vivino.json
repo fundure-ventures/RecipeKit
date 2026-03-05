@@ -1,7 +1,7 @@
 {
   "recipe_shortcut": "vivino_wines",
   "list_type": "wines",
-  "engine_version": 16,
+  "engine_version": 25,
   "title": "Vivino Wines",
   "description": "Retrieve the wines from page vivino",
   "urls": [
@@ -24,6 +24,16 @@
       }
     },
     {
+      "command": "store_count",
+      "locator": "div[data-testid='wineCard']",
+      "output": {
+        "name": "NUMBER_OF_RESULTS",
+        "type": "int",
+        "show": false
+      },
+      "description": "Count wine cards to use as loop bound"
+    },
+    {
       "command": "store_attribute",
       "locator": "div[data-testid='wineCard']:nth-of-type($i) div[role='img']",
       "attribute_name": "style",
@@ -34,7 +44,7 @@
         "loop": {
           "index": "i",
           "from": 1,
-          "to": 6,
+          "to": "$NUMBER_OF_RESULTS",
           "step": 1
         }
       }
@@ -50,7 +60,7 @@
         "loop": {
           "index": "i",
           "from": 1,
-          "to": 6,
+          "to": "$NUMBER_OF_RESULTS",
           "step": 1
         }
       }
@@ -66,7 +76,7 @@
         "loop": {
           "index": "i",
           "from": 1,
-          "to": 6,
+          "to": "$NUMBER_OF_RESULTS",
           "step": 1
         }
       },
@@ -82,7 +92,7 @@
         "loop": {
           "index": "i",
           "from": 1,
-          "to": 6,
+          "to": "$NUMBER_OF_RESULTS",
           "step": 1
         }
       },
@@ -98,7 +108,7 @@
         "loop": {
           "index": "i",
           "from": 1,
-          "to": 6,
+          "to": "$NUMBER_OF_RESULTS",
           "step": 1
         }
       },
@@ -114,7 +124,7 @@
         "loop": {
           "index": "i",
           "from": 1,
-          "to": 6,
+          "to": "$NUMBER_OF_RESULTS",
           "step": 1
         }
       },
@@ -130,7 +140,7 @@
         "loop": {
           "index": "i",
           "from": 1,
-          "to": 6,
+          "to": "$NUMBER_OF_RESULTS",
           "step": 1
         }
       },
@@ -146,7 +156,7 @@
         "loop": {
           "index": "i",
           "from": 1,
-          "to": 6,
+          "to": "$NUMBER_OF_RESULTS",
           "step": 1
         }
       },
@@ -163,7 +173,7 @@
         "loop": {
           "index": "i",
           "from": 1,
-          "to": 6,
+          "to": "$NUMBER_OF_RESULTS",
           "step": 1
         }
       }
@@ -178,7 +188,7 @@
         "loop": {
           "index": "i",
           "from": 1,
-          "to": 6,
+          "to": "$NUMBER_OF_RESULTS",
           "step": 1
         }
       }
