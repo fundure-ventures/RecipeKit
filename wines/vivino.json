@@ -25,7 +25,7 @@
     },
     {
       "command": "store_count",
-      "locator": "div[data-testid='wineCard']",
+      "locator": "div[data-testid='wineCard']:has(a[data-testid='vintagePageLink']):has(div[class*='wineInfoVintage__wineInfoVintage'])",
       "output": {
         "name": "NUMBER_OF_RESULTS",
         "type": "int",
@@ -35,10 +35,11 @@
     },
     {
       "command": "store_attribute",
-      "locator": "div[data-testid='wineCard']:nth-of-type($i) div[role='img']",
+      "locator": ":nth-child($i of div[data-testid='wineCard']:has(a[data-testid='vintagePageLink']):has(div[class*='wineInfoVintage__wineInfoVintage'])) div[role='img']",
       "attribute_name": "style",
       "output": {
-        "name": "COVER$i"
+        "name": "COVER$i",
+        "show": false
       },
       "config": {
         "loop": {
@@ -54,7 +55,8 @@
       "input": "$COVER$i",
       "expression": "url\\([\"']((?:https?:)?//[^\"']+)[\"']\\)",
       "output": {
-        "name": "COVER$i"
+        "name": "COVER$i",
+        "show": false
       },
       "config": {
         "loop": {
@@ -70,7 +72,8 @@
       "input": "$COVER$i",
       "expression": "(?:https?://)?(//?.+)$",
       "output": {
-        "name": "COVER$i"
+        "name": "COVER$i",
+        "show": false
       },
       "config": {
         "loop": {
@@ -86,7 +89,8 @@
       "command": "store",
       "input": "https:$COVER$i",
       "output": {
-        "name": "COVER$i"
+        "name": "COVER$i",
+        "show": true
       },
       "config": {
         "loop": {
@@ -100,9 +104,10 @@
     },
     {
       "command": "store_text",
-      "locator": "div[data-testid='wineCard']:nth-of-type($i) div[class*='wineInfoVintage__wineInfoVintage'] > div[class*='wineInfoVintage__truncate']:first-child",
+      "locator": ":nth-child($i of div[data-testid='wineCard']:has(a[data-testid='vintagePageLink']):has(div[class*='wineInfoVintage__wineInfoVintage'])) div[class*='wineInfoVintage__wineInfoVintage'] > div[class*='wineInfoVintage__truncate']:first-child",
       "output": {
-        "name": "WINERY$i"
+        "name": "WINERY$i",
+        "show": false
       },
       "config": {
         "loop": {
@@ -116,9 +121,10 @@
     },
     {
       "command": "store_text",
-      "locator": "div[data-testid='wineCard']:nth-of-type($i) div[class*='wineInfoVintage__wineInfoVintage'] div[class*='wineInfoVintage__vintage']",
+      "locator": ":nth-child($i of div[data-testid='wineCard']:has(a[data-testid='vintagePageLink']):has(div[class*='wineInfoVintage__wineInfoVintage'])) div[class*='wineInfoVintage__wineInfoVintage'] div[class*='wineInfoVintage__vintage']",
       "output": {
-        "name": "VINTAGE$i"
+        "name": "VINTAGE$i",
+        "show": false
       },
       "config": {
         "loop": {
@@ -134,7 +140,8 @@
       "command": "store",
       "input": "$WINERY$i $VINTAGE$i",
       "output": {
-        "name": "TITLE$i"
+        "name": "TITLE$i",
+        "show": true
       },
       "config": {
         "loop": {
@@ -148,9 +155,10 @@
     },
     {
       "command": "store_text",
-      "locator": "div[data-testid='wineCard']:nth-of-type($i) div[class*='wineInfoLocation__regionAndCountry']",
+      "locator": ":nth-child($i of div[data-testid='wineCard']:has(a[data-testid='vintagePageLink']):has(div[class*='wineInfoVintage__wineInfoVintage'])) div[class*='wineInfoLocation__regionAndCountry']",
       "output": {
-        "name": "SUBTITLE$i"
+        "name": "SUBTITLE$i",
+        "show": true
       },
       "config": {
         "loop": {
@@ -164,10 +172,11 @@
     },
     {
       "command": "store_attribute",
-      "locator": "div[data-testid='wineCard']:nth-of-type($i) a[data-testid='vintagePageLink']",
+      "locator": ":nth-child($i of div[data-testid='wineCard']:has(a[data-testid='vintagePageLink']):has(div[class*='wineInfoVintage__wineInfoVintage'])) a[data-testid='vintagePageLink']",
       "attribute_name": "href",
       "output": {
-        "name": "URL$i"
+        "name": "URL$i",
+        "show": false
       },
       "config": {
         "loop": {
@@ -182,7 +191,8 @@
       "command": "store",
       "input": "https://www.vivino.com$URL$i",
       "output": {
-        "name": "URL$i"
+        "name": "URL$i",
+        "show": true
       },
       "config": {
         "loop": {
