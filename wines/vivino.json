@@ -20,7 +20,7 @@
       "description": "Load the url of the wine",
       "config": {
         "js": true,
-        "timeout": 2
+        "timeout": 1
       }
     },
     {
@@ -35,7 +35,7 @@
     },
     {
       "command": "store_attribute",
-      "locator": ":nth-child($i of div[data-testid='wineCard']:has(a[data-testid='vintagePageLink']):has(div[class*='wineInfoVintage__wineInfoVintage'])) div[role='img']",
+      "locator": "div[data-testid='wineCard']:has(a[data-testid='vintagePageLink']):has(div[class*='wineInfoVintage__wineInfoVintage']):nth-of-type($i) div[role='img']",
       "attribute_name": "style",
       "output": {
         "name": "COVER$i",
@@ -104,7 +104,7 @@
     },
     {
       "command": "store_text",
-      "locator": ":nth-child($i of div[data-testid='wineCard']:has(a[data-testid='vintagePageLink']):has(div[class*='wineInfoVintage__wineInfoVintage'])) div[class*='wineInfoVintage__wineInfoVintage'] > div[class*='wineInfoVintage__truncate']:first-child",
+      "locator": "div[data-testid='wineCard']:has(a[data-testid='vintagePageLink']):has(div[class*='wineInfoVintage__wineInfoVintage']):nth-of-type($i) div[class*='wineInfoVintage__wineInfoVintage'] > div[class*='wineInfoVintage__truncate']:first-child",
       "output": {
         "name": "WINERY$i",
         "show": false
@@ -121,7 +121,7 @@
     },
     {
       "command": "store_text",
-      "locator": ":nth-child($i of div[data-testid='wineCard']:has(a[data-testid='vintagePageLink']):has(div[class*='wineInfoVintage__wineInfoVintage'])) div[class*='wineInfoVintage__wineInfoVintage'] div[class*='wineInfoVintage__vintage']",
+      "locator": "div[data-testid='wineCard']:has(a[data-testid='vintagePageLink']):has(div[class*='wineInfoVintage__wineInfoVintage']):nth-of-type($i) div[class*='wineInfoVintage__wineInfoVintage'] div[class*='wineInfoVintage__vintage']",
       "output": {
         "name": "VINTAGE$i",
         "show": false
@@ -155,7 +155,7 @@
     },
     {
       "command": "store_text",
-      "locator": ":nth-child($i of div[data-testid='wineCard']:has(a[data-testid='vintagePageLink']):has(div[class*='wineInfoVintage__wineInfoVintage'])) div[class*='wineInfoLocation__regionAndCountry']",
+      "locator": "div[data-testid='wineCard']:has(a[data-testid='vintagePageLink']):has(div[class*='wineInfoVintage__wineInfoVintage']):nth-of-type($i) div[class*='wineInfoLocation__regionAndCountry']",
       "output": {
         "name": "SUBTITLE$i",
         "show": true
@@ -172,7 +172,7 @@
     },
     {
       "command": "store_attribute",
-      "locator": ":nth-child($i of div[data-testid='wineCard']:has(a[data-testid='vintagePageLink']):has(div[class*='wineInfoVintage__wineInfoVintage'])) a[data-testid='vintagePageLink']",
+      "locator": "div[data-testid='wineCard']:has(a[data-testid='vintagePageLink']):has(div[class*='wineInfoVintage__wineInfoVintage']):nth-of-type($i) a[data-testid='vintagePageLink']",
       "attribute_name": "href",
       "output": {
         "name": "URL$i",
