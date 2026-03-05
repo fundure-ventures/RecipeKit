@@ -355,6 +355,25 @@ describe("StepExecutor — executeJsonStoreTextStep", () => {
     expect(result).toBe("J.R.R. Tolkien");
   });
 
+  test("extracts from stringified JSON payload (vivino preloaded state)", async () => {
+    const { engine, executor } = createExecutor();
+    engine.set("JSON", JSON.stringify({
+      search_results: {
+        matches: [
+          { vintage: { name: "Cune (CVNE) Crianza 2020" } }
+        ]
+      }
+    }));
+
+    const result = await executor.executeJsonStoreTextStep({
+      command: "json_store_text",
+      locator: "search_results.matches.[0].vintage.name",
+      input: "$JSON",
+      output: { name: "TITLE0" }
+    });
+    expect(result).toBe("Cune (CVNE) Crianza 2020");
+  });
+
   // From movies/imdbgraphql.json — deeply nested GraphQL response
   test("extracts from deeply nested GraphQL path (imdbgraphql)", async () => {
     const { engine, executor } = createExecutor();
@@ -435,6 +454,17 @@ describe("StepExecutor — executeUrlEncodeStep", () => {
       output: { name: "ENCODED" }
     });
     expect(result).toBe(encodeURIComponent("café & résumé"));
+  });
+
+  test("encodes variable-expanded input", async () => {
+    const { engine, executor } = createExecutor();
+    engine.set("INPUT", "Cune Crianza");
+
+    const result = await executor.executeUrlEncodeStep({
+      command: "url_encode", input: "$INPUT",
+      output: { name: "QUERY" }
+    });
+    expect(result).toBe("Cune%20Crianza");
   });
 
   test("returns empty string when input missing", silenceErrors(async () => {
@@ -544,6 +574,26 @@ describe("StepExecutor — execute() loop", () => {
 
     expect(engine.get("SUBTITLE0")).toBe("1991");
     expect(engine.get("SUBTITLE1")).toBe("1993");
+  });
+
+  test("supports arithmetic expressions in loop bounds", async () => {
+    const { engine, executor } = createExecutor();
+    engine.set("i", 0);
+    engine.set("COUNT", "3");
+    engine.set("VALUE0", "A");
+    engine.set("VALUE1", "B");
+    engine.set("VALUE2", "C");
+
+    await executor.execute({
+      command: "store",
+      input: "$VALUE$i",
+      output: { name: "TITLE$i" },
+      config: { loop: { index: "i", from: 0, to: "$COUNT - 1", step: 1 } }
+    });
+
+    expect(engine.get("TITLE0")).toBe("A");
+    expect(engine.get("TITLE1")).toBe("B");
+    expect(engine.get("TITLE2")).toBe("C");
   });
 
   // Unknown command

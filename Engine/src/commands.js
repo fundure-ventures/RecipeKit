@@ -1,6 +1,49 @@
 import { Log } from './logger.js';
 import _ from 'lodash';
 
+function parseLoopBound(value) {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return Math.trunc(value);
+  }
+
+  const normalized = String(value ?? '').trim();
+  if (normalized === '') {
+    return NaN;
+  }
+
+  if (/^-?\d+$/.test(normalized)) {
+    return parseInt(normalized, 10);
+  }
+
+  if (!/^[0-9+\-*/().\s]+$/.test(normalized)) {
+    return parseInt(normalized, 10);
+  }
+
+  try {
+    const evaluated = Function(`"use strict"; return (${normalized});`)();
+    return Number.isFinite(evaluated) ? Math.trunc(evaluated) : NaN;
+  } catch {
+    return parseInt(normalized, 10);
+  }
+}
+
+function parseJsonInput(value) {
+  if (typeof value !== 'string') {
+    return value;
+  }
+
+  const trimmed = value.trim();
+  if (!(trimmed.startsWith('{') || trimmed.startsWith('['))) {
+    return value;
+  }
+
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    return value;
+  }
+}
+
 export class StepExecutor {
     constructor(BrowserManager, RecipeEngine) {
       this.BrowserManager = BrowserManager;
@@ -61,9 +104,9 @@ export class StepExecutor {
       }
 
       if (isLoop) {
-        const loopFrom = parseInt(this.RecipeEngine.replaceVariablesinString(String(step.config.loop.from)), 10);
-        const loopTo = parseInt(this.RecipeEngine.replaceVariablesinString(String(step.config.loop.to)), 10);
-        const loopStep = parseInt(this.RecipeEngine.replaceVariablesinString(String(step.config.loop.step)), 10);
+        const loopFrom = parseLoopBound(this.RecipeEngine.replaceVariablesinString(String(step.config.loop.from)));
+        const loopTo = parseLoopBound(this.RecipeEngine.replaceVariablesinString(String(step.config.loop.to)));
+        const loopStep = parseLoopBound(this.RecipeEngine.replaceVariablesinString(String(step.config.loop.step)));
         Log.debug(`Loop: from ${loopFrom} to ${loopTo} (step: ${loopStep})`);
         for (let i = loopFrom; i <= loopTo; i += loopStep) {
           // Store loop index
@@ -287,7 +330,8 @@ export class StepExecutor {
         return '';
       }
 
-      const input = this.RecipeEngine.get(step.input);
+      const rawInput = this.RecipeEngine.get(step.input);
+      const input = parseJsonInput(rawInput);
       const locator = this.RecipeEngine.replaceVariablesinString(step.locator);
       Log.debug(`Extracting from JSON: locator "${locator}" from variable "${step.input}"`);
       const output = _.get(input, locator);
@@ -300,7 +344,8 @@ export class StepExecutor {
         Log.error('executeUrlEncodeStep: Missing required step properties');
         return '';
       }
-      return encodeURIComponent(step.input);
+      const input = this.RecipeEngine.replaceVariablesinString(step.input);
+      return encodeURIComponent(input);
     }
   
     async executeStoreUrlStep(step) {

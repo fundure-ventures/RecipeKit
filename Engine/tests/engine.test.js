@@ -15,15 +15,17 @@ function getEngineCommandType(commandType) {
   return commandTypeMap[commandType] || commandType;
 }
 
-function restructureOutputByIndex(result) {
+function restructureOutputByIndex(result, ignoredFields = new Set(), visibleFields = null) {
   const debug = {};
   const results = [];
   const indexedVariables = {};
 
   for (const [key, value] of Object.entries(result)) {
-    const match = key.match(/^([A-Z]+)(\d+)$/);
+    const match = key.match(/^([A-Z_]+)(\d+)$/);
     if (match) {
       const [, prefix, index] = match;
+      if (ignoredFields.has(prefix)) continue;
+      if (visibleFields && visibleFields.size > 0 && !visibleFields.has(prefix)) continue;
       if (!indexedVariables[index]) {
         indexedVariables[index] = {};
       }
@@ -120,6 +122,32 @@ describe("restructureOutputByIndex", () => {
     expect(results).toHaveLength(2);
     expect(results[0].TITLE).toBe("Nevermind");
     expect(results[1].TITLE).toBe("In Utero");
+  });
+
+  test("filters out hidden autocomplete fields", () => {
+    const raw = {
+      TITLE0: "Cune (CVNE) Crianza 2020",
+      SUBTITLE0: "Rioja, España",
+      COVER0: "https://images.vivino.com/thumbs/raIWvbvjQuq88TfQEVCtFw_pb_x300.png",
+      URL0: "https://www.vivino.com/cune-cvne-crianza/w/1135311",
+      WINE_ID0: 1135311,
+      WINERY_SEO0: "cune-cvne"
+    };
+
+    const { results } = restructureOutputByIndex(
+      raw,
+      new Set(),
+      new Set(["TITLE", "SUBTITLE", "COVER", "URL"])
+    );
+
+    expect(results).toEqual([
+      {
+        TITLE: "Cune (CVNE) Crianza 2020",
+        SUBTITLE: "Rioja, España",
+        COVER: "https://images.vivino.com/thumbs/raIWvbvjQuq88TfQEVCtFw_pb_x300.png",
+        URL: "https://www.vivino.com/cune-cvne-crianza/w/1135311"
+      }
+    ]);
   });
 
   // Empty result

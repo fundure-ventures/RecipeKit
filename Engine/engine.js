@@ -91,7 +91,22 @@ class Engine {
     return commandTypeMap[commandType] || commandType;
   }
 
-  restructureOutputByIndex(result, ignoredFields = new Set()) {
+  getVisibleAutocompleteFields(recipe) {
+    const visibleFields = new Set();
+
+    if (!recipe.autocomplete_steps || !Array.isArray(recipe.autocomplete_steps)) {
+      return visibleFields;
+    }
+
+    for (const step of recipe.autocomplete_steps) {
+      if (!step.output?.name || !step.output.show) continue;
+      visibleFields.add(step.output.name.replace(/\$[a-zA-Z]+/g, ''));
+    }
+
+    return visibleFields;
+  }
+
+  restructureOutputByIndex(result, ignoredFields = new Set(), visibleFields = null) {
     const debug = {};
     const results = [];
     const indexedVariables = {};
@@ -101,6 +116,7 @@ class Engine {
       if (match) {
         const [, prefix, index] = match;
         if (ignoredFields.has(prefix)) continue;
+        if (visibleFields && visibleFields.size > 0 && !visibleFields.has(prefix)) continue;
         if (!indexedVariables[index]) {
           indexedVariables[index] = {};
         }
@@ -159,7 +175,11 @@ class Engine {
       let finalResult;
 
       if (commandType === 'autocomplete') {
-        finalResult = this.restructureOutputByIndex(rawResult, ignoredFields);
+        finalResult = this.restructureOutputByIndex(
+          rawResult,
+          ignoredFields,
+          this.getVisibleAutocompleteFields(recipe)
+        );
       } else if (commandType === 'url') {
         finalResult = this.restructureOutputByStepConfig(rawResult, recipe, ignoredFields);
       } else {

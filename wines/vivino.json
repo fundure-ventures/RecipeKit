@@ -1,7 +1,7 @@
 {
   "recipe_shortcut": "vivino_wines",
   "list_type": "wines",
-  "engine_version": 25,
+  "engine_version": 26,
   "title": "Vivino Wines",
   "description": "Retrieve the wines from page vivino",
   "urls": [
@@ -17,128 +17,36 @@
     {
       "command": "load",
       "url": "https://www.vivino.com/search/wines?q=$INPUT",
-      "description": "Load the url of the wine",
+      "description": "Load the Vivino search page",
       "config": {
-        "js": true,
         "timeout": 1
       }
     },
     {
-      "command": "store_count",
-      "locator": "div[data-testid='wineCard']:has(a[data-testid='vintagePageLink']):has(div[class*='wineInfoVintage__wineInfoVintage'])",
+      "command": "store_attribute",
+      "locator": "#search-page",
+      "attribute_name": "data-preloaded-state",
+      "output": {
+        "name": "JSON",
+        "show": false
+      },
+      "description": "Capture Vivino's embedded search payload"
+    },
+    {
+      "command": "json_store_text",
+      "input": "JSON",
+      "locator": "search_results.matches.length",
       "output": {
         "name": "NUMBER_OF_RESULTS",
         "type": "int",
         "show": false
       },
-      "description": "Count wine cards to use as loop bound"
+      "description": "Count returned wine matches"
     },
     {
-      "command": "store_attribute",
-      "locator": "div[data-testid='wineCard']:has(a[data-testid='vintagePageLink']):has(div[class*='wineInfoVintage__wineInfoVintage']):nth-of-type($i) div[role='img']",
-      "attribute_name": "style",
-      "output": {
-        "name": "COVER$i",
-        "show": false
-      },
-      "config": {
-        "loop": {
-          "index": "i",
-          "from": 1,
-          "to": "$NUMBER_OF_RESULTS",
-          "step": 1
-        }
-      }
-    },
-    {
-      "command": "regex",
-      "input": "$COVER$i",
-      "expression": "url\\([\"']((?:https?:)?//[^\"']+)[\"']\\)",
-      "output": {
-        "name": "COVER$i",
-        "show": false
-      },
-      "config": {
-        "loop": {
-          "index": "i",
-          "from": 1,
-          "to": "$NUMBER_OF_RESULTS",
-          "step": 1
-        }
-      }
-    },
-    {
-      "command": "regex",
-      "input": "$COVER$i",
-      "expression": "(?:https?://)?(//?.+)$",
-      "output": {
-        "name": "COVER$i",
-        "show": false
-      },
-      "config": {
-        "loop": {
-          "index": "i",
-          "from": 1,
-          "to": "$NUMBER_OF_RESULTS",
-          "step": 1
-        }
-      },
-      "description": "Extract path part (removes protocol if present, keeps //)"
-    },
-    {
-      "command": "store",
-      "input": "https:$COVER$i",
-      "output": {
-        "name": "COVER$i",
-        "show": true
-      },
-      "config": {
-        "loop": {
-          "index": "i",
-          "from": 1,
-          "to": "$NUMBER_OF_RESULTS",
-          "step": 1
-        }
-      },
-      "description": "Add https:// prefix"
-    },
-    {
-      "command": "store_text",
-      "locator": "div[data-testid='wineCard']:has(a[data-testid='vintagePageLink']):has(div[class*='wineInfoVintage__wineInfoVintage']):nth-of-type($i) div[class*='wineInfoVintage__wineInfoVintage'] > div[class*='wineInfoVintage__truncate']:first-child",
-      "output": {
-        "name": "WINERY$i",
-        "show": false
-      },
-      "config": {
-        "loop": {
-          "index": "i",
-          "from": 1,
-          "to": "$NUMBER_OF_RESULTS",
-          "step": 1
-        }
-      },
-      "description": "Saves the winery name"
-    },
-    {
-      "command": "store_text",
-      "locator": "div[data-testid='wineCard']:has(a[data-testid='vintagePageLink']):has(div[class*='wineInfoVintage__wineInfoVintage']):nth-of-type($i) div[class*='wineInfoVintage__wineInfoVintage'] div[class*='wineInfoVintage__vintage']",
-      "output": {
-        "name": "VINTAGE$i",
-        "show": false
-      },
-      "config": {
-        "loop": {
-          "index": "i",
-          "from": 1,
-          "to": "$NUMBER_OF_RESULTS",
-          "step": 1
-        }
-      },
-      "description": "Saves the vintage/name"
-    },
-    {
-      "command": "store",
-      "input": "$WINERY$i $VINTAGE$i",
+      "command": "json_store_text",
+      "input": "JSON",
+      "locator": "search_results.matches[$i].vintage.name",
       "output": {
         "name": "TITLE$i",
         "show": true
@@ -146,16 +54,52 @@
       "config": {
         "loop": {
           "index": "i",
-          "from": 1,
-          "to": "$NUMBER_OF_RESULTS",
+          "from": 0,
+          "to": "$NUMBER_OF_RESULTS - 1",
           "step": 1
         }
       },
-      "description": "Combines winery and vintage for full title"
+      "description": "Extract wine title from preloaded JSON"
     },
     {
-      "command": "store_text",
-      "locator": "div[data-testid='wineCard']:has(a[data-testid='vintagePageLink']):has(div[class*='wineInfoVintage__wineInfoVintage']):nth-of-type($i) div[class*='wineInfoLocation__regionAndCountry']",
+      "command": "json_store_text",
+      "input": "JSON",
+      "locator": "search_results.matches[$i].vintage.wine.region.name",
+      "output": {
+        "name": "REGION$i",
+        "show": false
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 0,
+          "to": "$NUMBER_OF_RESULTS - 1",
+          "step": 1
+        }
+      },
+      "description": "Extract wine region from preloaded JSON"
+    },
+    {
+      "command": "json_store_text",
+      "input": "JSON",
+      "locator": "search_results.matches[$i].vintage.wine.region.country.name",
+      "output": {
+        "name": "COUNTRY$i",
+        "show": false
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 0,
+          "to": "$NUMBER_OF_RESULTS - 1",
+          "step": 1
+        }
+      },
+      "description": "Extract wine country from preloaded JSON"
+    },
+    {
+      "command": "store",
+      "input": "$REGION$i, $COUNTRY$i",
       "output": {
         "name": "SUBTITLE$i",
         "show": true
@@ -163,33 +107,105 @@
       "config": {
         "loop": {
           "index": "i",
-          "from": 1,
-          "to": "$NUMBER_OF_RESULTS",
+          "from": 0,
+          "to": "$NUMBER_OF_RESULTS - 1",
           "step": 1
         }
       },
-      "description": "Saves the region of the wine"
+      "description": "Compose subtitle from region and country"
     },
     {
-      "command": "store_attribute",
-      "locator": "div[data-testid='wineCard']:has(a[data-testid='vintagePageLink']):has(div[class*='wineInfoVintage__wineInfoVintage']):nth-of-type($i) a[data-testid='vintagePageLink']",
-      "attribute_name": "href",
+      "command": "json_store_text",
+      "input": "JSON",
+      "locator": "search_results.matches[$i].vintage.image.variations.bottle_small",
       "output": {
-        "name": "URL$i",
+        "name": "COVER_PATH$i",
         "show": false
       },
       "config": {
         "loop": {
           "index": "i",
-          "from": 1,
-          "to": "$NUMBER_OF_RESULTS",
+          "from": 0,
+          "to": "$NUMBER_OF_RESULTS - 1",
           "step": 1
         }
-      }
+      },
+      "description": "Extract wine cover path from preloaded JSON"
     },
     {
       "command": "store",
-      "input": "https://www.vivino.com$URL$i",
+      "input": "https:$COVER_PATH$i",
+      "output": {
+        "name": "COVER$i",
+        "show": true
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 0,
+          "to": "$NUMBER_OF_RESULTS - 1",
+          "step": 1
+        }
+      },
+      "description": "Make wine cover URLs absolute"
+    },
+    {
+      "command": "json_store_text",
+      "input": "JSON",
+      "locator": "search_results.matches[$i].vintage.wine.winery.seo_name",
+      "output": {
+        "name": "WINERY_SEO$i",
+        "show": false
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 0,
+          "to": "$NUMBER_OF_RESULTS - 1",
+          "step": 1
+        }
+      },
+      "description": "Extract winery SEO slug from preloaded JSON"
+    },
+    {
+      "command": "json_store_text",
+      "input": "JSON",
+      "locator": "search_results.matches[$i].vintage.wine.seo_name",
+      "output": {
+        "name": "WINE_SEO$i",
+        "show": false
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 0,
+          "to": "$NUMBER_OF_RESULTS - 1",
+          "step": 1
+        }
+      },
+      "description": "Extract wine SEO slug from preloaded JSON"
+    },
+    {
+      "command": "json_store_text",
+      "input": "JSON",
+      "locator": "search_results.matches[$i].vintage.wine.id",
+      "output": {
+        "name": "WINE_ID$i",
+        "show": false
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 0,
+          "to": "$NUMBER_OF_RESULTS - 1",
+          "step": 1
+        }
+      },
+      "description": "Extract wine ID from preloaded JSON"
+    },
+    {
+      "command": "store",
+      "input": "https://www.vivino.com/$WINERY_SEO$i-$WINE_SEO$i/w/$WINE_ID$i",
       "output": {
         "name": "URL$i",
         "show": true
@@ -197,11 +213,12 @@
       "config": {
         "loop": {
           "index": "i",
-          "from": 1,
-          "to": "$NUMBER_OF_RESULTS",
+          "from": 0,
+          "to": "$NUMBER_OF_RESULTS - 1",
           "step": 1
         }
-      }
+      },
+      "description": "Build canonical Vivino detail URLs"
     }
   ],
   "url_steps": [
