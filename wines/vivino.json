@@ -180,8 +180,7 @@
       "input": "JSON",
       "locator": "search_results.matches[$i].vintage.wine.id",
       "output": {
-        "name": "WINE_ID$i",
-        "show": false
+        "name": "WINE_ID$i"
       },
       "config": {
         "loop": {
@@ -197,8 +196,7 @@
       "command": "store",
       "input": "https://www.vivino.com/$WINERY_SEO$i-$WINE_SEO$i/w/$WINE_ID$i",
       "output": {
-        "name": "URL$i",
-        "show": true
+        "name": "URL$i"
       },
       "config": {
         "loop": {
