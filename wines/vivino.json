@@ -27,8 +27,7 @@
       "locator": "#search-page",
       "attribute_name": "data-preloaded-state",
       "output": {
-        "name": "JSON",
-        "show": false
+        "name": "JSON"
       },
       "description": "Capture Vivino's embedded search payload"
     },
@@ -38,8 +37,7 @@
       "locator": "search_results.matches.length",
       "output": {
         "name": "NUMBER_OF_RESULTS",
-        "type": "int",
-        "show": false
+        "type": "int"
       },
       "description": "Count returned wine matches"
     },
@@ -48,8 +46,7 @@
       "input": "JSON",
       "locator": "search_results.matches[$i].vintage.name",
       "output": {
-        "name": "TITLE$i",
-        "show": true
+        "name": "TITLE$i"
       },
       "config": {
         "loop": {
@@ -66,8 +63,7 @@
       "input": "JSON",
       "locator": "search_results.matches[$i].vintage.wine.region.name",
       "output": {
-        "name": "REGION$i",
-        "show": false
+        "name": "REGION$i"
       },
       "config": {
         "loop": {
@@ -84,8 +80,7 @@
       "input": "JSON",
       "locator": "search_results.matches[$i].vintage.wine.region.country.name",
       "output": {
-        "name": "COUNTRY$i",
-        "show": false
+        "name": "COUNTRY$i"
       },
       "config": {
         "loop": {
@@ -101,8 +96,7 @@
       "command": "store",
       "input": "$REGION$i, $COUNTRY$i",
       "output": {
-        "name": "SUBTITLE$i",
-        "show": true
+        "name": "SUBTITLE$i"
       },
       "config": {
         "loop": {
@@ -119,8 +113,7 @@
       "input": "JSON",
       "locator": "search_results.matches[$i].vintage.image.variations.bottle_small",
       "output": {
-        "name": "COVER_PATH$i",
-        "show": false
+        "name": "COVER_PATH$i"
       },
       "config": {
         "loop": {
@@ -136,8 +129,7 @@
       "command": "store",
       "input": "https:$COVER_PATH$i",
       "output": {
-        "name": "COVER$i",
-        "show": true
+        "name": "COVER$i"
       },
       "config": {
         "loop": {
@@ -154,8 +146,7 @@
       "input": "JSON",
       "locator": "search_results.matches[$i].vintage.wine.winery.seo_name",
       "output": {
-        "name": "WINERY_SEO$i",
-        "show": false
+        "name": "WINERY_SEO$i"
       },
       "config": {
         "loop": {
@@ -172,8 +163,7 @@
       "input": "JSON",
       "locator": "search_results.matches[$i].vintage.wine.seo_name",
       "output": {
-        "name": "WINE_SEO$i",
-        "show": false
+        "name": "WINE_SEO$i"
       },
       "config": {
         "loop": {
