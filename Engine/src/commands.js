@@ -57,6 +57,7 @@ export class StepExecutor {
         store: this.executeStoreStep,
         api_request: this.executeApiRequestStep,
         json_store_text: this.executeJsonStoreTextStep,
+        json_count: this.executeJsonCountStep,
         url_encode: this.executeUrlEncodeStep,
         store_url: this.executeStoreUrlStep,
         replace: this.executeReplaceStep,
@@ -337,6 +338,27 @@ export class StepExecutor {
       const output = _.get(input, locator);
       Log.debug(`Extracted value: "${output}"`);
       return output
+    }
+
+    /**
+     * Returns the number of elements in a JSON array at the given path.
+     * Use this instead of json_store_text with a path ending in .length, so clients
+     * (iOS, Android, etc.) can implement it without evaluating JavaScript.
+     */
+    async executeJsonCountStep(step) {
+      if (!step.input || !step.locator) {
+        Log.error('executeJsonCountStep: Missing required step properties (input, locator)');
+        return '0';
+      }
+
+      const rawInput = this.RecipeEngine.get(step.input);
+      const input = parseJsonInput(rawInput);
+      const locator = this.RecipeEngine.replaceVariablesinString(step.locator);
+      Log.debug(`Counting array at JSON path "${locator}" from variable "${step.input}"`);
+      const arr = _.get(input, locator);
+      const count = Array.isArray(arr) ? arr.length : 0;
+      Log.debug(`Array length: ${count}`);
+      return String(count);
     }
   
     async executeUrlEncodeStep(step) {

@@ -27,14 +27,15 @@
       "locator": "#search-page",
       "attribute_name": "data-preloaded-state",
       "output": {
-        "name": "JSON"
+        "name": "JSON",
+        "type": "json"
       },
       "description": "Capture Vivino's embedded search payload"
     },
     {
-      "command": "json_store_text",
+      "command": "json_count",
       "input": "JSON",
-      "locator": "search_results.matches.length",
+      "locator": "search_results.matches",
       "output": {
         "name": "NUMBER_OF_RESULTS",
         "type": "int"
