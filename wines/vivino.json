@@ -45,7 +45,7 @@
     {
       "command": "json_store_text",
       "input": "JSON",
-      "locator": "search_results.matches[$i].vintage.name",
+      "locator": "search_results.matches.[$i].vintage.name",
       "output": {
         "name": "TITLE$i"
       },
@@ -62,7 +62,7 @@
     {
       "command": "json_store_text",
       "input": "JSON",
-      "locator": "search_results.matches[$i].vintage.wine.region.name",
+      "locator": "search_results.matches.[$i].vintage.wine.region.name",
       "output": {
         "name": "REGION$i"
       },
@@ -79,7 +79,7 @@
     {
       "command": "json_store_text",
       "input": "JSON",
-      "locator": "search_results.matches[$i].vintage.wine.region.country.name",
+      "locator": "search_results.matches.[$i].vintage.wine.region.country.name",
       "output": {
         "name": "COUNTRY$i"
       },
@@ -112,7 +112,7 @@
     {
       "command": "json_store_text",
       "input": "JSON",
-      "locator": "search_results.matches[$i].vintage.image.variations.bottle_small",
+      "locator": "search_results.matches.[$i].vintage.image.variations.bottle_small",
       "output": {
         "name": "COVER_PATH$i"
       },
@@ -145,7 +145,7 @@
     {
       "command": "json_store_text",
       "input": "JSON",
-      "locator": "search_results.matches[$i].vintage.wine.winery.seo_name",
+      "locator": "search_results.matches.[$i].vintage.wine.winery.seo_name",
       "output": {
         "name": "WINERY_SEO$i"
       },
@@ -162,7 +162,7 @@
     {
       "command": "json_store_text",
       "input": "JSON",
-      "locator": "search_results.matches[$i].vintage.wine.seo_name",
+      "locator": "search_results.matches.[$i].vintage.wine.seo_name",
       "output": {
         "name": "WINE_SEO$i"
       },
@@ -179,7 +179,7 @@
     {
       "command": "json_store_text",
       "input": "JSON",
-      "locator": "search_results.matches[$i].vintage.wine.id",
+      "locator": "search_results.matches.[$i].vintage.wine.id",
       "output": {
         "name": "WINE_ID$i"
       },
