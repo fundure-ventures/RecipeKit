@@ -19,7 +19,7 @@
     },
     {
       "command": "store_attribute",
-      "locator": "div.search_results.tv > div.results > div:nth-child($i) div.image img",
+      "locator": "div.search_results.tv > div.results > div.media-card-list > div:nth-child($i) img.poster",
       "attribute_name": "src",
       "output": {
         "name": "COVER$i"
@@ -35,7 +35,7 @@
     },
     {
       "command": "store_text",
-      "locator": "div.search_results.tv > div.results > div:nth-child($i) div.title h2",
+      "locator": "div.search_results.tv > div.results > div.media-card-list > div:nth-child($i) h2",
       "output": {
         "name": "TITLE$i"
       },
@@ -50,7 +50,7 @@
     },
     {
       "command": "store_text",
-      "locator": "div.search_results.tv > div.results > div:nth-child($i) div.title > span.release_date",
+      "locator": "div.search_results.tv > div.results > div.media-card-list > div:nth-child($i) span.release_date",
       "output": {
         "name": "YEAR$i"
       },
@@ -81,7 +81,7 @@
     },
     {
       "command": "store_attribute",
-      "locator": "div.search_results.tv > div.results > div:nth-child($i) div.title a",
+      "locator": "div.search_results.tv > div.results > div.media-card-list > div:nth-child($i) a[href*=\"/tv/\"]",
       "attribute_name": "href",
       "output": {
         "name": "URL$i"
