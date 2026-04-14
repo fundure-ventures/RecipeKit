@@ -277,37 +277,28 @@
       "locator": "img.poster",
       "attribute_name": "src",
       "output": {
-        "name": "COVER"
+        "name": "AUX_COVER"
       },
       "description": "Saves the image"
     },
     {
       "command": "regex",
-      "input": "$COVER",
-      "expression": "(?<=p\\/).+",
+      "input": "$AUX_COVER",
+      "expression": "(?<=/)[^/?]+(?=\\?|$)",
       "output": {
         "name": "COVER"
       },
-      "description": "Applies a regular expression to get part of the cover"
-    },
-    {
-      "command": "regex",
-      "input": "$COVER",
-      "expression": "(?<=\\/).+",
-      "output": {
-        "name": "COVER"
-      },
-      "description": "Applies a regular expression to get part of the cover"
+      "description": "Extracts the file path from the poster URL"
     },
     {
       "command": "store",
-      "input": "https://image.tmdb.org/t/p/w600_and_h900_bestv2/$COVER",
+      "input": "https://image.tmdb.org/t/p/original/$COVER",
       "output": {
         "name": "COVER",
         "type": "string",
         "show": true
       },
-      "description": "Add high res param to the cover"
+      "description": "Rebuilds the poster URL using TMDB original size"
     }
   ]
 }

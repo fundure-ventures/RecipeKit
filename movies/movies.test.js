@@ -34,7 +34,7 @@ describe(RECIPE, () => {
     expect(result.DURATION).toBeDefined();
     expect(result.RATING).toBeDefined();
     expect(result.AUTHOR).toBeDefined();
-    expect(result.COVER).toMatch(/^https:\/\/.*\.(jpg|jpeg|png|webp)$/i);
+    expect(result.COVER).toMatch(/^https:\/\/image\.tmdb\.org\/t\/p\/original\/.*\.(jpg|jpeg|png|webp)$/i);
   }, TIMEOUT);
 });
 
