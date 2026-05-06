@@ -294,7 +294,7 @@
     },
     {
       "command": "store",
-      "input": "$CLEAN_URL/seasons?language=$SYSTEM_LANGUAGE&",
+      "input": "$CLEAN_URL/seasons?language=$SYSTEM_LANGUAGE",
       "output": {
         "name": "SEASSONS_URL",
         "type": "string",
