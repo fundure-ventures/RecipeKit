@@ -265,6 +265,8 @@ Extracts a value from a JSON object using dot notation.
 }
 ```
 
+For `json_store_text`, `input` must be a variable reference with a leading `$`, such as `$JSON` or `$API_RESPONSE`.
+
 **Locator syntax:**
 - `property.nested` - Access nested properties
 - `array.[0]` - Access array index (0-based)
