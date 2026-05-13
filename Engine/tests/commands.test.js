@@ -430,6 +430,54 @@ describe("StepExecutor — executeJsonStoreTextStep", () => {
     });
     expect(result).toBe("");
   }));
+
+  test("returns empty string when input is not a $variable reference", silenceErrors(async () => {
+    const { engine, executor } = createExecutor();
+    engine.set("JSON", { product: { brands: "Ferrero" } });
+
+    const result = await executor.executeJsonStoreTextStep({
+      command: "json_store_text",
+      locator: "product.brands",
+      input: "JSON",
+      output: { name: "BRAND" }
+    });
+    expect(result).toBe("");
+  }));
+});
+
+// ============================================================
+// executeJsonCountStep
+// ============================================================
+describe("StepExecutor — executeJsonCountStep", () => {
+  test("counts array length from stringified JSON payload", async () => {
+    const { engine, executor } = createExecutor();
+    engine.set("JSON", JSON.stringify({
+      search_results: {
+        matches: [{}, {}, {}]
+      }
+    }));
+
+    const result = await executor.executeJsonCountStep({
+      command: "json_count",
+      locator: "search_results.matches",
+      input: "$JSON",
+      output: { name: "COUNT" }
+    });
+    expect(result).toBe("3");
+  });
+
+  test("returns 0 when input is not a $variable reference", silenceErrors(async () => {
+    const { engine, executor } = createExecutor();
+    engine.set("JSON", { search_results: { matches: [{}, {}] } });
+
+    const result = await executor.executeJsonCountStep({
+      command: "json_count",
+      locator: "search_results.matches",
+      input: "JSON",
+      output: { name: "COUNT" }
+    });
+    expect(result).toBe("0");
+  }));
 });
 
 // ============================================================

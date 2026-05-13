@@ -30,7 +30,7 @@ You are fixing a broken RecipeKit recipe based on test failures and evidence.
     },
     {
       "command": "json_store_text",
-      "input": "API_RESPONSE", 
+      "input": "$API_RESPONSE", 
       "locator": "results[$i].title",
       "output": { "name": "TITLE$i" },
       "config": { "loop": { "index": "i", "from": 0, "to": 9, "step": 1 } },

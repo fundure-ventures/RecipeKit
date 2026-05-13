@@ -44,6 +44,18 @@ function parseJsonInput(value) {
   }
 }
 
+function resolveRequiredVariableInput(recipeEngine, stepInput, stepName) {
+  if (typeof stepInput !== 'string' || !stepInput.startsWith('$')) {
+    Log.error(`${stepName}: step.input must be a variable reference starting with "$"`);
+    return { ok: false, value: undefined };
+  }
+
+  return {
+    ok: true,
+    value: recipeEngine.get(stepInput)
+  };
+}
+
 export class StepExecutor {
     constructor(BrowserManager, RecipeEngine) {
       this.BrowserManager = BrowserManager;
@@ -331,7 +343,12 @@ export class StepExecutor {
         return '';
       }
 
-      const rawInput = this.RecipeEngine.get(step.input);
+      const resolvedInput = resolveRequiredVariableInput(this.RecipeEngine, step.input, 'executeJsonStoreTextStep');
+      if (!resolvedInput.ok) {
+        return '';
+      }
+
+      const rawInput = resolvedInput.value;
       const input = parseJsonInput(rawInput);
       const locator = this.RecipeEngine.replaceVariablesinString(step.locator);
       Log.debug(`Extracting from JSON: locator "${locator}" from variable "${step.input}"`);
@@ -351,7 +368,12 @@ export class StepExecutor {
         return '0';
       }
 
-      const rawInput = this.RecipeEngine.get(step.input);
+      const resolvedInput = resolveRequiredVariableInput(this.RecipeEngine, step.input, 'executeJsonCountStep');
+      if (!resolvedInput.ok) {
+        return '0';
+      }
+
+      const rawInput = resolvedInput.value;
       const input = parseJsonInput(rawInput);
       const locator = this.RecipeEngine.replaceVariablesinString(step.locator);
       Log.debug(`Counting array at JSON path "${locator}" from variable "${step.input}"`);

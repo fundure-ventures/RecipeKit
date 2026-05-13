@@ -32,7 +32,7 @@
     },
     {
       "command": "json_store_text",
-      "input": "API_RESPONSE",
+      "input": "$API_RESPONSE",
       "locator": "results[0].hits[$i].naslov",
       "output": {
         "name": "TITLE$i"
@@ -49,7 +49,7 @@
     },
     {
       "command": "json_store_text",
-      "input": "API_RESPONSE",
+      "input": "$API_RESPONSE",
       "locator": "results[0].hits[$i].dizajner",
       "output": {
         "name": "SUBTITLE$i"
@@ -66,7 +66,7 @@
     },
     {
       "command": "json_store_text",
-      "input": "API_RESPONSE",
+      "input": "$API_RESPONSE",
       "locator": "results[0].hits[$i].url.EN[0]",
       "output": {
         "name": "URL$i"
@@ -83,7 +83,7 @@
     },
     {
       "command": "json_store_text",
-      "input": "API_RESPONSE",
+      "input": "$API_RESPONSE",
       "locator": "results[0].hits[$i].thumbnail",
       "output": {
         "name": "COVER$i"

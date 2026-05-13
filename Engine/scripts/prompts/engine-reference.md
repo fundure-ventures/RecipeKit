@@ -273,7 +273,7 @@ Extracts a value from a JSON object using lodash path syntax.
 ```
 
 **Properties:**
-- `input` (required): Variable containing JSON object
+- `input` (required): Variable reference containing JSON object, always with a leading `$`
 - `locator` (required): Lodash path (e.g., "data.items[0].name")
 
 ### `json_count` - Count elements in a JSON array
@@ -282,14 +282,14 @@ Returns the number of elements in an array at the given path. Use this instead o
 ```json
 {
   "command": "json_count",
-  "input": "JSON",
+  "input": "$JSON",
   "locator": "search_results.matches",
   "output": { "name": "NUMBER_OF_RESULTS", "type": "int" }
 }
 ```
 
 **Properties:**
-- `input` (required): Variable containing JSON object
+- `input` (required): Variable reference containing JSON object, always with a leading `$`
 - `locator` (required): Path to the array (e.g., "search_results.matches"). The value at this path must be an array; otherwise the result is 0.
 
 ### `url_encode` - URL Encode String

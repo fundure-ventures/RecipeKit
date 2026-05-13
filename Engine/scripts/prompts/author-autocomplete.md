@@ -31,7 +31,7 @@ The API approach is faster, more reliable, and bypasses anti-bot protection.
     },
     {
       "command": "json_store_text",
-      "input": "API_RESPONSE",
+      "input": "$API_RESPONSE",
       "locator": "{api.items_path}[$i].{api.title_path}",
       "output": { "name": "TITLE$i" },
       "config": { "loop": { "index": "i", "from": 0, "to": 9, "step": 1 } },
@@ -39,7 +39,7 @@ The API approach is faster, more reliable, and bypasses anti-bot protection.
     },
     {
       "command": "json_store_text",
-      "input": "API_RESPONSE",
+      "input": "$API_RESPONSE",
       "locator": "{api.items_path}[$i].{api.url_path}",
       "output": { "name": "URL$i" },
       "config": { "loop": { "index": "i", "from": 0, "to": 9, "step": 1 } },
@@ -47,7 +47,7 @@ The API approach is faster, more reliable, and bypasses anti-bot protection.
     },
     {
       "command": "json_store_text",
-      "input": "API_RESPONSE",
+      "input": "$API_RESPONSE",
       "locator": "{api.items_path}[$i].{api.image_path}",
       "output": { "name": "COVER$i" },
       "config": { "loop": { "index": "i", "from": 0, "to": 9, "step": 1 } },

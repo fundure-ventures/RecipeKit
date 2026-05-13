@@ -145,7 +145,7 @@
     },
     {
       "command": "json_store_text",
-      "input": "JSON_LD",
+      "input": "$JSON_LD",
       "locator": "brand.name",
       "output": {
         "name": "BRAND",
@@ -156,7 +156,7 @@
     },
     {
       "command": "json_store_text",
-      "input": "JSON_LD",
+      "input": "$JSON_LD",
       "locator": "offers.price",
       "output": {
         "name": "PRICE",
@@ -167,7 +167,7 @@
     },
     {
       "command": "json_store_text",
-      "input": "JSON_LD",
+      "input": "$JSON_LD",
       "locator": "sku",
       "output": {
         "name": "SKU",
