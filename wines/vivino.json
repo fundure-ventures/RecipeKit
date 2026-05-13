@@ -19,7 +19,8 @@
       "url": "https://www.vivino.com/search/wines?q=$INPUT",
       "description": "Load the Vivino search page",
       "config": {
-        "timeout": 1
+        "timeout": 1,
+        "js": true
       }
     },
     {
