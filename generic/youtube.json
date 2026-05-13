@@ -1,0 +1,161 @@
+{
+  "recipe_shortcut": "youtube_generic",
+  "list_type": "generic",
+  "engine_version": 25,
+  "title": "YouTube Generic",
+  "description": "Loads YouTube video URLs into generic lists",
+  "urls": [
+    "https://www.youtube.com/watch",
+    "https://youtube.com/watch",
+    "https://m.youtube.com/",
+    "m.youtube.com/",
+    "https://m.youtube.com/watch",
+    "https://www.youtube.com/live/",
+    "https://youtube.com/live/",
+    "https://m.youtube.com/live/",
+    "https://www.youtube.com/shorts/",
+    "https://youtube.com/shorts/",
+    "https://m.youtube.com/shorts/",
+    "https://youtu.be/",
+    "youtu.be/"
+  ],
+  "headers": {
+    "Accept-Language": "en-UK,en",
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.113 Safari/537.36"
+  },
+  "autocomplete_steps": null,
+  "url_steps": [
+    {
+      "command": "regex",
+      "input": "$INPUT",
+      "expression": "(?:v=|\\/shorts\\/|\\/live\\/|youtu\\.be\\/)([A-Za-z0-9_-]{11})",
+      "output": {
+        "name": "VIDEO_ID",
+        "show": false
+      },
+      "description": "Extract the YouTube video id from watch, live, shorts, or short URLs."
+    },
+    {
+      "command": "store",
+      "input": "https://www.youtube.com/watch?v=$VIDEO_ID",
+      "output": {
+        "name": "URL",
+        "type": "string",
+        "show": true
+      },
+      "description": "Build a canonical YouTube watch URL."
+    },
+    {
+      "command": "api_request",
+      "url": "https://www.youtube.com/oembed?url=$URL&format=json",
+      "output": {
+        "name": "OEMBED_JSON",
+        "show": false
+      },
+      "config": {
+        "method": "GET"
+      },
+      "description": "Fetch reliable public metadata from YouTube oEmbed."
+    },
+    {
+      "command": "json_store_text",
+      "locator": "title",
+      "input": "$OEMBED_JSON",
+      "output": {
+        "name": "TITLE",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract the video title."
+    },
+    {
+      "command": "json_store_text",
+      "locator": "author_name",
+      "input": "$OEMBED_JSON",
+      "output": {
+        "name": "AUTHOR",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract the channel name."
+    },
+    {
+      "command": "json_store_text",
+      "locator": "thumbnail_url",
+      "input": "$OEMBED_JSON",
+      "output": {
+        "name": "COVER",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract the video thumbnail."
+    },
+    {
+      "command": "load",
+      "url": "$URL",
+      "config": {
+        "js": true,
+        "timeout": 5000
+      },
+      "output": {
+        "name": "PAGE",
+        "show": false
+      },
+      "description": "Load the canonical video page to collect extra metadata."
+    },
+    {
+      "command": "store_attribute",
+      "locator": "meta[itemprop='description'], meta[name='description'], meta[property='og:description']",
+      "attribute_name": "content",
+      "output": {
+        "name": "DESCRIPTION",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract the video description."
+    },
+    {
+      "command": "store_attribute",
+      "locator": "meta[itemprop='uploadDate'], meta[itemprop='datePublished']",
+      "attribute_name": "content",
+      "output": {
+        "name": "DATE",
+        "type": "date",
+        "show": true
+      },
+      "description": "Extract the upload date."
+    },
+    {
+      "command": "store_attribute",
+      "locator": "meta[itemprop='duration']",
+      "attribute_name": "content",
+      "output": {
+        "name": "DURATION",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract the ISO-8601 duration."
+    },
+    {
+      "command": "store_attribute",
+      "locator": "meta[itemprop='genre']",
+      "attribute_name": "content",
+      "output": {
+        "name": "CATEGORY",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract the video category when available."
+    },
+    {
+      "command": "store",
+      "input": "https://www.google.com/s2/favicons?sz=32&domain=youtube.com",
+      "output": {
+        "name": "FAVICON",
+        "type": "string",
+        "show": true
+      },
+      "description": "Use a YouTube favicon for the source icon."
+    }
+  ]
+}
