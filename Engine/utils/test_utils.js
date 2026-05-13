@@ -25,8 +25,9 @@ export async function loadEnvVariables() {
 }
 
 export async function runEngine(recipe, type, input) {
+  const bunExecutable = process.execPath || Bun.which("bun") || "bun";
   const proc = spawn([
-    "bun", 
+    bunExecutable,
     "Engine/engine.js", 
     "--recipe", recipe,
     "--type", type,

@@ -20,18 +20,16 @@ describe("validateField", () => {
     expect(result.valid).toBe(true);
   });
 
-  test("returns invalid when show is missing", () => {
+  test("returns valid when show is omitted (no schema gate)", () => {
     const step = { output: { name: "TITLE" } };
     const result = validateField(step, "url_steps");
-    expect(result.valid).toBe(false);
-    expect(result.reason).toContain('"show" is required');
+    expect(result.valid).toBe(true);
   });
 
-  test("returns invalid when show is null", () => {
+  test("returns valid when show is null (no schema gate)", () => {
     const step = { output: { name: "TITLE", show: null } };
     const result = validateField(step, "url_steps");
-    expect(result.valid).toBe(false);
-    expect(result.reason).toContain('"show" is required');
+    expect(result.valid).toBe(true);
   });
 
   test("returns valid for known url_fields key with show: true", () => {

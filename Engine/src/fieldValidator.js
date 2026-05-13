@@ -33,13 +33,9 @@ export function validateField(step, stepType) {
 
   const { name, show } = step.output;
 
-  // show is required — must be explicitly true or false
-  if (show === undefined || show === null) {
-    return { valid: false, reason: `Field "${name}": "show" is required (must be true or false)` };
-  }
-
-  // show: false → skip schema validation, any key is fine
-  if (show === false) {
+  // Only outputs with explicit show: true are validated against the schema;
+  // omitting show or using show: false is allowed (same filtering semantics as before).
+  if (show !== true) {
     return { valid: true };
   }
 
@@ -57,7 +53,7 @@ export function validateField(step, stepType) {
 
 /**
  * Validates all steps in a recipe for a given step type.
- * Logs warnings for unknown fields, throws on missing show.
+ * Logs warnings for unknown fields when show: true.
  *
  * @param {object} recipe - The full recipe object.
  * @param {string} stepType - Either 'autocomplete_steps' or 'url_steps'.
@@ -74,13 +70,9 @@ export function validateRecipeFields(recipe, stepType) {
 
     const result = validateField(step, stepType);
     if (!result.valid) {
-      if (result.reason.includes('"show" is required')) {
-        Log.error(result.reason);
-      } else {
-        Log.warn(result.reason);
-        const fieldName = step.output.name.replace(/\$[a-zA-Z]+/g, '');
-        ignoredFields.add(fieldName);
-      }
+      Log.warn(result.reason);
+      const fieldName = step.output.name.replace(/\$[a-zA-Z]+/g, '');
+      ignoredFields.add(fieldName);
     }
   }
 
