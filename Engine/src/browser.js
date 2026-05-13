@@ -50,7 +50,8 @@ export class BrowserManager {
                 waitUntil: 'domcontentloaded',
                 timeout: process.env.MIN_PAGE_LOAD_TIMEOUT
             });
-            if (options.waitUntil === 'networkidle0') {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            if (options?.waitUntil === 'networkidle0') {
                 await new Promise(resolve => setTimeout(resolve, 1000));
             }
         } catch (error) {

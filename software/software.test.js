@@ -1,5 +1,8 @@
 import { expect, test, describe } from "bun:test";
-import { runEngine, findEntry } from '../Engine/utils/test_utils.js';
+import { runEngine, findEntry, loadEnvVariables } from '../Engine/utils/test_utils.js';
+
+await loadEnvVariables();
+const TIMEOUT = parseInt(process.env.TEST_TIMEOUT);
 
 const APPLE_RECIPE = "apple.json";
 const GOOGLE_RECIPE = "googleplay.json";
@@ -51,7 +54,7 @@ describe(GOOGLE_RECIPE, () => {
     expect(entry.SUBTITLE).toBe(ENTRY_GOOGLE.SUBTITLE);
     expect(entry.COVER).toMatch(/^https:\/\/.*googleusercontent\.com\/.*/i);
     expect(entry.URL).toMatch(/^https:\/\/play\.google\.com\/.*listy.*$/i);
-  });
+  }, TIMEOUT);
 
 
   test("--type url", async () => {
@@ -62,5 +65,5 @@ describe(GOOGLE_RECIPE, () => {
     expect(result.GENRE).toBeDefined();
     expect(result.DESCRIPTION).toBeDefined();
     expect(result.COVER).toMatch(/^https:\/\/.*googleusercontent\.com\/.*/i);
-  });
+  }, TIMEOUT);
 });

@@ -1,7 +1,7 @@
 {
   "recipe_shortcut": "footballkitarchivecom",
   "list_type": "generic",
-  "engine_version": 20,
+  "engine_version": 26,
   "title": "Footballkitarchive.com",
   "description": "Retrieve generic from footballkitarchive.com",
   "urls": [
@@ -14,95 +14,59 @@
   },
   "autocomplete_steps": [
     {
+      "command": "url_encode",
+      "input": "$INPUT 2025-26 Home site:footballkitarchive.com",
+      "output": {
+        "name": "QUERY"
+      }
+    },
+    {
       "command": "load",
-      "url": "https://www.footballkitarchive.com/?q=$INPUT",
-      "config": {
-        "js": true,
-        "timeout": 5000
-      },
-      "description": "Load search results page"
+      "url": "https://html.duckduckgo.com/html/?q=$QUERY",
+      "description": "Search Football Kit Archive pages through DuckDuckGo"
     },
     {
       "command": "store_text",
-      "locator": ".kit-container .kit:nth-child($i) .kit-teamname",
+      "locator": "a.result__a[href*='footballkitarchive']",
       "output": {
-        "name": "TITLE$i"
+        "name": "FULL_TITLE1"
       },
-      "config": {
-        "loop": {
-          "index": "i",
-          "from": 1,
-          "to": 9,
-          "step": 1
-        }
-      },
-      "description": "Extract team names"
+      "description": "Extract the first matching result title"
     },
     {
-      "command": "store_text",
-      "locator": ".kit-container .kit:nth-child($i) .kit-season",
+      "command": "regex",
+      "input": "$FULL_TITLE1",
+      "expression": "^(.*?)\\s+\\d{4}-\\d{2}\\s+.+?\\s+Kit(?:\\s+-\\s+Football Kit Archive)?$",
       "output": {
-        "name": "SUBTITLE$i"
+        "name": "TITLE1"
       },
-      "config": {
-        "loop": {
-          "index": "i",
-          "from": 1,
-          "to": 9,
-          "step": 1
-        }
+      "description": "Extract the team name from the result title"
+    },
+    {
+      "command": "regex",
+      "input": "$FULL_TITLE1",
+      "expression": "^.*?(\\d{4}-\\d{2}\\s+.+?)\\s+Kit(?:\\s+-\\s+Football Kit Archive)?$",
+      "output": {
+        "name": "SUBTITLE1"
       },
-      "description": "Extract kit season info"
+      "description": "Extract the season and kit type"
     },
     {
       "command": "store_attribute",
-      "locator": ".kit-container .kit:nth-child($i) a",
+      "locator": "a.result__a[href*='footballkitarchive']",
       "attribute_name": "href",
       "output": {
-        "name": "URL$i"
+        "name": "URL1"
       },
-      "config": {
-        "loop": {
-          "index": "i",
-          "from": 1,
-          "to": 9,
-          "step": 1
-        }
-      },
-      "description": "Extract kit URLs"
+      "description": "Store the result URL"
     },
     {
       "command": "store",
-      "input": "https://www.footballkitarchive.com$URL$i",
+      "input": "https://www.footballkitarchive.com/favicon.ico",
       "output": {
-        "name": "URL$i"
+        "name": "COVER1"
       },
-      "config": {
-        "loop": {
-          "index": "i",
-          "from": 1,
-          "to": 9,
-          "step": 1
-        }
-      },
-      "description": "Make URLs absolute"
-    },
-    {
-      "command": "store_attribute",
-      "locator": ".kit-container .kit:nth-child($i) img.lazyload",
-      "attribute_name": "src",
-      "output": {
-        "name": "COVER$i"
-      },
-      "config": {
-        "loop": {
-          "index": "i",
-          "from": 1,
-          "to": 9,
-          "step": 1
-        }
-      },
-      "description": "Extract kit images"
+      "description": "Provide a stable cover placeholder for search results"
     }
   ],
   "url_steps": [

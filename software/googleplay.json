@@ -1,7 +1,7 @@
 {
   "recipe_shortcut": "google_software",
   "list_type": "software",
-  "engine_version": 20,
+  "engine_version": 26,
   "title": "Google Play Software",
   "description": "Load software from Google Play",
   "urls": [
@@ -19,11 +19,10 @@
     },
     {
       "command": "store_attribute",
-      "locator": "c-wiz > c-wiz a",
+      "locator": "a[href^='/store/apps/details?id=']",
       "attribute_name": "href",
       "output": {
-        "name": "URL_END1",
-        "show": false
+        "name": "URL_END1"
       }
     },
     {
@@ -34,8 +33,20 @@
       }
     },
     {
+      "command": "load",
+      "url": "$URL1",
+      "description": "Load the first matching app detail page"
+    },
+    {
+      "command": "store_text",
+      "locator": "[itemprop='name']",
+      "output": {
+        "name": "TITLE1"
+      }
+    },
+    {
       "command": "store_attribute",
-      "locator": "c-wiz > c-wiz div:nth-child(2) img",
+      "locator": "[itemprop='image']",
       "attribute_name": "src",
       "output": {
         "name": "COVER1"
@@ -43,96 +54,9 @@
     },
     {
       "command": "store_text",
-      "locator": "c-wiz > c-wiz div:nth-child(2) div:nth-child(1) div:nth-child(1) div:nth-child(1)",
+      "locator": "a[href*='/store/apps/developer'] span",
       "output": {
-        "name": "TITLE1"
-      }
-    },
-    {
-      "command": "store_text",
-      "locator": "c-wiz > c-wiz div:nth-child(2) div:nth-child(2) div:nth-child(2)",
-      "output": {
-        "name": "SUBTITLE1",
-        "show": true
-      }
-    },
-    {
-      "command": "store_attribute",
-      "locator": "c-wiz [role='listitem']:nth-child($i) div:nth-child(1) a",
-      "attribute_name": "href",
-      "output": {
-        "name": "URL_END$i"
-      },
-      "config": {
-        "loop": {
-          "index": "i",
-          "from": 2,
-          "to": 6,
-          "step": 1
-        }
-      }
-    },
-    {
-      "command": "store",
-      "input": "https://play.google.com$URL_END$i",
-      "output": {
-        "name": "URL$i"
-      },
-      "config": {
-        "loop": {
-          "index": "i",
-          "from": 2,
-          "to": 6,
-          "step": 1
-        }
-      }
-    },
-    {
-      "command": "store_attribute",
-      "locator": "c-wiz [role='listitem']:nth-child($i) a div:nth-child(2) img",
-      "attribute_name": "src",
-      "output": {
-        "name": "COVER$i"
-      },
-      "config": {
-        "loop": {
-          "index": "i",
-          "from": 2,
-          "to": 6,
-          "step": 1
-        }
-      }
-    },
-    {
-      "command": "store_text",
-      "locator": "c-wiz [role='listitem']:nth-child($i) a div:nth-child(2) img + div div:nth-child(1) span",
-      "output": {
-        "name": "TITLE$i"
-      },
-      "config": {
-        "loop": {
-          "index": "i",
-          "from": 2,
-          "to": 6,
-          "step": 1
-        }
-      }
-    },
-
-    {
-      "command": "store_text",
-      "locator": "c-wiz [role='listitem']:nth-child($i) a div:nth-child(2) img + div div:nth-child(2) span",
-      "output": {
-        "name": "SUBTITLE$i",
-        "show": true
-      },
-      "config": {
-        "loop": {
-          "index": "i",
-          "from": 2,
-          "to": 6,
-          "step": 1
-        }
+        "name": "SUBTITLE1"
       }
     }
   ],

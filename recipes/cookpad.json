@@ -1,7 +1,7 @@
 {
 	"recipe_shortcut": "cookpad",
 	"list_type": "recipes",
-	"engine_version": 21,
+	"engine_version": 26,
 	"title": "Recipes",
 	"description": "Load recipes from Cookpad",
 	"urls": [
@@ -17,106 +17,44 @@
 	"autocomplete_steps":
 	[
 		{
-			"command": "replace",
-			"input": "$SYSTEM_REGION",
-			"find": "gb",
-			"replace": "uk",
-			"output": {
-				"name": "SYSTEM_REGION",
-				"show": false
-			}
-		},
-		{
 			"command": "load",
-			"url": "https://cookpad.com/$SYSTEM_REGION/",
-			"description": "Load the url of the recipe",
+			"url": "https://www.cookpad.com/eng/search/$INPUT?event=search.filtered_query&order=recent",
+			"description": "Load the direct recipe match from Cookpad search",
 			"config": {
-				"timeout": 3000,
 				"js": true
 			}
 		},
 		{
 			"command": "store_attribute",
-			"locator": "form",
-			"attribute_name": "action",
-			"output": {
-				"name": "URL_REGION",
-				"show": true
-			},
-			"description": "Extracts the recipe URL"
-		},
-		{
-			"command": "load",
-			"url": "https://www.cookpad.com$URL_REGION/$INPUT?event=search.filtered_query&order=recent"
-		},
-		{
-			"command": "store_attribute",
-			"locator": "li[id*=recipe]:nth-child($i) > div > picture > img",
-			"attribute_name": "alt",
-			"output": {
-				"name": "TITLE$i",
-				"show": true
-			},
-			"config": {
-				"loop": {
-					"index": "i",
-					"from": 1,
-					"to": 6,
-					"step": 1
-				}
-			},
-			"description": "Saves the main title of the recipe"
-		},
-		{
-			"command": "store_attribute",
-			"locator": "li[id*=recipe]:nth-child($i) > div > picture > img",
-			"attribute_name": "src",
-			"output": {
-				"name": "COVER$i",
-				"show": true
-			},
-			"config": {
-				"loop": {
-					"index": "i",
-					"from": 1,
-					"to": 6,
-					"step": 1
-				}
-			},
-			"description": "Saves the cover image URL"
-		},
-		{
-			"command": "store_attribute",
-			"locator": "li[id*=recipe]:nth-child($i) a",
+			"locator": "a[href^='/eng/recipes/']",
 			"attribute_name": "href",
 			"output": {
-				"name": "URL$i",
-				"show": true
-			},
-			"config": {
-				"loop": {
-					"index": "i",
-					"from": 1,
-					"to": 6,
-					"step": 1
-				}
-			},
-			"description": "Extracts the recipe URL"
+				"name": "URL_PATH1"
+			}
 		},
 		{
 			"command": "store",
-			"input": "https://www.cookpad.com$URL$i",
+			"input": "https://www.cookpad.com$URL_PATH1",
 			"output": {
-				"name": "URL$i"
-			},
-			"config": {
-				"loop": {
-					"index": "i",
-					"from": 1,
-					"to": 6,
-					"step": 1
-				}
+				"name": "URL1"
 			}
+		},
+		{
+			"command": "store_text",
+			"locator": "a[href^='/eng/recipes/']",
+			"output": {
+				"name": "TITLE1"
+			},
+			"description": "Saves the title of the matched recipe"
+		},
+		{
+			"command": "store_attribute",
+			"locator": "meta[property='og:image']",
+			"attribute_name": "content",
+			"output": {
+				"name": "COVER1"
+			},
+			"description": "Saves the cover image URL"
 		}
 	],
 	"url_steps":

@@ -1,7 +1,7 @@
 {
   "recipe_shortcut": "anime_anidb",
   "list_type": "anime",
-  "engine_version": 18,
+  "engine_version": 26,
   "title": "Anidb",
   "description": "A recipe to get a list of animes from Anidb",
   "urls": [
@@ -15,24 +15,28 @@
   "autocomplete_steps": [],
   "url_steps": [
     {
-      "command": "load",
-      "url": "$INPUT",
-      "config": {
-        "js": true
-      },
-      "headers": {
-        "User-Agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.113 Mobile Safari/537.36"
+      "command": "regex",
+      "input": "$INPUT",
+      "expression": "(?:/anime/|aid=)(\\d+)",
+      "output": {
+        "name": "AID"
       }
     },
     {
-      "command": "store_url",
+      "command": "store",
+      "input": "$INPUT",
       "output": {
         "name": "URL"
       }
     },
     {
+      "command": "load",
+      "url": "http://api.anidb.net:9001/httpapi?request=anime&aid=$AID&client=myclient&clientver=1&protover=1",
+      "description": "Load AniDB's official XML API response"
+    },
+    {
       "command": "store_text",
-      "locator": "div.g_definitionlist span[itemprop=name]",
+      "locator": "anime > titles > title[type='main']",
       "output": {
         "name": "TITLE",
         "type": "string",
@@ -41,7 +45,7 @@
     },
     {
       "command": "store_text",
-      "locator": "span[itemprop=startDate]",
+      "locator": "anime > startdate",
       "output": {
         "name": "DATE"
       }
@@ -58,7 +62,7 @@
     },
     {
       "command": "store_text",
-      "locator": "div[itemprop=description]",
+      "locator": "anime > description",
       "output": {
         "name": "DESCRIPTION",
         "type": "string",
@@ -67,7 +71,7 @@
     },
     {
       "command": "store_text",
-      "locator": "span[itemprop=ratingValue]",
+      "locator": "anime > ratings > permanent",
       "output": {
         "name": "RATING",
         "type": "float",
@@ -76,7 +80,7 @@
     },
     {
       "command": "store_text",
-      "locator": "table.stafflist td.name.creator a",
+      "locator": "anime > creators > name:nth-of-type(1)",
       "output": {
         "name": "AUTHOR",
         "type": "string",
@@ -84,9 +88,15 @@
       }
     },
     {
-      "command": "store_attribute",
-      "locator": "img[itemprop=image]",
-      "attribute_name": "src",
+      "command": "store_text",
+      "locator": "anime > picture",
+      "output": {
+        "name": "COVER_PATH"
+      }
+    },
+    {
+      "command": "store",
+      "input": "https://cdn-eu.anidb.net/images/main/$COVER_PATH",
       "output": {
         "name": "COVER",
         "type": "string",
@@ -95,7 +105,7 @@
     },
     {
       "command": "store_text",
-      "locator": "span[itemprop=numberOfEpisodes]",
+      "locator": "anime > episodecount",
       "output": {
         "name": "EPISODES",
         "type": "integer",
