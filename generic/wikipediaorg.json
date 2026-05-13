@@ -85,7 +85,7 @@
     },
     {
       "command": "json_count",
-      "input": "SEARCH_RESULTS",
+      "input": "$SEARCH_RESULTS",
       "locator": "[1]",
       "output": {
         "name": "RESULT_COUNT",
@@ -95,7 +95,7 @@
     },
     {
       "command": "json_store_text",
-      "input": "SEARCH_RESULTS",
+      "input": "$SEARCH_RESULTS",
       "locator": "[1].[$i]",
       "output": {
         "name": "TITLE$i",
@@ -113,7 +113,7 @@
     },
     {
       "command": "json_store_text",
-      "input": "SEARCH_RESULTS",
+      "input": "$SEARCH_RESULTS",
       "locator": "[2].[$i]",
       "output": {
         "name": "SUBTITLE$i",
@@ -131,7 +131,7 @@
     },
     {
       "command": "json_store_text",
-      "input": "SEARCH_RESULTS",
+      "input": "$SEARCH_RESULTS",
       "locator": "[3].[$i]",
       "output": {
         "name": "URL$i",
@@ -203,7 +203,7 @@
     },
     {
       "command": "json_store_text",
-      "input": "PAGE_SUMMARY",
+      "input": "$PAGE_SUMMARY",
       "locator": "title",
       "output": {
         "name": "TITLE",
@@ -213,7 +213,7 @@
     },
     {
       "command": "json_store_text",
-      "input": "PAGE_SUMMARY",
+      "input": "$PAGE_SUMMARY",
       "locator": "description",
       "output": {
         "name": "SUMMARY",
@@ -223,7 +223,7 @@
     },
     {
       "command": "json_store_text",
-      "input": "PAGE_SUMMARY",
+      "input": "$PAGE_SUMMARY",
       "locator": "extract",
       "output": {
         "name": "DESCRIPTION",
@@ -233,7 +233,7 @@
     },
     {
       "command": "json_store_text",
-      "input": "PAGE_SUMMARY",
+      "input": "$PAGE_SUMMARY",
       "locator": "thumbnail.source",
       "output": {
         "name": "COVER",
@@ -243,7 +243,7 @@
     },
     {
       "command": "json_store_text",
-      "input": "PAGE_SUMMARY",
+      "input": "$PAGE_SUMMARY",
       "locator": "originalimage.source",
       "output": {
         "name": "COVER",
@@ -253,7 +253,7 @@
     },
     {
       "command": "json_store_text",
-      "input": "PAGE_SUMMARY",
+      "input": "$PAGE_SUMMARY",
       "locator": "timestamp",
       "output": {
         "name": "DATE",
@@ -273,7 +273,7 @@
     },
     {
       "command": "json_store_text",
-      "input": "PAGE_SUMMARY",
+      "input": "$PAGE_SUMMARY",
       "locator": "content_urls.desktop.page",
       "output": {
         "name": "URL",
