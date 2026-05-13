@@ -24,30 +24,33 @@
     },
     {
       "command": "store_attribute",
-      "locator": "#search-page",
-      "attribute_name": "data-preloaded-state",
+      "locator": "#ssr-explore-page",
+      "attribute_name": "data-ssr-props",
       "output": {
         "name": "JSON",
-        "type": "json"
+        "type": "json",
+        "show": false
       },
-      "description": "Capture Vivino's embedded search payload"
+      "description": "Capture Vivino SSR props payload"
     },
     {
       "command": "json_count",
       "input": "$JSON",
-      "locator": "search_results.matches",
+      "locator": "initialExploreResults.matches",
       "output": {
         "name": "NUMBER_OF_RESULTS",
-        "type": "int"
+        "type": "int",
+        "show": false
       },
-      "description": "Count returned wine matches"
+      "description": "Count SSR search matches"
     },
     {
       "command": "json_store_text",
       "input": "$JSON",
-      "locator": "search_results.matches.[$i].vintage.name",
+      "locator": "initialExploreResults.matches.[$i].vintage.name",
       "output": {
-        "name": "TITLE$i"
+        "name": "TITLE_RAW$i",
+        "show": false
       },
       "config": {
         "loop": {
@@ -57,14 +60,15 @@
           "step": 1
         }
       },
-      "description": "Extract wine title from preloaded JSON"
+      "description": "Extract wine title from SSR payload"
     },
     {
-      "command": "json_store_text",
-      "input": "$JSON",
-      "locator": "search_results.matches.[$i].vintage.wine.region.name",
+      "command": "regex",
+      "input": "$TITLE_RAW$i",
+      "expression": "^(.*?)(?:\\s+\\d{4})?$",
       "output": {
-        "name": "REGION$i"
+        "name": "TITLE$i",
+        "show": true
       },
       "config": {
         "loop": {
@@ -74,14 +78,15 @@
           "step": 1
         }
       },
-      "description": "Extract wine region from preloaded JSON"
+      "description": "Strip trailing vintage year from the title"
     },
     {
       "command": "json_store_text",
       "input": "$JSON",
-      "locator": "search_results.matches.[$i].vintage.wine.region.country.name",
+      "locator": "initialExploreResults.matches.[$i].vintage.wine.region.name",
       "output": {
-        "name": "COUNTRY$i"
+        "name": "REGION$i",
+        "show": false
       },
       "config": {
         "loop": {
@@ -91,13 +96,32 @@
           "step": 1
         }
       },
-      "description": "Extract wine country from preloaded JSON"
+      "description": "Extract wine region from SSR payload"
+    },
+    {
+      "command": "json_store_text",
+      "input": "$JSON",
+      "locator": "initialExploreResults.matches.[$i].vintage.wine.region.country.name",
+      "output": {
+        "name": "COUNTRY$i",
+        "show": false
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 0,
+          "to": "$NUMBER_OF_RESULTS - 1",
+          "step": 1
+        }
+      },
+      "description": "Extract wine country from SSR payload"
     },
     {
       "command": "store",
       "input": "$REGION$i, $COUNTRY$i",
       "output": {
-        "name": "SUBTITLE$i"
+        "name": "SUBTITLE$i",
+        "show": true
       },
       "config": {
         "loop": {
@@ -112,9 +136,10 @@
     {
       "command": "json_store_text",
       "input": "$JSON",
-      "locator": "search_results.matches.[$i].vintage.image.variations.bottle_small",
+      "locator": "initialExploreResults.matches.[$i].vintage.image.variations.bottle_small",
       "output": {
-        "name": "COVER_PATH$i"
+        "name": "COVER_PATH$i",
+        "show": false
       },
       "config": {
         "loop": {
@@ -124,13 +149,14 @@
           "step": 1
         }
       },
-      "description": "Extract wine cover path from preloaded JSON"
+      "description": "Extract wine cover path from SSR payload"
     },
     {
       "command": "store",
       "input": "https:$COVER_PATH$i",
       "output": {
-        "name": "COVER$i"
+        "name": "COVER$i",
+        "show": true
       },
       "config": {
         "loop": {
@@ -145,9 +171,10 @@
     {
       "command": "json_store_text",
       "input": "$JSON",
-      "locator": "search_results.matches.[$i].vintage.wine.winery.seo_name",
+      "locator": "initialExploreResults.matches.[$i].vintage.wine.winery.seo_name",
       "output": {
-        "name": "WINERY_SEO$i"
+        "name": "WINERY_SEO$i",
+        "show": false
       },
       "config": {
         "loop": {
@@ -157,14 +184,15 @@
           "step": 1
         }
       },
-      "description": "Extract winery SEO slug from preloaded JSON"
+      "description": "Extract winery SEO slug from SSR payload"
     },
     {
       "command": "json_store_text",
       "input": "$JSON",
-      "locator": "search_results.matches.[$i].vintage.wine.seo_name",
+      "locator": "initialExploreResults.matches.[$i].vintage.wine.seo_name",
       "output": {
-        "name": "WINE_SEO$i"
+        "name": "WINE_SEO$i",
+        "show": false
       },
       "config": {
         "loop": {
@@ -174,14 +202,15 @@
           "step": 1
         }
       },
-      "description": "Extract wine SEO slug from preloaded JSON"
+      "description": "Extract wine SEO slug from SSR payload"
     },
     {
       "command": "json_store_text",
       "input": "$JSON",
-      "locator": "search_results.matches.[$i].vintage.wine.id",
+      "locator": "initialExploreResults.matches.[$i].vintage.wine.id",
       "output": {
-        "name": "WINE_ID$i"
+        "name": "WINE_ID$i",
+        "show": false
       },
       "config": {
         "loop": {
@@ -191,13 +220,14 @@
           "step": 1
         }
       },
-      "description": "Extract wine ID from preloaded JSON"
+      "description": "Extract wine ID from SSR payload"
     },
     {
       "command": "store",
       "input": "https://www.vivino.com/$WINERY_SEO$i-$WINE_SEO$i/w/$WINE_ID$i",
       "output": {
-        "name": "URL$i"
+        "name": "URL$i",
+        "show": true
       },
       "config": {
         "loop": {
