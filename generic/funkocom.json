@@ -1,7 +1,7 @@
 {
   "recipe_shortcut": "funkocom",
   "list_type": "generic",
-  "engine_version": 20,
+  "engine_version": 26,
   "title": "Funko.com",
   "description": "Retrieve generic from funko.com",
   "urls": [
@@ -23,6 +23,14 @@
       "description": "Load Funko search results"
     },
     {
+      "command": "store_count",
+      "locator": "ul.row > li.col-6 h2.pdp-link",
+      "output": {
+        "name": "RESULT_COUNT"
+      },
+      "description": "Count the number of product results with a title"
+    },
+    {
       "command": "store_text",
       "locator": "ul.row > li.col-6:nth-child($i) h2.pdp-link",
       "output": {
@@ -32,7 +40,7 @@
         "loop": {
           "index": "i",
           "from": 1,
-          "to": 9,
+          "to": "$RESULT_COUNT",
           "step": 1
         }
       },
@@ -49,7 +57,7 @@
         "loop": {
           "index": "i",
           "from": 1,
-          "to": 9,
+          "to": "$RESULT_COUNT",
           "step": 1
         }
       },
@@ -66,7 +74,7 @@
         "loop": {
           "index": "i",
           "from": 1,
-          "to": 9,
+          "to": "$RESULT_COUNT",
           "step": 1
         }
       },
