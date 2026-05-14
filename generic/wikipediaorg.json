@@ -214,16 +214,6 @@
     {
       "command": "json_store_text",
       "input": "$PAGE_SUMMARY",
-      "locator": "description",
-      "output": {
-        "name": "SUMMARY",
-        "show": true
-      },
-      "description": "Extract the short Wikipedia description"
-    },
-    {
-      "command": "json_store_text",
-      "input": "$PAGE_SUMMARY",
       "locator": "extract",
       "output": {
         "name": "DESCRIPTION",
