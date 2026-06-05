@@ -26,193 +26,136 @@
   "autocomplete_steps": null,
   "url_steps": [
     {
-      "command": "load",
-      "url": "$INPUT",
+      "command": "regex",
+      "input": "$INPUT",
+      "expression": "(?:v=|\\/shorts\\/|\\/live\\/|youtu\\.be\\/)([A-Za-z0-9_-]{11})",
+      "output": {
+        "name": "VIDEO_ID",
+        "show": false
+      },
+      "description": "Extract the YouTube video id from watch, live, shorts, or short URLs."
+    },
+    {
+      "command": "store",
+      "input": "https://www.youtube.com/watch?v=$VIDEO_ID",
+      "output": {
+        "name": "URL",
+        "type": "string",
+        "show": true
+      },
+      "description": "Build a canonical YouTube watch URL."
+    },
+    {
+      "command": "api_request",
+      "url": "https://www.youtube.com/oembed?url=$URL&format=json",
+      "output": {
+        "name": "OEMBED_JSON",
+        "show": false
+      },
       "config": {
-        "js": true
+        "method": "GET"
       },
-      "description": "Load the url"
+      "description": "Fetch reliable public metadata from YouTube oEmbed."
     },
     {
-      "command": "store_url",
-      "output": {
-        "name": "URL"
-      },
-      "description": "Saves the URL of the detail"
-    },
-    {
-      "command": "store_text",
-      "locator": "head > title",
+      "command": "json_store_text",
+      "locator": "title",
+      "input": "$OEMBED_JSON",
       "output": {
         "name": "TITLE",
         "type": "string",
         "show": true
       },
-      "description": "Saves the title"
+      "description": "Extract the video title."
     },
     {
-      "command": "store_attribute",
-      "locator": "meta[property='twitter:title']",
-      "attribute_name": "content",
-      "output": {
-        "name": "TITLE",
-        "type": "string",
-        "show": true
-      },
-      "description": "Saves the title from the twitter card metas."
-    },
-    {
-      "command": "store_attribute",
-      "locator": "meta[name='og:title']",
-      "attribute_name": "content",
-      "output": {
-        "name": "TITLE",
-        "type": "string",
-        "show": true
-      },
-      "description": "Saves the title"
-    },
-    {
-      "command": "store_attribute",
-      "locator": "meta[property='og:title']",
-      "attribute_name": "content",
-      "output": {
-        "name": "TITLE",
-        "type": "string",
-        "show": true
-      },
-      "description": "Saves the title"
-    },
-    {
-      "command": "store_attribute",
-      "locator": "link[rel^=icon]",
-      "attribute_name": "href",
-      "output": {
-        "name": "ICON",
-        "type": "string",
-        "show": true
-      },
-      "description": "Saves the icon, in case no image."
-    },
-    {
-      "command": "store_attribute",
-      "locator": "link[rel='apple-touch-icon-precomposed'][sizes='180x180']",
-      "attribute_name": "href",
-      "output": {
-        "name": "ICON",
-        "type": "string",
-        "show": true
-      },
-      "description": "Saves the icon, in case no image."
-    },
-    {
-      "command": "store_attribute",
-      "locator": "link[rel='apple-touch-icon'][sizes='180x180']",
-      "attribute_name": "href",
-      "output": {
-        "name": "ICON",
-        "type": "string",
-        "show": true
-      },
-      "description": "Saves the icon, in case no image."
-    },
-    {
-      "command": "store_attribute",
-      "locator": "meta[name='twitter:image']",
-      "attribute_name": "content",
-      "output": {
-        "name": "COVER",
-        "type": "string",
-        "show": true
-      },
-      "description": "Saves the image"
-    },
-    {
-      "command": "store_attribute",
-      "locator": "meta[name='og:image']",
-      "attribute_name": "content",
-      "output": {
-        "name": "COVER",
-        "type": "string",
-        "show": true
-      },
-      "description": "Saves the image"
-    },
-    {
-      "command": "store_attribute",
-      "locator": "meta[property='og:image']",
-      "attribute_name": "content",
-      "output": {
-        "name": "COVER",
-        "type": "string",
-        "show": true
-      },
-      "description": "Saves the image"
-    },
-    {
-      "command": "store_attribute",
-      "locator": "meta[name='description']",
-      "attribute_name": "content",
-      "output": {
-        "name": "DESCRIPTION",
-        "type": "string",
-        "show": true
-      },
-      "description": "Saves the description"
-    },
-    {
-      "command": "store_attribute",
-      "locator": "meta[name='og:description']",
-      "attribute_name": "content",
-      "output": {
-        "name": "DESCRIPTION",
-        "type": "string",
-        "show": true
-      },
-      "description": "Saves the description"
-    },
-    {
-      "command": "store_attribute",
-      "locator": "meta[property='og:description']",
-      "attribute_name": "content",
-      "output": {
-        "name": "DESCRIPTION",
-        "type": "string",
-        "show": true
-      },
-      "description": "Saves the description"
-    },
-    {
-      "command": "store_attribute",
-      "locator": "meta[name='author']",
-      "attribute_name": "content",
+      "command": "json_store_text",
+      "locator": "author_name",
+      "input": "$OEMBED_JSON",
       "output": {
         "name": "AUTHOR",
         "type": "string",
         "show": true
       },
-      "description": "Saves the autho of the article."
+      "description": "Extract the channel name."
     },
     {
-      "command": "regex",
-      "input": "$URL",
-      "expression": "(?:https?:\\/\\/)?(?:[^@\\/\\n]+@)?(?:www\\.)?([^:\\/?\\n]+)",
+      "command": "json_store_text",
+      "locator": "thumbnail_url",
+      "input": "$OEMBED_JSON",
       "output": {
-        "name": "FAVICON",
+        "name": "COVER",
         "type": "string",
         "show": true
       },
-      "description": "Saves the favicon from the twitter card metas."
+      "description": "Extract the video thumbnail."
+    },
+    {
+      "command": "load",
+      "url": "$URL",
+      "config": {
+        "js": true,
+        "timeout": 5000
+      },
+      "output": {
+        "name": "PAGE",
+        "show": false
+      },
+      "description": "Load the canonical video page to collect extra metadata."
+    },
+    {
+      "command": "store_attribute",
+      "locator": "meta[itemprop='description'], meta[name='description'], meta[property='og:description']",
+      "attribute_name": "content",
+      "output": {
+        "name": "DESCRIPTION",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract the video description."
+    },
+    {
+      "command": "store_attribute",
+      "locator": "meta[itemprop='uploadDate'], meta[itemprop='datePublished']",
+      "attribute_name": "content",
+      "output": {
+        "name": "DATE",
+        "type": "date",
+        "show": true
+      },
+      "description": "Extract the upload date."
+    },
+    {
+      "command": "store_attribute",
+      "locator": "meta[itemprop='duration']",
+      "attribute_name": "content",
+      "output": {
+        "name": "DURATION",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract the ISO-8601 duration."
+    },
+    {
+      "command": "store_attribute",
+      "locator": "meta[itemprop='genre']",
+      "attribute_name": "content",
+      "output": {
+        "name": "CATEGORY",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract the video category when available."
     },
     {
       "command": "store",
-      "input": "https://www.google.com/s2/favicons?sz=32&domain=$FAVICON",
+      "input": "https://www.google.com/s2/favicons?sz=32&domain=youtube.com",
       "output": {
         "name": "FAVICON",
         "type": "string",
         "show": true
       },
-      "description": "Saves the favicon"
+      "description": "Use a YouTube favicon for the source icon."
     }
   ]
 }
