@@ -50,3 +50,18 @@ describe("imdb.json", () => {
         expect(result.COVER).toMatch(/^https:\/\/.*\.(jpg|jpeg|png|webp)$/i);
     }, TIMEOUT);
 });
+
+describe("thetvdb.json", () => {
+    test ("--type url", async () => {
+        const result = await runEngine("tv_shows/thetvdb.json", "url", "https://thetvdb.com/series/death-note");
+
+        expect(result.TITLE).toBe("Death Note");
+        expect(result.DATE).toBe("2006");
+        expect(result.DESCRIPTION).toContain("mystical notebook");
+        expect(result.AUTHOR).toBe("Toshiki Inoue");
+        expect(result.DURATION).toBe("23 minutes");
+        expect(result.GENRE).toContain("Anime");
+        expect(result.COUNTRY).toBe("Japan");
+        expect(result.COVER).toMatch(/^https:\/\/artworks\.thetvdb\.com\/.*\.(jpg|jpeg|png|webp)$/i);
+    }, TIMEOUT);
+});

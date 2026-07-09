@@ -1,0 +1,213 @@
+{
+  "recipe_shortcut": "thetvdb_tv_shows",
+  "list_type": "tv_shows",
+  "engine_version": 26,
+  "title": "TheTVDB TV Shows",
+  "description": "A basic recipe to get TV show details from TheTVDB series URLs",
+  "urls": [
+    "https://thetvdb.com/series/",
+    "https://www.thetvdb.com/series/"
+  ],
+  "headers": {
+    "Accept-Language": "en-UK,en",
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.113 Safari/537.36"
+  },
+  "autocomplete_steps": null,
+  "url_steps": [
+    {
+      "command": "load",
+      "url": "$INPUT",
+      "description": "Load the TheTVDB series page"
+    },
+    {
+      "command": "store_url",
+      "output": {
+        "name": "URL",
+        "type": "string",
+        "show": true
+      },
+      "description": "Save the final URL"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "link[rel=\"icon\"]",
+      "attribute_name": "href",
+      "output": {
+        "name": "AUX_FAVICON"
+      },
+      "description": "Extract the favicon path"
+    },
+    {
+      "command": "store",
+      "input": "https://thetvdb.com$AUX_FAVICON",
+      "output": {
+        "name": "FAVICON",
+        "type": "string",
+        "show": true
+      },
+      "description": "Build an absolute favicon URL"
+    },
+    {
+      "command": "store_attribute",
+      "locator": "#translations .change_translation_text[data-language=\"eng\"]",
+      "attribute_name": "data-title",
+      "output": {
+        "name": "TITLE",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract the English title"
+    },
+    {
+      "command": "store_text",
+      "locator": "#series_title",
+      "output": {
+        "name": "ORIGINAL_TITLE",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract the displayed/original title"
+    },
+    {
+      "command": "store_text",
+      "locator": "#translations .change_translation_text[data-language=\"eng\"] p",
+      "output": {
+        "name": "DESCRIPTION",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract the English overview"
+    },
+    {
+      "command": "store_attribute",
+      "locator": ".row.mt-2 img.img-mobile-centered",
+      "attribute_name": "src",
+      "output": {
+        "name": "COVER",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract the main poster"
+    },
+    {
+      "command": "store_text",
+      "locator": "#series_basic_info > ul > li:nth-child(3) span",
+      "output": {
+        "name": "AUX_FIRST_AIRED"
+      },
+      "description": "Extract the first aired date"
+    },
+    {
+      "command": "regex",
+      "input": "$AUX_FIRST_AIRED",
+      "expression": "(\\d{4})",
+      "output": {
+        "name": "DATE",
+        "type": "date",
+        "format": "YYYY",
+        "show": true
+      },
+      "description": "Extract the release year"
+    },
+    {
+      "command": "store_text",
+      "locator": "#series_basic_info > ul > li:nth-child(7) span",
+      "output": {
+        "name": "DURATION",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract the average runtime"
+    },
+    {
+      "command": "store_array",
+      "locator": "#series_basic_info > ul > li:nth-child(8) span:nth-of-type($i)",
+      "output": {
+        "name": "AUX_GENRES"
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 1,
+          "to": 8,
+          "step": 1
+        }
+      },
+      "description": "Collect the visible genres"
+    },
+    {
+      "command": "replace",
+      "input": "$AUX_GENRES",
+      "find": ",",
+      "replace": ", ",
+      "output": {
+        "name": "GENRE",
+        "type": "string",
+        "show": true
+      },
+      "description": "Format genres as a comma-separated string"
+    },
+    {
+      "command": "store_text",
+      "locator": "#people-writer table tr:nth-child(2) td:nth-child(1) a",
+      "output": {
+        "name": "AUTHOR",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract the first listed writer"
+    },
+    {
+      "command": "store_text",
+      "locator": "#people-director table tr:nth-child(2) td:nth-child(1) a",
+      "output": {
+        "name": "AUX_DIRECTOR"
+      },
+      "description": "Extract the first listed director"
+    },
+    {
+      "command": "store_text",
+      "locator": "#series_basic_info > ul > li:nth-child(2) span",
+      "output": {
+        "name": "AUX_STATUS"
+      },
+      "description": "Extract the show status"
+    },
+    {
+      "command": "store_text",
+      "locator": "#series_basic_info > ul > li:nth-child(6) span",
+      "output": {
+        "name": "AUX_NETWORK"
+      },
+      "description": "Extract the original network"
+    },
+    {
+      "command": "store_text",
+      "locator": "#series_basic_info > ul > li:nth-child(9) span",
+      "output": {
+        "name": "COUNTRY",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract the original country"
+    },
+    {
+      "command": "store_text",
+      "locator": "#series_basic_info > ul > li:nth-child(10) span",
+      "output": {
+        "name": "AUX_LANGUAGE"
+      },
+      "description": "Extract the original language"
+    },
+    {
+      "command": "store",
+      "input": "Status: $AUX_STATUS; Network: $AUX_NETWORK; Original language: $AUX_LANGUAGE; Director: $AUX_DIRECTOR",
+      "output": {
+        "name": "TAGS",
+        "type": "string",
+        "show": true
+      },
+      "description": "Expose extra series metadata"
+    }
+  ]
+}
