@@ -5,8 +5,8 @@
   "title": "TheTVDB TV Shows",
   "description": "A basic recipe to get TV show details from TheTVDB series URLs",
   "urls": [
-    "https://thetvdb.com/series/",
-    "https://www.thetvdb.com/series/"
+    "https://thetvdb.com/",
+    "https://www.thetvdb.com/"
   ],
   "headers": {
     "Accept-Language": "en-UK,en",
