@@ -120,32 +120,23 @@
       "description": "Extract the average runtime"
     },
     {
-      "command": "store_array",
-      "locator": "#series_basic_info > ul > li:nth-child(8) span:nth-of-type($i)",
+      "command": "store_text",
+      "locator": "#series_basic_info > ul > li:nth-child(8)",
       "output": {
         "name": "AUX_GENRES"
       },
-      "config": {
-        "loop": {
-          "index": "i",
-          "from": 1,
-          "to": 8,
-          "step": 1
-        }
-      },
-      "description": "Collect the visible genres"
+      "description": "Extract the genres row"
     },
     {
-      "command": "replace",
+      "command": "regex",
       "input": "$AUX_GENRES",
-      "find": ",",
-      "replace": ", ",
+      "expression": "Genres\\s+(.+)",
       "output": {
         "name": "GENRE",
         "type": "string",
         "show": true
       },
-      "description": "Format genres as a comma-separated string"
+      "description": "Remove the genres row label"
     },
     {
       "command": "store_text",
