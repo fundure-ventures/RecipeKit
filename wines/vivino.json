@@ -16,8 +16,8 @@
   "autocomplete_steps": [
     {
       "command": "load",
-      "url": "https://www.vivino.com/search/wines?q=$INPUT",
-      "description": "Load the Vivino search page",
+      "url": "https://www.vivino.com/explore?search_term=$INPUT",
+      "description": "Load Vivino's public wine search page",
       "config": {
         "timeout": 1,
         "js": true
@@ -32,7 +32,7 @@
         "type": "json",
         "show": false
       },
-      "description": "Capture Vivino SSR props payload"
+      "description": "Capture the search data embedded in Vivino's HTML"
     },
     {
       "command": "json_count",
@@ -43,7 +43,7 @@
         "type": "int",
         "show": false
       },
-      "description": "Count SSR search matches"
+      "description": "Count the wine results embedded in the page"
     },
     {
       "command": "json_store_text",
@@ -61,7 +61,7 @@
           "step": 1
         }
       },
-      "description": "Extract wine title from SSR payload"
+      "description": "Extract each wine title from the page"
     },
     {
       "command": "regex",
@@ -79,7 +79,7 @@
           "step": 1
         }
       },
-      "description": "Strip trailing vintage year from the title"
+      "description": "Strip the trailing vintage year from the title"
     },
     {
       "command": "json_store_text",
@@ -97,7 +97,7 @@
           "step": 1
         }
       },
-      "description": "Extract wine region from SSR payload"
+      "description": "Extract each wine region from the page"
     },
     {
       "command": "json_store_text",
@@ -115,7 +115,7 @@
           "step": 1
         }
       },
-      "description": "Extract wine country from SSR payload"
+      "description": "Extract each wine country from the page"
     },
     {
       "command": "store",
@@ -132,7 +132,7 @@
           "step": 1
         }
       },
-      "description": "Compose subtitle from region and country"
+      "description": "Compose the subtitle from the page's region and country"
     },
     {
       "command": "json_store_text",
@@ -150,7 +150,7 @@
           "step": 1
         }
       },
-      "description": "Extract wine cover path from SSR payload"
+      "description": "Extract each bottle image from the page"
     },
     {
       "command": "store",
@@ -167,7 +167,7 @@
           "step": 1
         }
       },
-      "description": "Make wine cover URLs absolute"
+      "description": "Make bottle image URLs absolute"
     },
     {
       "command": "json_store_text",
@@ -185,7 +185,7 @@
           "step": 1
         }
       },
-      "description": "Extract winery SEO slug from SSR payload"
+      "description": "Extract each winery slug from the page"
     },
     {
       "command": "json_store_text",
@@ -203,7 +203,7 @@
           "step": 1
         }
       },
-      "description": "Extract wine SEO slug from SSR payload"
+      "description": "Extract each wine slug from the page"
     },
     {
       "command": "json_store_text",
@@ -221,7 +221,7 @@
           "step": 1
         }
       },
-      "description": "Extract wine ID from SSR payload"
+      "description": "Extract each wine ID from the page"
     },
     {
       "command": "store",
@@ -238,7 +238,7 @@
           "step": 1
         }
       },
-      "description": "Build canonical Vivino detail URLs"
+      "description": "Build canonical Vivino detail URLs from the page data"
     }
   ],
   "url_steps": [
