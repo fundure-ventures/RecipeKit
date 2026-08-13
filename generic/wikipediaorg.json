@@ -224,6 +224,16 @@
     {
       "command": "json_store_text",
       "input": "$PAGE_SUMMARY",
+      "locator": "extract",
+      "output": {
+        "name": "SUMMARY",
+        "show": true
+      },
+      "description": "Expose the article extract as the short summary"
+    },
+    {
+      "command": "json_store_text",
+      "input": "$PAGE_SUMMARY",
       "locator": "thumbnail.source",
       "output": {
         "name": "COVER",

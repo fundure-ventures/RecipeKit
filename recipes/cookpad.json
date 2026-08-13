@@ -97,7 +97,7 @@
 		},
 		{
 			"command": "store_array",
-			"locator": ".ingredient-list ol li:nth-child($i)",
+			"locator": ".ingredient-list ul li:nth-child($i)",
 			"output": {
 				"name": "INGREDIENTS",
 				"show": true
