@@ -119,12 +119,29 @@
   ],
   "url_steps": [
     {
+      "command": "regex",
+      "input": "$INPUT",
+      "expression": "(\\/boardgame\\/\\d+(?:\\/[^?#]*)?)",
+      "output": {
+        "name": "DETAIL_PATH"
+      },
+      "description": "Extracts the canonical game path"
+    },
+    {
+      "command": "store",
+      "input": "https://rpggeek.com$DETAIL_PATH",
+      "output": {
+        "name": "DETAIL_URL"
+      },
+      "description": "Uses the equivalent Geekdo domain to avoid the BoardGameGeek Cloudflare challenge"
+    },
+    {
       "command": "load",
-      "url": "$INPUT",
+      "url": "$DETAIL_URL",
       "config": {
         "js": true
       },
-      "description": "Load the url of the movie"
+      "description": "Loads the game detail"
     },
     {
       "command": "store_url",
