@@ -10,6 +10,9 @@ export class BrowserManager {
     async initialize() {
         this.browser = await launch({
             headless: !Log.isDebug,
+            // Use stdio instead of a local DevTools socket. This keeps headless
+            // recipe runs from triggering macOS incoming-connection prompts.
+            pipe: true,
             // Needed to run on GitHub Actions
             args: [
                 "--no-sandbox",
