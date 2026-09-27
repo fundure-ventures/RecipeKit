@@ -27,6 +27,7 @@ describe(RECIPE, () => {
     test("--type url", async () => {
         const result = await runEngine (`boardgames/${RECIPE}`, "url", INPUT.URL);
 
+        expect(result.URL).toBe(INPUT.URL);
         expect(result.TITLE).toBe(ENTRY.TITLE);
         expect(result.DATE).toBe(ENTRY.SUBTITLE);
         expect(result.DESCRIPTION).toBeDefined();

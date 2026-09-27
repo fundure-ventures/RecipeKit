@@ -121,126 +121,109 @@
     {
       "command": "regex",
       "input": "$INPUT",
-      "expression": "(\\/boardgame\\/\\d+(?:\\/[^?#]*)?)",
+      "expression": "\\/boardgame\\/(\\d+)",
       "output": {
-        "name": "DETAIL_PATH"
+        "name": "GAME_ID"
       },
-      "description": "Extracts the canonical game path"
+      "description": "Extracts the BoardGameGeek game ID"
     },
     {
-      "command": "store",
-      "input": "https://rpggeek.com$DETAIL_PATH",
+      "command": "api_request",
+      "url": "https://api.geekdo.com/api/geekitems?objectid=$GAME_ID&objecttype=thing&subtype=boardgame",
       "output": {
-        "name": "DETAIL_URL"
+        "name": "DETAIL_JSON"
       },
-      "description": "Uses the equivalent Geekdo domain to avoid the BoardGameGeek Cloudflare challenge"
-    },
-    {
-      "command": "load",
-      "url": "$DETAIL_URL",
       "config": {
-        "js": true
+        "method": "GET"
       },
-      "description": "Loads the game detail"
+      "description": "Loads game details from the Geekdo JSON API"
     },
     {
-      "command": "store_url",
+      "command": "json_store_text",
+      "locator": "item.canonical_link",
+      "input": "$DETAIL_JSON",
       "output": {
-        "name": "URL"
+        "name": "URL",
+        "type": "string",
+        "show": true
       },
-      "description": "Saves the URL of the detail"
+      "description": "Saves the canonical BoardGameGeek URL"
     },
     {
-      "command": "store_attribute",
-      "locator": "meta[name='title']",
-      "attribute_name": "content",
+      "command": "json_store_text",
+      "locator": "item.name",
+      "input": "$DETAIL_JSON",
       "output": {
         "name": "TITLE",
         "type": "string",
         "show": true
       },
-      "description": "Takes the title of the game"
+      "description": "Extracts the game title"
     },
     {
-      "command": "store_attribute",
-      "locator": "meta[property='og:description']",
-      "attribute_name": "content",
-      "output": {
-        "name": "DESCRIPTION"
-      },
-      "description": "Takes the title of the game"
-    },
-    {
-      "command": "regex",
-      "input": "$DESCRIPTION",
-      "expression": "(?<=BoardgameNews).+",
+      "command": "json_store_text",
+      "locator": "item.short_description",
+      "input": "$DETAIL_JSON",
       "output": {
         "name": "DESCRIPTION",
         "type": "string",
         "show": true
       },
-      "description": "Applies a regular expression to get part of the description"
+      "description": "Extracts the short game description"
     },
     {
-      "command": "store_attribute",
-      "locator": "meta[property='og:image']",
-      "attribute_name": "content",
+      "command": "json_store_text",
+      "locator": "item.imageurl",
+      "input": "$DETAIL_JSON",
       "output": {
         "name": "COVER",
         "type": "string",
         "show": true
       },
-      "description": "Takes the cover of the game"
+      "description": "Extracts the game cover"
     },
     {
-      "command": "store_text",
-      "locator": "#mainbody > div > div.global-body-content.pending.ready > div.content.ng-isolate-scope > div:nth-child(2) > ng-include > div > ng-include > div > div.game-header > div.game-header-body > div.game-header-title-container > div > div.game-header-title-rating > overall-rating > div > div > a > span.ng-binding",
+      "command": "api_request",
+      "url": "https://api.geekdo.com/api/dynamicinfo?objectid=$GAME_ID&objecttype=thing&subtype=boardgame",
+      "output": {
+        "name": "DYNAMIC_JSON"
+      },
+      "config": {
+        "method": "GET"
+      },
+      "description": "Loads the game rating from the Geekdo JSON API"
+    },
+    {
+      "command": "json_store_text",
+      "locator": "item.stats.average",
+      "input": "$DYNAMIC_JSON",
       "output": {
         "name": "RATING",
         "type": "float",
         "show": true
       },
-      "description": "Saves the rating of the game"
+      "description": "Extracts the average rating"
     },
     {
-      "command": "store_text",
-      "locator": ".game-year",
-      "output": {
-        "name": "DATE"
-      },
-      "description": "Saves the date of the game"
-    },
-    {
-      "command": "regex",
-      "input": "$DATE",
-      "expression": "(?<=\\()\\d\\d\\d\\d(?=\\))",
+      "command": "json_store_text",
+      "locator": "item.yearpublished",
+      "input": "$DETAIL_JSON",
       "output": {
         "name": "DATE",
         "type": "date",
         "format": "YYYY",
         "show": true
       },
-      "description": "Saves the date of the game"
+      "description": "Extracts the publication year"
     },
     {
-      "command": "store_text",
-      "locator": "gameplay-module .gameplay-item:nth-child(2) p",
+      "command": "json_store_text",
+      "locator": "item.minplaytime",
+      "input": "$DETAIL_JSON",
       "output": {
-        "name": "TIME",
-        "type": "string",
-        "show": true
+        "name": "TIME"
       },
-      "description": "Saves the duration of the game"
-    },
-    {
-      "command": "regex",
-      "input": "$TIME",
-      "expression": "(\\d+)",
-      "output": {
-        "name": "TIME",
-        "type": "string",
-        "show": true
-      }
+      "description": "Extracts the minimum play time"
     },
     {
       "command": "store",
@@ -252,26 +235,26 @@
       }
     },
     {
-      "command": "store_attribute",
-      "locator": "gameplay-module [itemprop='numberOfPlayers'] [itemprop='minValue']",
-      "attribute_name": "content",
+      "command": "json_store_text",
+      "locator": "item.minplayers",
+      "input": "$DETAIL_JSON",
       "output": {
         "name": "PLAYERS_MIN",
         "type": "string",
         "show": false
       },
-      "description": "Saves the number of players of the game"
+      "description": "Extracts the minimum player count"
     },
     {
-      "command": "store_attribute",
-      "locator": "gameplay-module [itemprop='numberOfPlayers'] [itemprop='maxValue']",
-      "attribute_name": "content",
+      "command": "json_store_text",
+      "locator": "item.maxplayers",
+      "input": "$DETAIL_JSON",
       "output": {
         "name": "PLAYERS_MAX",
         "type": "string",
         "show": false
       },
-      "description": "Saves the number of players of the game"
+      "description": "Extracts the maximum player count"
     },
     {
       "command": "store",
@@ -283,14 +266,15 @@
       }
     },
     {
-      "command": "store_text",
-      "locator": ".features .feature:nth-child(2) popup-list li:nth-child(1)",
+      "command": "json_store_text",
+      "locator": "item.links.boardgamecategory.[0].name",
+      "input": "$DETAIL_JSON",
       "output": {
         "name": "CATEGORY",
         "type": "string",
         "show": true
       },
-      "description": "Saves the category of the game"
+      "description": "Extracts the primary game category"
     }
   ]
 }
