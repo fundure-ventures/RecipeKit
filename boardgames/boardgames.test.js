@@ -7,7 +7,7 @@ const TIMEOUT = parseInt(process.env.TEST_TIMEOUT);
 
 const RECIPE = "boardgamegeek.json";
 const INPUT = {
-    AUTOCOMPLETE: "Trivial Pursuit",
+    AUTOCOMPLETE: "Trivial Pursuit: Genus Edition",
     URL: "https://boardgamegeek.com/boardgame/2952/trivial-pursuit-genus-edition"
 }
 

@@ -14,134 +14,153 @@
   },
   "autocomplete_steps": [
     {
-      "command": "load",
-      "url": "https://distiller.com/search?term=$INPUT",
-      "config": {
-        "js": true,
-        "timeout": 5000
+      "command": "url_encode",
+      "input": "$INPUT",
+      "output": {
+        "name": "ENCODED_INPUT",
+        "show": false
       },
-      "description": "Load search results from Distiller"
+      "description": "Encode the spirit search query"
     },
     {
-      "command": "store_text",
-      "locator": "ol.spirits > li:nth-child($i) h5.name-content",
+      "command": "api_request",
+      "url": "https://distiller.com/api/spirits/search-help?term=$ENCODED_INPUT",
       "output": {
-        "name": "TITLE$i"
+        "name": "SEARCH_JSON",
+        "show": false
+      },
+      "config": {
+        "method": "GET",
+        "headers": {
+          "Accept": "application/json",
+          "X-DISTILLER-DEVELOPER-TOKEN": "8e01b58d-6bc8-407e-b7fb-5b989b5b23e9"
+        }
+      },
+      "description": "Search Distiller's JSON API"
+    },
+    {
+      "command": "json_count",
+      "input": "$SEARCH_JSON",
+      "locator": "spirits",
+      "output": {
+        "name": "NUMBER_OF_RESULTS",
+        "show": false
+      },
+      "description": "Count matching spirits"
+    },
+    {
+      "command": "json_store_text",
+      "input": "$SEARCH_JSON",
+      "locator": "spirits.[$i].name",
+      "output": {
+        "name": "TITLE$i",
+        "show": true
       },
       "config": {
         "loop": {
           "index": "i",
-          "from": 1,
-          "to": 9,
+          "from": 0,
+          "to": "$NUMBER_OF_RESULTS - 1",
           "step": 1
         }
       },
       "description": "Extract spirit names"
     },
     {
-      "command": "store_attribute",
-      "locator": "ol.spirits > li:nth-child($i) a",
-      "attribute_name": "href",
+      "command": "json_store_text",
+      "input": "$SEARCH_JSON",
+      "locator": "spirits.[$i].slug",
       "output": {
-        "name": "URL$i"
+        "name": "SLUG$i",
+        "show": false
       },
       "config": {
         "loop": {
           "index": "i",
-          "from": 1,
-          "to": 9,
+          "from": 0,
+          "to": "$NUMBER_OF_RESULTS - 1",
           "step": 1
         }
       },
-      "description": "Extract spirit URLs"
+      "description": "Extract spirit slugs"
     },
     {
       "command": "store",
-      "input": "https://distiller.com$URL$i",
+      "input": "https://distiller.com/spirits/$SLUG$i",
       "output": {
-        "name": "URL$i"
+        "name": "URL$i",
+        "show": true
       },
       "config": {
         "loop": {
           "index": "i",
-          "from": 1,
-          "to": 9,
+          "from": 0,
+          "to": "$NUMBER_OF_RESULTS - 1",
           "step": 1
         }
       },
-      "description": "Make URLs absolute"
+      "description": "Build canonical spirit URLs"
     },
     {
-      "command": "store_attribute",
-      "locator": "ol.spirits > li:nth-child($i) div.image",
-      "attribute_name": "style",
+      "command": "json_store_text",
+      "input": "$SEARCH_JSON",
+      "locator": "spirits.[$i].thumbnail_image_url",
       "output": {
-        "name": "RAW_COVER$i"
+        "name": "COVER$i",
+        "show": true
       },
       "config": {
         "loop": {
           "index": "i",
-          "from": 1,
-          "to": 9,
+          "from": 0,
+          "to": "$NUMBER_OF_RESULTS - 1",
           "step": 1
         }
       },
-      "description": "Extract raw style containing background-image"
-    },
-    {
-      "command": "regex",
-      "input": "$RAW_COVER$i",
-      "expression": "url\\(([^)]+)\\)",
-      "output": {
-        "name": "COVER$i"
-      },
-      "config": {
-        "loop": {
-          "index": "i",
-          "from": 1,
-          "to": 9,
-          "step": 1
-        }
-      },
-      "description": "Extract image URL from CSS background-image"
-    },
-    {
-      "command": "store_text",
-      "locator": "ol.spirits > li:nth-child($i) div.category",
-      "output": {
-        "name": "SUBTITLE$i"
-      },
-      "config": {
-        "loop": {
-          "index": "i",
-          "from": 1,
-          "to": 9,
-          "step": 1
-        }
-      },
-      "description": "Extract spirit category"
+      "description": "Extract spirit thumbnail images"
     }
   ],
   "url_steps": [
     {
-      "command": "load",
-      "url": "$INPUT",
-      "config": {
-        "js": true,
-        "timeout": 5000
-      },
-      "description": "Load spirit detail page"
-    },
-    {
-      "command": "store_url",
+      "command": "regex",
+      "input": "$INPUT",
+      "expression": "\\/spirits\\/([^/?]+)",
       "output": {
-        "name": "URL"
+        "name": "SLUG",
+        "show": false
       },
-      "description": "Save the current URL"
+      "description": "Extract the spirit slug"
     },
     {
-      "command": "store_text",
-      "locator": "h1[itemprop='name']",
+      "command": "api_request",
+      "url": "https://distiller.com/api/spirits/$SLUG",
+      "output": {
+        "name": "DETAIL_JSON",
+        "show": false
+      },
+      "config": {
+        "method": "GET",
+        "headers": {
+          "Accept": "application/json",
+          "X-DISTILLER-DEVELOPER-TOKEN": "8e01b58d-6bc8-407e-b7fb-5b989b5b23e9"
+        }
+      },
+      "description": "Load structured spirit details"
+    },
+    {
+      "command": "store",
+      "input": "$INPUT",
+      "output": {
+        "name": "URL",
+        "type": "string",
+        "show": true
+      },
+      "description": "Preserve the canonical spirit URL"
+    },
+    {
+      "command": "json_store_text",
+      "input": "$DETAIL_JSON",
+      "locator": "spirit.name",
       "output": {
         "name": "TITLE",
         "type": "string",
@@ -150,60 +169,52 @@
       "description": "Extract spirit name"
     },
     {
-      "command": "store_attribute",
-      "locator": "meta[property='og:description']",
-      "attribute_name": "content",
+      "command": "json_store_text",
+      "input": "$DETAIL_JSON",
+      "locator": "spirit.description",
       "output": {
         "name": "DESCRIPTION",
         "type": "string",
         "show": true
       },
-      "description": "Extract description from og:description"
+      "description": "Extract the spirit description"
     },
     {
-      "command": "store_attribute",
-      "locator": "meta[property='og:image']",
-      "attribute_name": "content",
+      "command": "json_store_text",
+      "input": "$DETAIL_JSON",
+      "locator": "spirit.image_urls.large",
       "output": {
         "name": "COVER",
         "type": "string",
         "show": true
       },
-      "description": "Extract cover image from og:image"
-    },
-    {
-      "command": "store_attribute",
-      "locator": "link[rel='apple-touch-icon']",
-      "attribute_name": "href",
-      "output": {
-        "name": "RAW_FAVICON",
-        "type": "string"
-      },
-      "description": "Extract favicon"
+      "description": "Extract the spirit cover image"
     },
     {
       "command": "store",
-      "input": "https://distiller.com$RAW_FAVICON",
+      "input": "https://distiller.com/favicon.ico",
       "output": {
         "name": "FAVICON",
         "type": "string",
         "show": true
       },
-      "description": "Make favicon URL absolute"
+      "description": "Set the Distiller favicon"
     },
     {
-      "command": "store_text",
-      "locator": "span[itemprop='ratingValue']",
+      "command": "json_store_text",
+      "input": "$DETAIL_JSON",
+      "locator": "spirit.average_rating",
       "output": {
         "name": "RATING",
-        "type": "string",
+        "type": "float",
         "show": true
       },
       "description": "Extract community rating"
     },
     {
-      "command": "store_text",
-      "locator": "p.ultra-mini-headline.type",
+      "command": "json_store_text",
+      "input": "$DETAIL_JSON",
+      "locator": "spirit.style.name",
       "output": {
         "name": "STYLE",
         "type": "string",
@@ -212,8 +223,9 @@
       "description": "Extract spirit style (e.g. Bourbon)"
     },
     {
-      "command": "store_text",
-      "locator": "p[itemprop='brand_name']",
+      "command": "json_store_text",
+      "input": "$DETAIL_JSON",
+      "locator": "spirit.brand.name",
       "output": {
         "name": "BRAND",
         "type": "string",
@@ -222,31 +234,12 @@
       "description": "Extract brand and location"
     },
     {
-      "command": "store_text",
-      "locator": "li.detail.abv .value",
-      "output": {
-        "name": "ABV",
-        "type": "string",
-        "show": true
-      },
-      "description": "Extract ABV"
-    },
-    {
-      "command": "store_text",
-      "locator": "li.detail.age .value",
-      "output": {
-        "name": "AGE",
-        "type": "string",
-        "show": true
-      },
-      "description": "Extract age statement"
-    },
-    {
-      "command": "store_text",
-      "locator": ".distiller-score span",
+      "command": "json_store_text",
+      "input": "$DETAIL_JSON",
+      "locator": "spirit.distiller_score",
       "output": {
         "name": "SCORE",
-        "type": "string",
+        "type": "integer",
         "show": true
       },
       "description": "Extract Distiller expert score"

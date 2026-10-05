@@ -15,58 +15,48 @@
   },
   "autocomplete_steps": [
     {
-      "command": "load",
-      "url": "https://www.vivino.com/explore?search_term=$INPUT",
-      "description": "Load Vivino's public wine search page",
-      "config": {
-        "timeout": 1,
-        "js": true
-      }
-    },
-    {
-      "command": "store_attribute",
-      "locator": "#ssr-explore-page",
-      "attribute_name": "data-ssr-props",
+      "command": "url_encode",
+      "input": "$INPUT",
       "output": {
-        "name": "JSON",
-        "type": "json",
+        "name": "ENCODED_INPUT",
         "show": false
       },
-      "description": "Capture the search data embedded in Vivino's HTML"
+      "description": "Encode the wine search query"
+    },
+    {
+      "command": "api_request",
+      "url": "https://9TAKGWJUXL-dsn.algolia.net/1/indexes/WINES_prod/query",
+      "output": {
+        "name": "SEARCH_JSON",
+        "show": false
+      },
+      "config": {
+        "method": "POST",
+        "headers": {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+          "x-algolia-application-id": "9TAKGWJUXL",
+          "x-algolia-api-key": "60c11b2f1068885161d95ca068d3a6ae"
+        },
+        "body": "{\"params\":\"query=$ENCODED_INPUT&hitsPerPage=10\"}"
+      },
+      "description": "Search Vivino's public wine index"
     },
     {
       "command": "json_count",
-      "input": "$JSON",
-      "locator": "initialExploreResults.matches",
+      "input": "$SEARCH_JSON",
+      "locator": "hits",
       "output": {
         "name": "NUMBER_OF_RESULTS",
         "type": "int",
         "show": false
       },
-      "description": "Count the wine results embedded in the page"
+      "description": "Count matching wines"
     },
     {
       "command": "json_store_text",
-      "input": "$JSON",
-      "locator": "initialExploreResults.matches.[$i].vintage.name",
-      "output": {
-        "name": "TITLE_RAW$i",
-        "show": false
-      },
-      "config": {
-        "loop": {
-          "index": "i",
-          "from": 0,
-          "to": "$NUMBER_OF_RESULTS - 1",
-          "step": 1
-        }
-      },
-      "description": "Extract each wine title from the page"
-    },
-    {
-      "command": "regex",
-      "input": "$TITLE_RAW$i",
-      "expression": "^(.*?)(?:\\s+\\d{4})?$",
+      "input": "$SEARCH_JSON",
+      "locator": "hits.[$i].vintages.[0].name",
       "output": {
         "name": "TITLE$i",
         "show": true
@@ -79,47 +69,12 @@
           "step": 1
         }
       },
-      "description": "Strip the trailing vintage year from the title"
+      "description": "Extract each wine title"
     },
     {
       "command": "json_store_text",
-      "input": "$JSON",
-      "locator": "initialExploreResults.matches.[$i].vintage.wine.region.name",
-      "output": {
-        "name": "REGION$i",
-        "show": false
-      },
-      "config": {
-        "loop": {
-          "index": "i",
-          "from": 0,
-          "to": "$NUMBER_OF_RESULTS - 1",
-          "step": 1
-        }
-      },
-      "description": "Extract each wine region from the page"
-    },
-    {
-      "command": "json_store_text",
-      "input": "$JSON",
-      "locator": "initialExploreResults.matches.[$i].vintage.wine.region.country.name",
-      "output": {
-        "name": "COUNTRY$i",
-        "show": false
-      },
-      "config": {
-        "loop": {
-          "index": "i",
-          "from": 0,
-          "to": "$NUMBER_OF_RESULTS - 1",
-          "step": 1
-        }
-      },
-      "description": "Extract each wine country from the page"
-    },
-    {
-      "command": "store",
-      "input": "$REGION$i, $COUNTRY$i",
+      "input": "$SEARCH_JSON",
+      "locator": "hits.[$i].region.name",
       "output": {
         "name": "SUBTITLE$i",
         "show": true
@@ -132,12 +87,12 @@
           "step": 1
         }
       },
-      "description": "Compose the subtitle from the page's region and country"
+      "description": "Extract each wine region"
     },
     {
       "command": "json_store_text",
-      "input": "$JSON",
-      "locator": "initialExploreResults.matches.[$i].vintage.image.variations.bottle_small",
+      "input": "$SEARCH_JSON",
+      "locator": "hits.[$i].image.variations.bottle_small",
       "output": {
         "name": "COVER_PATH$i",
         "show": false
@@ -150,7 +105,7 @@
           "step": 1
         }
       },
-      "description": "Extract each bottle image from the page"
+      "description": "Extract each bottle image"
     },
     {
       "command": "store",
@@ -171,10 +126,10 @@
     },
     {
       "command": "json_store_text",
-      "input": "$JSON",
-      "locator": "initialExploreResults.matches.[$i].vintage.wine.winery.seo_name",
+      "input": "$SEARCH_JSON",
+      "locator": "hits.[$i].vintages.[0].id",
       "output": {
-        "name": "WINERY_SEO$i",
+        "name": "VINTAGE_ID$i",
         "show": false
       },
       "config": {
@@ -185,47 +140,11 @@
           "step": 1
         }
       },
-      "description": "Extract each winery slug from the page"
-    },
-    {
-      "command": "json_store_text",
-      "input": "$JSON",
-      "locator": "initialExploreResults.matches.[$i].vintage.wine.seo_name",
-      "output": {
-        "name": "WINE_SEO$i",
-        "show": false
-      },
-      "config": {
-        "loop": {
-          "index": "i",
-          "from": 0,
-          "to": "$NUMBER_OF_RESULTS - 1",
-          "step": 1
-        }
-      },
-      "description": "Extract each wine slug from the page"
-    },
-    {
-      "command": "json_store_text",
-      "input": "$JSON",
-      "locator": "initialExploreResults.matches.[$i].vintage.wine.id",
-      "output": {
-        "name": "WINE_ID$i",
-        "show": false
-      },
-      "config": {
-        "loop": {
-          "index": "i",
-          "from": 0,
-          "to": "$NUMBER_OF_RESULTS - 1",
-          "step": 1
-        }
-      },
-      "description": "Extract each wine ID from the page"
+      "description": "Extract each matching vintage ID"
     },
     {
       "command": "store",
-      "input": "https://www.vivino.com/$WINERY_SEO$i-$WINE_SEO$i/w/$WINE_ID$i",
+      "input": "https://www.vivino.com/wines/$VINTAGE_ID$i",
       "output": {
         "name": "URL$i",
         "show": true
@@ -238,191 +157,134 @@
           "step": 1
         }
       },
-      "description": "Build canonical Vivino detail URLs from the page data"
+      "description": "Build stable Vivino vintage URLs"
     }
   ],
   "url_steps": [
     {
-      "command": "load",
-      "url": "$INPUT",
+      "command": "regex",
+      "input": "$INPUT",
+      "expression": "\\/wines\\/(\\d+)",
+      "output": {
+        "name": "VINTAGE_ID",
+        "show": false
+      },
+      "description": "Extract the Vivino vintage ID"
+    },
+    {
+      "command": "api_request",
+      "url": "https://www.vivino.com/api/vintages/$VINTAGE_ID",
+      "output": {
+        "name": "DETAIL_JSON",
+        "show": false
+      },
       "config": {
-        "js": true,
-        "timeout": 2
+        "method": "GET",
+        "headers": {
+          "Accept": "application/json",
+          "Accept-Language": "en-US,en;q=0.9",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:131.0) Gecko/20100101 Firefox/131.0"
+        }
       },
-      "description": "Load the url of the wine"
+      "description": "Load structured Vivino vintage details"
     },
     {
-      "command": "store_url",
+      "command": "store",
+      "input": "$INPUT",
       "output": {
-        "name": "URL"
-      },
-      "description": "Saves the URL of the detail"
-    },
-    {
-      "command": "store_text",
-      "locator": "title",
-      "output": {
-        "name": "WINERY",
+        "name": "URL",
         "type": "string",
         "show": true
       },
-      "description": "Saves the winery of the wine"
+      "description": "Preserve the Vivino vintage URL"
     },
     {
-      "command": "regex",
-      "input": "$WINERY",
-      "expression": "[^\\|]*",
+      "command": "json_store_text",
+      "input": "$DETAIL_JSON",
+      "locator": "vintage.name",
       "output": {
         "name": "TITLE",
         "type": "string",
         "show": true
       },
-      "description": "Applies a regular expression to get just the title"
+      "description": "Extract the wine title"
     },
     {
-      "command": "store",
-      "input": "$TITLE",
+      "command": "json_store_text",
+      "input": "$DETAIL_JSON",
+      "locator": "vintage.wine.winery.name",
       "output": {
         "name": "WINERY",
         "type": "string",
         "show": true
       },
-      "description": ""
+      "description": "Extract the winery"
     },
     {
-      "command": "store_text",
-      "locator": "*[class*='vintage']",
-      "output": {
-        "name": "STYLE_TEXT",
-        "type": "string",
-        "show": false
-      },
-      "description": "Gets text from vintage element"
-    },
-    {
-      "command": "regex",
-      "input": "$STYLE_TEXT",
-      "expression": "(\\d{4})",
-      "output": {
-        "name": "STYLE",
-        "type": "string",
-        "show": true
-      },
-      "description": "Extracts only the year (e.g. 2020) and stores as STYLE"
-    },
-    {
-      "command": "store_text",
-      "locator": "[class^=vivinoRating_averageValue]",
-      "output": {
-        "name": "RATING_RAW"
-      },
-      "description": "Gets the rating text with comma (e.g. 3,7)"
-    },
-    {
-      "command": "regex",
-      "input": "$RATING_RAW",
-      "expression": "^([^,]*)",
-      "output": {
-        "name": "RATING_LEFT"
-      },
-      "description": "Extracts left part before comma"
-    },
-    {
-      "command": "regex",
-      "input": "$RATING_RAW",
-      "expression": "(?<=,)(.*)",
-      "output": {
-        "name": "RATING_RIGHT"
-      },
-      "description": "Extracts right part after comma"
-    },
-    {
-      "command": "store",
-      "input": "$RATING_LEFT.$RATING_RIGHT",
-      "output": {
-        "name": "RATING",
-        "type": "float",
-        "show": true
-      },
-      "description": "Combines both parts with dot (3.7)"
-    },
-    {
-      "command": "store_text",
-      "locator": "*[class*='purchaseAvailability__currentPrice']",
-      "output": {
-        "name": "PRICE_TEXT",
-        "type": "string",
-        "show": false
-      },
-      "description": "Gets the price text (e.g. 6,50 €)"
-    },
-    {
-      "command": "regex",
-      "input": "$PRICE_TEXT",
-      "expression": "(\\d+)[,.]",
-      "output": {
-        "name": "PRICE_INT"
-      },
-      "description": "Extracts integer part of price"
-    },
-    {
-      "command": "regex",
-      "input": "$PRICE_TEXT",
-      "expression": "[,.](\\d+)",
-      "output": {
-        "name": "PRICE_DEC"
-      },
-      "description": "Extracts decimal part of price"
-    },
-    {
-      "command": "store",
-      "input": "$PRICE_INT.$PRICE_DEC",
-      "output": {
-        "name": "PRICE",
-        "type": "float",
-        "show": true
-      },
-      "description": "Combines integer and decimal with dot separator"
-    },
-    {
-      "command": "store_text",
-      "locator": "a[href*='/grapes/']",
-      "output": {
-        "name": "GRAPES",
-        "type": "string",
-        "show": true
-      },
-      "description": "Field: Type of grape"
-    },
-    {
-      "command": "store_text",
-      "locator": "table[class*='wineFacts__wineFacts'] tr[data-testid='wineFactRow']:nth-child(4) td[class*='wineFacts__fact'] a",
+      "command": "json_store_text",
+      "input": "$DETAIL_JSON",
+      "locator": "vintage.year",
       "output": {
         "name": "VINTAGE",
         "type": "string",
         "show": true
       },
-      "description": "Field: Saves the wine style as VINTAGE from wineFacts table row 4"
+      "description": "Extract the vintage year"
     },
     {
-      "command": "store_text",
-      "locator": "a[href*='/wine-countries/'], a[href*='/countries/'], *[class*='country'] a, *[data-testid*='country']",
+      "command": "json_store_text",
+      "input": "$DETAIL_JSON",
+      "locator": "vintage.wine.style.name",
+      "output": {
+        "name": "STYLE",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract the wine style"
+    },
+    {
+      "command": "json_store_text",
+      "input": "$DETAIL_JSON",
+      "locator": "vintage.statistics.ratings_average",
+      "output": {
+        "name": "RATING",
+        "type": "float",
+        "show": true
+      },
+      "description": "Extract the average rating"
+    },
+    {
+      "command": "json_store_text",
+      "input": "$DETAIL_JSON",
+      "locator": "vintage.wine.grapes.[0].name",
+      "output": {
+        "name": "GRAPES",
+        "type": "string",
+        "show": true
+      },
+      "description": "Extract the primary grape"
+    },
+    {
+      "command": "json_store_text",
+      "input": "$DETAIL_JSON",
+      "locator": "vintage.wine.region.country.name",
       "output": {
         "name": "COUNTRY",
         "type": "string",
         "show": true
       },
-      "description": "Saves the country"
+      "description": "Extract the wine country"
     },
     {
-      "command": "store_text",
-      "locator": "a[href*='/wine-regions/']",
+      "command": "json_store_text",
+      "input": "$DETAIL_JSON",
+      "locator": "vintage.wine.region.name",
       "output": {
         "name": "PLACE",
         "type": "string",
         "show": true
       },
-      "description": "Saves the description"
+      "description": "Extract the wine region"
     },
     {
       "command": "store",
@@ -432,44 +294,48 @@
         "type": "string",
         "show": true
       },
-      "description": "Field: Saves the region"
+      "description": "Compose the full wine region"
     },
     {
-      "command": "store_attribute",
-      "locator": "picture img",
-      "attribute_name": "src",
+      "command": "json_store_text",
+      "input": "$DETAIL_JSON",
+      "locator": "vintage.image.variations.bottle_large",
       "output": {
-        "name": "COVER"
+        "name": "COVER_PATH",
+        "show": false
       },
-      "description": "Saves the image"
+      "description": "Extract the bottle image path"
     },
     {
       "command": "store",
-      "input": "https:$COVER",
+      "input": "https:$COVER_PATH",
       "output": {
         "name": "COVER",
         "type": "string",
         "show": true
       },
-      "description": "Field: Add url param to the cover"
+      "description": "Make the bottle image URL absolute"
     },
     {
-      "command": "store_text",
-      "locator": "[class^=wineFacts__wineFacts] tr:last-child [class^=wineFacts__fact] span",
+      "command": "json_store_text",
+      "input": "$DETAIL_JSON",
+      "locator": "vintage.wine.style.description",
       "output": {
         "name": "DESCRIPTION",
         "type": "string",
         "show": true
       },
-      "description": "Saves the description"
+      "description": "Extract the wine style description"
     },
     {
       "command": "store",
-      "input": "$URL",
+      "input": "$INPUT",
       "output": {
-        "name": "URL_SALE"
+        "name": "URL_SALE",
+        "type": "string",
+        "show": true
       },
-      "description": "Field: Saves the url to sale the product"
+      "description": "Use the Vivino URL as the purchase link"
     }
   ]
 }

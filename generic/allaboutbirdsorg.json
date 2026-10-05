@@ -14,140 +14,228 @@
   },
   "autocomplete_steps": [
     {
-      "command": "load",
-      "url": "https://www.allaboutbirds.org/news/search/?q=$INPUT",
-      "config": {
-        "timeout": 8000
+      "command": "url_encode",
+      "input": "$INPUT",
+      "output": {
+        "name": "ENCODED_INPUT",
+        "show": false
       },
-      "description": "Load search results page"
+      "description": "Encode the bird search query"
     },
     {
-      "command": "store_text",
-      "locator": "#species-search-results li:nth-child($i) .article-item-header",
+      "command": "api_request",
+      "url": "https://birdnet.cornell.edu/taxonomy/api/search?q=$ENCODED_INPUT&per_page=10",
       "output": {
-        "name": "TITLE$i"
+        "name": "SEARCH_JSON",
+        "show": false
+      },
+      "config": {
+        "method": "GET",
+        "headers": {
+          "Accept": "application/json"
+        }
+      },
+      "description": "Search Cornell's bird taxonomy"
+    },
+    {
+      "command": "json_count",
+      "input": "$SEARCH_JSON",
+      "locator": "results",
+      "output": {
+        "name": "NUMBER_OF_RESULTS",
+        "show": false
+      },
+      "description": "Count matching bird species"
+    },
+    {
+      "command": "json_store_text",
+      "input": "$SEARCH_JSON",
+      "locator": "results.[$i].common_name",
+      "output": {
+        "name": "TITLE$i",
+        "show": true
       },
       "config": {
         "loop": {
           "index": "i",
-          "from": 1,
-          "to": 9,
+          "from": 0,
+          "to": "$NUMBER_OF_RESULTS - 1",
           "step": 1
         }
       },
-      "description": "Extract species names"
+      "description": "Extract common bird names"
     },
     {
-      "command": "store_attribute",
-      "locator": "#species-search-results li:nth-child($i) a.article-item-link",
-      "attribute_name": "href",
+      "command": "json_store_text",
+      "input": "$SEARCH_JSON",
+      "locator": "results.[$i].common_name",
       "output": {
-        "name": "URL$i"
+        "name": "SUBTITLE$i",
+        "show": true
       },
       "config": {
         "loop": {
           "index": "i",
-          "from": 1,
-          "to": 9,
+          "from": 0,
+          "to": "$NUMBER_OF_RESULTS - 1",
           "step": 1
         }
       },
-      "description": "Extract species URLs"
+      "description": "Use the common name as the result subtitle"
     },
     {
-      "command": "store_attribute",
-      "locator": "#species-search-results li:nth-child($i) img",
-      "attribute_name": "src",
+      "command": "json_store_text",
+      "input": "$SEARCH_JSON",
+      "locator": "results.[$i].image.medium",
       "output": {
-        "name": "COVER$i"
+        "name": "COVER$i",
+        "show": true
       },
       "config": {
         "loop": {
           "index": "i",
-          "from": 1,
-          "to": 9,
+          "from": 0,
+          "to": "$NUMBER_OF_RESULTS - 1",
           "step": 1
         }
       },
-      "description": "Extract species thumbnail images"
+      "description": "Extract bird thumbnail images"
     },
     {
-      "command": "store_attribute",
-      "locator": "#species-search-results li:nth-child($i) img",
-      "attribute_name": "alt",
+      "command": "replace",
+      "input": "$TITLE$i",
+      "find": " ",
+      "replace": "_",
       "output": {
-        "name": "SUBTITLE$i"
+        "name": "SLUG$i",
+        "show": false
       },
       "config": {
         "loop": {
           "index": "i",
-          "from": 1,
-          "to": 9,
+          "from": 0,
+          "to": "$NUMBER_OF_RESULTS - 1",
           "step": 1
         }
       },
-      "description": "Extract species alt text as subtitle"
+      "description": "Build All About Birds guide slugs"
+    },
+    {
+      "command": "store",
+      "input": "https://www.allaboutbirds.org/guide/$SLUG$i/",
+      "output": {
+        "name": "URL$i",
+        "show": true
+      },
+      "config": {
+        "loop": {
+          "index": "i",
+          "from": 0,
+          "to": "$NUMBER_OF_RESULTS - 1",
+          "step": 1
+        }
+      },
+      "description": "Build All About Birds guide URLs"
     }
   ],
   "url_steps": [
     {
-      "command": "load",
-      "url": "$INPUT",
-      "config": {
-        "js": true,
-        "timeout": 5000
-      },
-      "description": "Load bird detail page"
-    },
-    {
-      "command": "store_url",
+      "command": "regex",
+      "input": "$INPUT",
+      "expression": "\\/guide\\/([^/]+)",
       "output": {
-        "name": "URL"
+        "name": "GUIDE_SLUG",
+        "show": false
       },
-      "description": "Save URL"
+      "description": "Extract the bird guide slug"
     },
     {
-      "command": "store_text",
-      "locator": "h1",
+      "command": "replace",
+      "input": "$GUIDE_SLUG",
+      "find": "_",
+      "replace": " ",
+      "output": {
+        "name": "SEARCH_TERM",
+        "show": false
+      },
+      "description": "Convert the guide slug into a bird name"
+    },
+    {
+      "command": "url_encode",
+      "input": "$SEARCH_TERM",
+      "output": {
+        "name": "ENCODED_SEARCH_TERM",
+        "show": false
+      },
+      "description": "Encode the bird name"
+    },
+    {
+      "command": "api_request",
+      "url": "https://birdnet.cornell.edu/taxonomy/api/search?q=$ENCODED_SEARCH_TERM&per_page=1",
+      "output": {
+        "name": "DETAIL_JSON",
+        "show": false
+      },
+      "config": {
+        "method": "GET",
+        "headers": {
+          "Accept": "application/json"
+        }
+      },
+      "description": "Load Cornell bird metadata"
+    },
+    {
+      "command": "store",
+      "input": "$INPUT",
+      "output": {
+        "name": "URL",
+        "type": "string",
+        "show": true
+      },
+      "description": "Preserve the All About Birds guide URL"
+    },
+    {
+      "command": "json_store_text",
+      "input": "$DETAIL_JSON",
+      "locator": "results.[0].common_name",
       "output": {
         "name": "TITLE",
         "type": "string",
         "show": true
       },
-      "description": "Extract bird name from h1"
+      "description": "Extract the bird name"
     },
     {
-      "command": "store_attribute",
-      "locator": "meta[property='og:description']",
-      "attribute_name": "content",
+      "command": "json_store_text",
+      "input": "$DETAIL_JSON",
+      "locator": "results.[0].descriptions.en",
       "output": {
         "name": "DESCRIPTION",
         "type": "string",
         "show": true
       },
-      "description": "Extract bird description"
+      "description": "Extract the bird description"
     },
     {
-      "command": "store_attribute",
-      "locator": "link[rel='icon']",
-      "attribute_name": "href",
-      "output": {
-        "name": "FAVICON",
-        "type": "string",
-        "show": true
-      },
-      "description": "Extract favicon"
-    },
-    {
-      "command": "store_attribute",
-      "locator": "meta[property='og:image']",
-      "attribute_name": "content",
+      "command": "json_store_text",
+      "input": "$DETAIL_JSON",
+      "locator": "results.[0].image.medium",
       "output": {
         "name": "COVER",
         "type": "string",
         "show": true
       },
-      "description": "Extract cover image"
+      "description": "Extract the bird image"
+    },
+    {
+      "command": "store",
+      "input": "https://www.allaboutbirds.org/favicon.ico",
+      "output": {
+        "name": "FAVICON",
+        "type": "string",
+        "show": true
+      },
+      "description": "Set the All About Birds favicon"
     }
   ]
 }

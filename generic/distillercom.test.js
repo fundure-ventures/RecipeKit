@@ -7,11 +7,14 @@ const TIMEOUT = parseInt(process.env.TEST_TIMEOUT);
 
 const RECIPE = "distillercom.json";
 const INPUT = {
-    AUTOCOMPLETE: "bourbon",
+    AUTOCOMPLETE: "Buffalo Trace",
     URL: "https://distiller.com/spirits/buffalo-trace-bourbon"
 };
 
-const ENTRY = {"TITLE":"Buffalo Trace Bourbon","SUBTITLE":""};
+const ENTRY = {
+    TITLE: "Buffalo Trace Bourbon",
+    URL: "https://distiller.com/spirits/buffalo-trace-bourbon"
+};
 
 describe(RECIPE, () => {
     test("--type autocomplete", async () => {
@@ -20,16 +23,20 @@ describe(RECIPE, () => {
         const entry = findEntry(results, ENTRY.TITLE);
 
         expect(entry.TITLE).toBe(ENTRY.TITLE);
-        
-        expect(entry.URL).toBeDefined();
-        expect(entry.COVER).toBeDefined();
+        expect(entry.URL).toBe(ENTRY.URL);
+        expect(entry.COVER).toMatch(/^https:\/\/.*\.(jpg|jpeg|png|webp)/i);
     }, TIMEOUT);
 
     test("--type url", async () => {
         const result = await runEngine(`generic/${RECIPE}`, "url", INPUT.URL);
 
-        expect(result.TITLE).toBeDefined();
-        expect(result.DESCRIPTION).toBeDefined();
-        expect(result.COVER).toBeDefined();
+        expect(result.URL).toBe(INPUT.URL);
+        expect(result.TITLE).toBe(ENTRY.TITLE);
+        expect(result.DESCRIPTION).toContain("flagship bourbon");
+        expect(result.COVER).toMatch(/^https:\/\/.*\.(jpg|jpeg|png|webp)/i);
+        expect(result.RATING).toBeGreaterThan(0);
+        expect(result.STYLE).toBe("Bourbon");
+        expect(result.BRAND).toBe("Buffalo Trace");
+        expect(result.SCORE).toBeGreaterThan(0);
     }, TIMEOUT);
 });
