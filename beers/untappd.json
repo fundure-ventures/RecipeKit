@@ -1,7 +1,7 @@
 {
     "recipe_shortcut": "untappd_beers",
     "list_type": "beers",
-    "engine_version": 16,
+    "engine_version": 20,
     "title": "Untappd",
     "description": "Retrieve the beers from page untappd",
     "urls": [
@@ -196,8 +196,8 @@
         },
         {
           "command": "store_attribute",
-          "locator": "meta[property='og:image']",
-          "attribute_name": "content",
+          "locator": ".basic .label.image-big",
+          "attribute_name": "data-image",
           "output": {
             "name": "COVER",
             "type": "string",
