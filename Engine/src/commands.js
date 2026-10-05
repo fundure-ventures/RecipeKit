@@ -50,9 +50,11 @@ function resolveRequiredVariableInput(recipeEngine, stepInput, stepName) {
     return { ok: false, value: undefined };
   }
 
+  const variableName = recipeEngine.replaceVariablesinString(stepInput.slice(1));
+
   return {
     ok: true,
-    value: recipeEngine.get(stepInput)
+    value: recipeEngine.get(variableName)
   };
 }
 

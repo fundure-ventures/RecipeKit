@@ -7,7 +7,7 @@ const TIMEOUT = parseInt(process.env.TEST_TIMEOUT);
 
 const RECIPE = "boardgamegeek.json";
 const INPUT = {
-    AUTOCOMPLETE: "Trivial Pursuit: Genus Edition",
+    AUTOCOMPLETE: "Trivial Pursuit",
     URL: "https://boardgamegeek.com/boardgame/2952/trivial-pursuit-genus-edition"
 }
 
@@ -21,7 +21,7 @@ describe(RECIPE, () => {
         expect(entry.TITLE).toBe(ENTRY.TITLE);
         expect(entry.SUBTITLE).toBe(ENTRY.SUBTITLE);
         expect(entry.COVER).toMatch(/^https:\/\/.*\.(jpg|jpeg|png|webp)$/i);
-        expect(entry.URL).toMatch(/^https:\/\/www\.boardgamegeek\.com\/boardgame\/2952\/trivial-pursuit-genus-edition$/i);
+        expect(entry.URL).toBe("https://boardgamegeek.com/boardgame/2952/trivial-pursuit-genus-edition");
     }, TIMEOUT);
     
     test("--type url", async () => {

@@ -644,6 +644,23 @@ describe("StepExecutor — execute() loop", () => {
     expect(engine.get("TITLE2")).toBe("C");
   });
 
+  test("resolves indexed JSON input variables inside loops", async () => {
+    const { engine, executor } = createExecutor();
+    engine.set("DETAIL_JSON0", { item: { name: "First game" } });
+    engine.set("DETAIL_JSON1", { item: { name: "Second game" } });
+
+    await executor.execute({
+      command: "json_store_text",
+      input: "$DETAIL_JSON$i",
+      locator: "item.name",
+      output: { name: "TITLE$i" },
+      config: { loop: { index: "i", from: 0, to: 1, step: 1 } }
+    });
+
+    expect(engine.get("TITLE0")).toBe("First game");
+    expect(engine.get("TITLE1")).toBe("Second game");
+  });
+
   // Unknown command
   test("handles unknown command gracefully", silenceErrors(async () => {
     const { executor } = createExecutor();
