@@ -190,11 +190,11 @@
     {
       "command": "regex",
       "input": "$AUX_PROVIDER",
-      "expression": "(?<=Ahora\\sen\\sstreaming\\sen\\s).+",
+      "expression": "^(?:Ahora\\sen\\s(?:retransmisión|streaming)\\sen\\s|Now\\sStreaming\\son\\s)(.+)$",
       "output": {
         "name": "AUX_PROVIDER"
       },
-      "description": "Saves the provider"
+      "description": "Extracts the provider name from the localized icon alternative text"
     },
     {
       "command": "store",

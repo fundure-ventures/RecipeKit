@@ -132,6 +132,27 @@ describe("StepExecutor — executeRegexStep", () => {
     expect(result).toBe("7");
   });
 
+  // From movies/tmdb.json and tv_shows/tmdb.json — extract provider from TMDB's icon alt text
+  test("extracts streaming provider from localized icon alt text (tmdb recipes)", async () => {
+    const expression = "^(?:Ahora\\sen\\s(?:retransmisión|streaming)\\sen\\s|Now\\sStreaming\\son\\s)(.+)$";
+
+    for (const [altText, provider] of [
+      ["Ahora en retransmisión en Netflix", "Netflix"],
+      ["Ahora en streaming en Disney Plus", "Disney Plus"],
+      ["Now Streaming on Max Amazon Channel", "Max Amazon Channel"],
+    ]) {
+      const { engine, executor } = createExecutor();
+      engine.set("AUX_PROVIDER", altText);
+
+      const result = await executor.executeRegexStep({
+        command: "regex", input: "$AUX_PROVIDER",
+        expression,
+        output: { name: "AUX_PROVIDER" }
+      });
+      expect(result).toBe(provider);
+    }
+  });
+
   // From wines/vivino.json — extract URL from CSS background-image
   test("extracts URL from CSS url() (vivino)", async () => {
     const { engine, executor } = createExecutor();

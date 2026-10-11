@@ -32,6 +32,8 @@ describe(RECIPE, () => {
     expect(result.DESCRIPTION).toBeDefined();
     // expect(result.GENRE).toBe("");
     expect(result.DURATION).toBeDefined();
+    expect(result.TAGS).toMatch(/\S/);
+    expect(result.TAGS).not.toMatch(/^(?:Ahora en|Now Streaming)/);
     expect(result.RATING).toBeDefined();
     expect(result.AUTHOR).toBeDefined();
     expect(result.COVER).toMatch(/^https:\/\/image\.tmdb\.org\/t\/p\/original\/.*\.(jpg|jpeg|png|webp)$/i);
